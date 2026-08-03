@@ -45,9 +45,9 @@ export async function POST(req) {
   try {
     if (category === "power") {
       await publish(revoke ? t.powerRemove : t.power, { UserId: uid, Power: key, Admin: by });
-    } else if (category === "stand") {
-      if (key === "TW") await publish(revoke ? t.powerRemove : t.power, { UserId: uid, Power: key, Admin: by });
-      else await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id }); // StandsHandler (Wonder of U / D4C)
+    } else if (category === "stand" || category === "car") {
+      // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager on spawn.
+      await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
     } else if (category === "gamepass" || category === "tool" || category === "perk") {
       await publish(revoke ? t.itemRemove : t.item, { UserId: uid, Item: key, Admin: by });
     } else {
