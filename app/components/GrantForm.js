@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-const FIELD = { power: "powers", gamepass: "gamepasses" };
+const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam" };
 
 export default function GrantForm({ category, items, verb = "Grant" }) {
   const [sel, setSel] = useState(null);

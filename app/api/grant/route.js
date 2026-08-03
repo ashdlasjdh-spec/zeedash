@@ -1,21 +1,35 @@
 import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
-import { publish, resolveUsername } from "@/lib/roblox";
+import { publish, resolveUsername, dsGet, dsSet } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
 import { grantPerks, revokePerks } from "@/lib/perksApi";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // Categories that live in the shared perks table (so they persist + show up on
-// the bot). power + gamepass only — stand/car/tool apply in-game via DashboardGrant.
+// the bot). power + gamepass + shazam — stand/car/tool apply in-game via DashboardGrant.
 function dbPatch(category, key) {
   if (category === "power") return { powers: [key] };
   if (category === "gamepass") return { gamepasses: [key] };
+  if (category === "shazam") return { shazam: [key] };
   return null;
 }
 function dbRevokeWhat(category, key) {
-  if (["power", "gamepass"].includes(category)) return `${category}:${key}`;
+  if (["power", "gamepass", "shazam"].includes(category)) return `${category}:${key}`;
   return null;
+}
+
+// Merge/remove a shazam variant in the user's PlayerPerks DataStore entry — the
+// SAME entry PerkReceiver.lua reads on every spawn (perks.shazam), so the grant
+// persists and re-applies on join without any new game code. Then ping PerkGrant
+// so an online player gets it immediately.
+async function patchPlayerPerksShazam(uid, key, revoke) {
+  const entryKey = String(uid);
+  const cur = (await dsGet("PlayerPerks", entryKey)) || {};
+  const list = Array.isArray(cur.shazam) ? cur.shazam : [];
+  cur.shazam = revoke ? list.filter((v) => v !== key) : [...new Set([...list, key])];
+  await dsSet("PlayerPerks", entryKey, cur);
+  await publish("PerkGrant", { userId: uid });
 }
 
 // Same MessagingService topics your bot uses (overridable via env).
@@ -44,6 +58,11 @@ export async function POST(req) {
     } else if (category === "stand" || category === "car" || category === "tool") {
       // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
+    } else if (category === "shazam") {
+      // Live apply/remove NOW via ShazamReceiver.lua (DashboardGrant topic) ...
+      await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
+      // ... and persist in PlayerPerks so PerkReceiver re-applies it every spawn.
+      await patchPlayerPerksShazam(uid, key, revoke);
     } else if (category === "gamepass") {
       await publish(revoke ? t.itemRemove : t.item, { UserId: uid, Item: key, Admin: by });
     } else {
