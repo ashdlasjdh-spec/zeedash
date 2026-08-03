@@ -6,19 +6,15 @@ import { grantPerks, revokePerks } from "@/lib/perksApi";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-const MAX_ARMOR = 200;
-// Which categories are stored in the shared perks table (so grants persist +
-// show up on the bot too). "stand" is topic-only in-game, not a DB column.
+// Categories that live in the shared perks table (so they persist + show up on
+// the bot). power + gamepass only — stand/car/tool apply in-game via DashboardGrant.
 function dbPatch(category, key) {
   if (category === "power") return { powers: [key] };
   if (category === "gamepass") return { gamepasses: [key] };
-  if (category === "tool") return { tools: [key] };
-  if (category === "perk") return { armor: MAX_ARMOR };
   return null;
 }
 function dbRevokeWhat(category, key) {
-  if (category === "perk") return "armor";
-  if (["power", "gamepass", "tool"].includes(category)) return `${category}:${key}`;
+  if (["power", "gamepass"].includes(category)) return `${category}:${key}`;
   return null;
 }
 
@@ -45,10 +41,10 @@ export async function POST(req) {
   try {
     if (category === "power") {
       await publish(revoke ? t.powerRemove : t.power, { UserId: uid, Power: key, Admin: by });
-    } else if (category === "stand" || category === "car") {
-      // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager on spawn.
+    } else if (category === "stand" || category === "car" || category === "tool") {
+      // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
-    } else if (category === "gamepass" || category === "tool" || category === "perk") {
+    } else if (category === "gamepass" || category === "perk") {
       await publish(revoke ? t.itemRemove : t.item, { UserId: uid, Item: key, Admin: by });
     } else {
       return NextResponse.json({ error: "Unhandled category" }, { status: 400 });

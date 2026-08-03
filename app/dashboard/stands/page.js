@@ -6,7 +6,6 @@ import GrantForm from "../../components/GrantForm";
 
 export default async function Page() {
   const user = await getSession();
-  if (!user) return null;
   if (!can(user.role, "stand")) redirect("/dashboard");
   return (
     <>
