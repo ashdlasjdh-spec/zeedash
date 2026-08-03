@@ -2,9 +2,12 @@ import { getSession } from "@/lib/session";
 import { canGroup } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { resolveUsername } from "@/lib/roblox";
-import { listGroupRoles, setRank, kickFromGroup, findMembership } from "@/lib/robloxGroups";
+import { listGroupRoles, setRank, kickFromGroup, findMembership,
+  listJoinRequests, acceptJoinRequest, declineJoinRequest, processAllRequests, shout } from "@/lib/robloxGroups";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const s = await getSession();
@@ -22,11 +25,20 @@ export async function POST(req) {
   if (!s || !canGroup(s.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { groupId } = await getConfig();
   if (!groupId) return NextResponse.json({ error: "No group id set." }, { status: 400 });
-  const { action, username, roleId } = await req.json();
-  const user = await resolveUsername(username);
-  if (!user) return NextResponse.json({ error: `No Roblox user "${username}"` }, { status: 404 });
+  const { action, username, roleId, userId, message } = await req.json();
 
   try {
+    // ---- join requests + shout (no username needed) ----
+    if (action === "requests") return NextResponse.json({ requests: await listJoinRequests(groupId) });
+    if (action === "accept") { await acceptJoinRequest(groupId, userId); await log(s, "accept", { username: userId, userId }, "join request accepted"); return NextResponse.json({ ok: true }); }
+    if (action === "decline") { await declineJoinRequest(groupId, userId); await log(s, "decline", { username: userId, userId }, "join request declined"); return NextResponse.json({ ok: true }); }
+    if (action === "acceptAll") { const r = await processAllRequests(groupId, true); await log(s, "acceptAll", { username: "—", userId: 0 }, `${r.ok}/${r.total} accepted`); return NextResponse.json({ ok: true, ...r }); }
+    if (action === "declineAll") { const r = await processAllRequests(groupId, false); await log(s, "declineAll", { username: "—", userId: 0 }, `${r.ok}/${r.total} declined`); return NextResponse.json({ ok: true, ...r }); }
+    if (action === "shout") { await shout(groupId, message); await log(s, "shout", { username: "—", userId: 0 }, String(message || "").slice(0, 120)); return NextResponse.json({ ok: true }); }
+
+    // ---- member actions (need a username) ----
+    const user = await resolveUsername(username);
+    if (!user) return NextResponse.json({ error: `No Roblox user "${username}"` }, { status: 404 });
     if (action === "lookup") {
       const m = await findMembership(groupId, user.userId);
       return NextResponse.json({ target: user, inGroup: !!m, roleId: m?.roleId || null });
