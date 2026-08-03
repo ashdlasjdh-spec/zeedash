@@ -2,6 +2,9 @@ import { getSession } from "@/lib/session";
 import { PERMISSIONS, isCofounderPlus, canGroup } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+
+export const dynamic = "force-dynamic";
+
 export default async function DashLayout({ children }) {
   const user = await getSession();
   if (!user) redirect("/");
