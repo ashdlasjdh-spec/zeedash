@@ -60,7 +60,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .item{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;font-weight:600;text-align:left;color:var(--text);transition:.12s}
 .item:hover{border-color:var(--accent)}
 .item.sel{border-color:var(--accent);background:linear-gradient(180deg,rgba(124,92,255,.14),transparent)}
-.row{display:flex;gap:10px;align-items:end}
+.row{display:flex;gap:10px;align-items:flex-end}
 .toast{margin-top:16px;padding:12px 14px;border-radius:10px;font-size:13px}
 .toast.ok{background:rgba(61,220,151,.12);color:var(--ok);border:1px solid rgba(61,220,151,.3)}
 .toast.bad{background:rgba(255,93,108,.1);color:var(--danger);border:1px solid rgba(255,93,108,.3)}
