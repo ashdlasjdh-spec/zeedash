@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 
 export default async function Overview() {
   const user = await getSession();
+  if (!user) return null; // layout already redirects; guard prevents a build-time DB call
   let log = [];
   try { log = await query("select actor_name, action, category, item_key, target, created_at from audit_log order by id desc limit 12"); } catch {}
   return (
