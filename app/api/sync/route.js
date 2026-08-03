@@ -2,51 +2,109 @@ import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { listPerks, listTags } from "@/lib/perksApi";
 import { dsSet, publish } from "@/lib/roblox";
+import { pushTag } from "@/lib/crewtags";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+// Syncing hundreds of rows can outlive the default serverless timeout.
+export const maxDuration = 300;
 
-// POST /api/sync — re-push EVERYTHING in the shared DB into the universe currently set in
-// Settings. Use after copying the game / swapping the universe id: it rewrites each player's
-// PlayerPerks entry and the full CrewTagDefs, then pings the most-recent players so online
-// users update immediately (everyone else applies on their next spawn). Co-owner+ (251+) only.
+// POST /api/sync — re-hydrate the CURRENT universe (whatever is in Settings) from
+// the shared Postgres DB. Use after swapping the game / universe ID: the new
+// universe's DataStores start empty, but the DB is universe-independent, so this
+// writes everything back:
+//   * perks  -> "PlayerPerks" DataStore, one entry per user
+//               (gamepasses / powers / tools / shazam / armor — the exact keys
+//               PerkReceiver.lua + GearServer read on spawn)
+//   * tags   -> "CrewTagDefs" DataStore via the same pushTag path the tag maker
+//               uses (also pings CrewTagUpdate so live servers refresh)
+// Players receive their perks on next spawn/join; a handful of PerkGrant pings go
+// out for the most recently-updated users so anyone currently online updates now
+// (capped to stay well inside MessagingService rate limits).
 export async function POST() {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Co-owner+ only." }, { status: 403 });
+  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const result = { players: 0, tagGroups: 0, pinged: 0, errors: [] };
+  const out = { perksSynced: 0, perksSkipped: 0, tagsSynced: 0, whitelistPowers: 0, pinged: 0, errors: [] };
+
+  // ---- perks -> PlayerPerks ----
+  let perks = [];
   try {
-    // ---- perks -> PlayerPerks DataStore (PerkReceiver re-applies on spawn) ----
-    const { perks } = await listPerks();
-    const rows = (perks || []).filter((p) => p && p.userId);
-    for (const p of rows) {
-      const entry = {
-        gamepasses: p.gamepasses || [], powers: p.powers || [], tools: p.tools || [],
-        shazam: p.shazam || [], armor: p.armor || 0,
-        grantedBy: p.grantedBy || "sync", updatedAt: Math.floor(Date.now() / 1000),
-      };
-      try { await dsSet("PlayerPerks", String(p.userId), entry); result.players++; }
-      catch (e) { result.errors.push(`perks ${p.userId}: ${e.message}`); }
-    }
-
-    // ---- crew tags -> CrewTagDefs (the DB /tags shape IS the defs shape) ----
-    try {
-      const { tags } = await listTags();
-      await dsSet("CrewTagDefs", "defs", tags || {});
-      await publish("CrewTagUpdate", {});
-      result.tagGroups = Object.keys(tags || {}).length;
-    } catch (e) { result.errors.push(`tags: ${e.message}`); }
-
-    // ---- ping the 15 most-recently-updated players so online users update now ----
-    const recent = [...rows].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 15);
-    for (const p of recent) {
-      try { await publish("PerkGrant", { userId: Number(p.userId) }); result.pinged++; } catch {}
-    }
-
-    await logAudit({ actorId: s.id, actorName: s.name, action: "sync", detail: `${result.players} players, ${result.tagGroups} tag groups` });
-    return NextResponse.json({ ok: true, ...result });
+    perks = (await listPerks()).perks || [];
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: `Could not read the perks DB: ${e.message}` }, { status: 500 });
   }
+  for (const p of perks) {
+    const entry = {
+      gamepasses: p.gamepasses || [],
+      powers: p.powers || [],
+      tools: p.tools || [],
+      shazam: p.shazam || [],
+      armor: p.armor || 0,
+      grantedBy: p.grantedBy || "db-sync",
+      updatedAt: Math.floor(Date.now() / 1000),
+    };
+    const empty =
+      !entry.armor && !entry.gamepasses.length && !entry.powers.length &&
+      !entry.tools.length && !entry.shazam.length;
+    if (empty) { out.perksSkipped++; continue; }
+    try {
+      await dsSet("PlayerPerks", String(p.userId), entry);
+      out.perksSynced++;
+    } catch (e) {
+      out.errors.push(`perks ${p.userId}: ${e.message}`);
+    }
+  }
+
+  // Ping the 15 most recently-updated users (list is newest-first) so anyone
+  // online right now re-applies without a respawn. Everyone else gets theirs on
+  // next spawn — PerkReceiver re-fetches PlayerPerks on every CharacterAdded.
+  for (const p of perks.slice(0, 15)) {
+    try { await publish("PerkGrant", { userId: Number(p.userId) }); out.pinged++; } catch {}
+  }
+
+  // ---- powers -> DashboardWhitelist store ----
+  // Rebuild { [PowerName]: [userIds] } from the DB so whitelist-gated powers
+  // (Flash / Fly / Magic / flames) and the per-power tool gates come back after
+  // a universe swap — DashboardWhitelistSync merges this on every server boot.
+  try {
+    const wl = {};
+    for (const p of perks) {
+      for (const pw of p.powers || []) {
+        (wl[pw] = wl[pw] || []).push(Number(p.userId));
+      }
+    }
+    await dsSet("DashboardWhitelist", "powers", wl);
+    out.whitelistPowers = Object.keys(wl).length;
+  } catch (e) {
+    out.errors.push(`whitelist: ${e.message}`);
+  }
+
+  // ---- crew tags -> CrewTagDefs (best-effort) ----
+  try {
+    const { tags } = await listTags();
+    for (const [groupId, def] of Object.entries(tags || {})) {
+      try {
+        if (def?.name || (def?.colors || []).length) {
+          await pushTag(groupId, null, def, `db-sync (${s.name})`);
+          out.tagsSynced++;
+        }
+        for (const [rank, rt] of Object.entries(def?.rankTags || {})) {
+          await pushTag(groupId, rank, rt, `db-sync (${s.name})`);
+          out.tagsSynced++;
+        }
+      } catch (e) {
+        out.errors.push(`tag ${groupId}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    out.errors.push(`tags: ${e.message}`);
+  }
+
+  await logAudit({
+    actorId: s.id, actorName: s.name, action: "sync",
+    detail: `DB -> game: ${out.perksSynced} perk entries, ${out.tagsSynced} tags, ${out.errors.length} errors`,
+  });
+  return NextResponse.json({ ok: out.errors.length === 0, ...out });
 }

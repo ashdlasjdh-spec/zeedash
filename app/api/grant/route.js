@@ -23,6 +23,19 @@ function dbRevokeWhat(category, key) {
 // SAME entry PerkReceiver.lua reads on every spawn (perks.shazam), so the grant
 // persists and re-applies on join without any new game code. Then ping PerkGrant
 // so an online player gets it immediately.
+// Merge/remove a UserId in the "DashboardWhitelist" DataStore (entry "powers" =
+// { [PowerName]: [userIds] }). DashboardWhitelistSync.lua merges this into the
+// WhitelistTools table on every server boot, so whitelist-gated powers (Flash,
+// Fly, Magic, the flame powers) — and the tool-gate entries for every other
+// power — persist across servers and republishes.
+async function patchWhitelistStore(uid, key, revoke) {
+  const cur = (await dsGet("DashboardWhitelist", "powers")) || {};
+  const list = Array.isArray(cur[key]) ? cur[key].map(Number) : [];
+  const id = Number(uid);
+  cur[key] = revoke ? list.filter((v) => v !== id) : [...new Set([...list, id])];
+  await dsSet("DashboardWhitelist", "powers", cur);
+}
+
 async function patchPlayerPerksShazam(uid, key, revoke) {
   const entryKey = String(uid);
   const cur = (await dsGet("PlayerPerks", entryKey)) || {};
@@ -55,6 +68,13 @@ export async function POST(req) {
   try {
     if (category === "power") {
       await publish(revoke ? t.powerRemove : t.power, { UserId: uid, Power: key, Admin: by });
+      // Also feed the WhitelistTools gate: live via DashboardGrant
+      // (DashboardWhitelistSync mutates the table in running servers) and
+      // persisted via the DashboardWhitelist DataStore (re-merged on boot).
+      // For Flash / Fly / Magic / OrangeFlameOn / PurpleFlameOn this IS the
+      // grant — the admin topic above doesn't handle them.
+      await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
+      await patchWhitelistStore(uid, key, revoke);
     } else if (category === "stand" || category === "car" || category === "tool") {
       // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
