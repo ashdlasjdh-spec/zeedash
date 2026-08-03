@@ -2,7 +2,7 @@ import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { listPerks, listTags } from "@/lib/perksApi";
 import { dsSet, publish } from "@/lib/roblox";
-import { pushTag } from "@/lib/crewtags";
+import { pushTagsBulk } from "@/lib/crewtags";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -82,22 +82,14 @@ export async function POST() {
   }
 
   // ---- crew tags -> CrewTagDefs (best-effort) ----
+  // One DataStore write + ONE CrewTagUpdate publish for the whole set, so the
+  // in-game loader refreshes once instead of once per tag (which used to make
+  // the tag renderer rebuild repeatedly and restart every gradient animation).
   try {
     const { tags } = await listTags();
-    for (const [groupId, def] of Object.entries(tags || {})) {
-      try {
-        if (def?.name || (def?.colors || []).length) {
-          await pushTag(groupId, null, def, `db-sync (${s.name})`);
-          out.tagsSynced++;
-        }
-        for (const [rank, rt] of Object.entries(def?.rankTags || {})) {
-          await pushTag(groupId, rank, rt, `db-sync (${s.name})`);
-          out.tagsSynced++;
-        }
-      } catch (e) {
-        out.errors.push(`tag ${groupId}: ${e.message}`);
-      }
-    }
+    const { pushed, errors } = await pushTagsBulk(tags || {}, `db-sync (${s.name})`);
+    out.tagsSynced = pushed;
+    for (const e of errors) out.errors.push(`tag ${e}`);
   } catch (e) {
     out.errors.push(`tags: ${e.message}`);
   }
