@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 
-const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam" };
+const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools" };
 
-export default function GrantForm({ category, items, verb = "Grant" }) {
+export default function GrantForm({ category, items, verb = "Grant", canManage = false }) {
   const [sel, setSel] = useState(null);
   const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
@@ -41,7 +41,27 @@ export default function GrantForm({ category, items, verb = "Grant" }) {
     setLoadingList(false);
   }
 
-  const dbBacked = !!FIELD[category];
+  // Co-founder+ only: revoke every item this user has in this category, straight from
+  // the "currently granted" list.
+  async function removeUser(userId, rowItems) {
+    if (typeof window !== "undefined" && !window.confirm(`Remove ${rowItems.length} ${category}(s) from user ${userId}?`)) return;
+    setBusy(true); setToast(null);
+    try {
+      for (const key of rowItems) {
+        const res = await fetch("/api/grant", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category, key, username: String(userId), action: "revoke" }),
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || "Failed");
+      }
+      setToast({ ok: true, msg: `Removed ${rowItems.length} ${category}(s) from ${userId}.` });
+      loadGranted();
+    } catch (e) { setToast({ bad: true, msg: e.message }); }
+    setBusy(false);
+  }
+
+  const showList = canManage && !!FIELD[category];
 
   return (
     <>
@@ -63,12 +83,12 @@ export default function GrantForm({ category, items, verb = "Grant" }) {
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
 
-      {dbBacked && (
+      {showList && (
         <div className="card">
           <div className="between">
             <div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>Currently granted</div>
-              <div className="muted" style={{ fontSize: 13 }}>Everyone with a {category} in the shared database.</div>
+              <div className="muted" style={{ fontSize: 13 }}>Everyone with a {category} in the shared database. Co founder+ can remove.</div>
             </div>
             <button className="btn ghost" style={{ width: "auto" }} disabled={loadingList} onClick={loadGranted}>
               {loadingList ? "Loading…" : list ? "Refresh" : "Load"}
@@ -79,13 +99,16 @@ export default function GrantForm({ category, items, verb = "Grant" }) {
               <p className="muted" style={{ marginTop: 14 }}>No {category}s granted yet.</p>
             ) : (
               <table style={{ marginTop: 14 }}>
-                <thead><tr><th>User</th><th>Items</th><th>Granted by</th></tr></thead>
+                <thead><tr><th>User</th><th>Items</th><th>Granted by</th><th></th></tr></thead>
                 <tbody>
                   {list.map((r) => (
                     <tr key={r.userId}>
                       <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer">{r.userId}</a></td>
                       <td>{r.items.join(", ")}</td>
                       <td className="muted">{r.by || "—"}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} disabled={busy} onClick={() => removeUser(r.userId, r.items)}>Remove</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
