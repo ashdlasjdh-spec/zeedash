@@ -44,7 +44,7 @@ export async function POST(req) {
     } else if (category === "stand" || category === "car" || category === "tool") {
       // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
-    } else if (category === "gamepass" || category === "perk") {
+    } else if (category === "gamepass") {
       await publish(revoke ? t.itemRemove : t.item, { UserId: uid, Item: key, Admin: by });
     } else {
       return NextResponse.json({ error: "Unhandled category" }, { status: 400 });

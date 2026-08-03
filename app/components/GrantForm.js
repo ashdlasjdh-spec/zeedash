@@ -35,14 +35,13 @@ export default function GrantForm({ category, items, verb = "Grant" }) {
       if (!r.ok) throw new Error(d.error || "Failed");
       const field = FIELD[category];
       let rows = [];
-      if (category === "perk") rows = (d.perks || []).filter((p) => p.armor > 0).map((p) => ({ userId: p.userId, items: [`Armor (${p.armor})`], by: p.grantedBy }));
-      else if (field) rows = (d.perks || []).filter((p) => (p[field] || []).length).map((p) => ({ userId: p.userId, items: p[field], by: p.grantedBy }));
+      if (field) rows = (d.perks || []).filter((p) => (p[field] || []).length).map((p) => ({ userId: p.userId, items: p[field], by: p.grantedBy }));
       setList(rows);
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setLoadingList(false);
   }
 
-  const dbBacked = category === "perk" || !!FIELD[category];
+  const dbBacked = !!FIELD[category];
 
   return (
     <>
