@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { getConfig, setConfig } from "@/lib/config";
-import { query } from "@/lib/db";
+import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -21,6 +21,6 @@ export async function POST(req) {
   if (apiKey) await setConfig("roblox_api_key", apiKey, s.id);
   if (universeId) await setConfig("roblox_universe_id", String(universeId), s.id);
   if (groupId) await setConfig("roblox_group_id", String(groupId), s.id);
-  await query(`insert into audit_log (actor_id, actor_name, action, detail) values ($1,$2,'config','updated open cloud config')`, [s.id, s.name]);
+  await logAudit({ actorId: s.id, actorName: s.name, action: "config", detail: "updated open cloud config" });
   return NextResponse.json({ ok: true });
 }

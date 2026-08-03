@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canWhitelist, ROLES, rank } from "@/lib/permissions";
-import { query } from "@/lib/db";
+import { query, logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -22,8 +22,7 @@ export async function POST(req) {
      on conflict (discord_id) do update set role=$2, note=$3, added_by=$4`,
     [discordId, role, note || null, s.name]
   );
-  await query(`insert into audit_log (actor_id, actor_name, action, target, detail) values ($1,$2,'whitelist',$3,$4)`,
-    [s.id, s.name, discordId, `set role ${role}`]);
+  await logAudit({ actorId: s.id, actorName: s.name, action: "whitelist", target: discordId, detail: `set role ${role}` });
   return NextResponse.json({ ok: true });
 }
 
@@ -32,5 +31,6 @@ export async function DELETE(req) {
   if (!s || !canWhitelist(s.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { discordId } = await req.json();
   await query("delete from whitelist where discord_id=$1", [discordId]);
+  await logAudit({ actorId: s.id, actorName: s.name, action: "whitelist", target: discordId, detail: "removed from whitelist" });
   return NextResponse.json({ ok: true });
 }

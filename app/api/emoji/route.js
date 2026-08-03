@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { dsGet, dsSet, publish, resolveUsername } from "@/lib/roblox";
-import { query } from "@/lib/db";
+import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export async function POST(req) {
   else defs[String(user.userId)] = String(emojis || "");
   await dsSet("CustomEmojis", "emojis", defs);
   await publish("CustomEmojiUpdate", { userId: user.userId }).catch(() => {});
-  await query(`insert into audit_log (actor_id, actor_name, action, category, target, detail) values ($1,$2,'grant','emoji',$3,$4)`,
-    [s.id, s.name, `${user.username} (${user.userId})`, action === "remove" ? "removed emojis" : emojis]);
+  await logAudit({ actorId: s.id, actorName: s.name, action: action === "remove" ? "revoke" : "grant", category: "emoji",
+    target: `${user.username} (${user.userId})`, detail: action === "remove" ? "removed emojis" : emojis });
   return NextResponse.json({ ok: true, target: user });
 }
