@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 // (Discord login already required to reach here).
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !can(s.role, "tag")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !can(s.level, "tag")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { apiKey } = await getConfig();
   const creatorId = process.env.ROBLOX_CREATOR_ID;

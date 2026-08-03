@@ -5,6 +5,6 @@ import EmojiForm from "../../components/EmojiForm";
 export default async function Page() {
   const u = await getSession();
   if (!u) return null;
-  if (!can(u.role, "emoji")) redirect("/dashboard");
+  if (!can(u.level, "emoji")) redirect("/dashboard");
   return (<><h1 className="page-h">Emojis</h1><p className="page-sub">Give a player custom chat/name emojis. Updates live in-game.</p><EmojiForm/></>);
 }

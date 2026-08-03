@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const s = await getSession();
-  if (!s || !canConfig(s.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const c = await getConfig();
   return NextResponse.json({
     universeId: c.universeId, universeSource: c.universeSource,
@@ -16,7 +16,7 @@ export async function GET() {
 }
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canConfig(s.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { apiKey, universeId, groupId } = await req.json();
   if (apiKey) await setConfig("roblox_api_key", apiKey, s.id);
   if (universeId) await setConfig("roblox_universe_id", String(universeId), s.id);

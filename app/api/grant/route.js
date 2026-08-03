@@ -31,7 +31,7 @@ export async function POST(req) {
   if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const { category, key, username, action = "grant" } = await req.json();
   if (!category || !key || !username) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  if (!can(s.role, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
+  if (!can(s.level, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
   if (!findItem(category, key)) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
 
   const user = await resolveUsername(username);

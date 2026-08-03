@@ -6,7 +6,7 @@ import GrantForm from "../../components/GrantForm";
 
 export default async function Page() {
   const user = await getSession();
-  if (!can(user.role, "stand")) redirect("/dashboard");
+  if (!can(user.level, "stand")) redirect("/dashboard");
   return (
     <>
       <h1 className="page-h">Stands</h1>

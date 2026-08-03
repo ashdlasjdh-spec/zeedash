@@ -1,5 +1,5 @@
 import { exchangeCode, getUser } from "@/lib/discord";
-import { createSession, resolveRole } from "@/lib/session";
+import { createSession, resolveLevel, labelForLevel } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -13,9 +13,9 @@ export async function GET(req) {
   try {
     const token = await exchangeCode(code);
     const du = await getUser(token.access_token);
-    const role = await resolveRole(du.id);
-    if (!role) return NextResponse.redirect(new URL("/?error=denied", req.url));
-    await createSession({ id: du.id, name: du.global_name || du.username, role, avatar: du.avatar });
+    const level = await resolveLevel(du.id);
+    if (!level) return NextResponse.redirect(new URL("/?error=denied", req.url));
+    await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
     return NextResponse.redirect(new URL("/dashboard", req.url));
   } catch (e) {
     return NextResponse.redirect(new URL("/?error=oauth", req.url));

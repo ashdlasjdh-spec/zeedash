@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { pillClassForLevel } from "@/lib/permissions";
 
 // Feather-style line icons (inner paths), keyed by label.
 const ICON = {
@@ -65,7 +66,7 @@ export default function Sidebar({ user, grants, canGroup, isCofounderPlus }) {
       })}
       <div className="side-foot">
         <div className="avatar">{(user.name || "?")[0].toUpperCase()}<span className="online" /></div>
-        <div><div className="who">{user.name}</div><span className={`role-pill role-${user.role}`}>{user.role}</span></div>
+        <div><div className="who">{user.name}</div><span className={`role-pill role-${pillClassForLevel(user.level)}`}>{user.role}</span></div>
       </div>
       <form action="/api/auth/logout" method="post" style={{ marginTop: 10 }}>
         <button className="btn ghost" style={{ fontSize: 13, padding: "9px" }}>Sign out</button>

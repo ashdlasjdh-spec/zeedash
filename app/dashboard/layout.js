@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { PERMISSIONS, isCofounderPlus, canGroup } from "@/lib/permissions";
+import { grantsFor, canGroup, canWhitelist } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
@@ -8,10 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function DashLayout({ children }) {
   const user = await getSession();
   if (!user) redirect("/");
-  const grants = PERMISSIONS[user.role]?.grant || [];
   return (
     <div className="shell">
-      <Sidebar user={user} grants={grants} canGroup={canGroup(user.role)} isCofounderPlus={isCofounderPlus(user.role)} />
+      <Sidebar user={user} grants={grantsFor(user.level)} canGroup={canGroup(user.level)} isCofounderPlus={canWhitelist(user.level)} />
       <main className="main">{children}</main>
     </div>
   );

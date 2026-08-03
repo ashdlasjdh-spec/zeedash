@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // GET — list every player's custom emojis from the datastore.
 export async function GET() {
   const s = await getSession();
-  if (!s || !can(s.role, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !can(s.level, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const defs = (await dsGet("CustomEmojis", "emojis")) || {};
     return NextResponse.json({ emojis: defs }); // { [userId]: "emoji string" }
@@ -19,7 +19,7 @@ export async function GET() {
 // Emoji giver: per-user custom emoji string in the CustomEmojis datastore ("emojis" key).
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !can(s.role, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !can(s.level, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { username, userId, emojis, action = "set" } = await req.json();
   // Removing from the "loaded" list gives us a userId directly; setting resolves a username.
   let user;
