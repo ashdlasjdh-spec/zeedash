@@ -5,6 +5,12 @@ import { useState } from "react";
 // both, and normalize [r,g,b] -> hex so they can go straight into a <input type=color>.
 const toHex = (c) =>
   Array.isArray(c) ? "#" + c.map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, "0")).join("") : String(c || "#ffffff");
+// Tidy a typed hex ("FF0090" / "#ff0090" / "#FFF") into "#rrggbb" for saving/preview.
+const normHex = (s) => {
+  let v = String(s || "").trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split("").map((x) => x + x).join("");
+  return /^[0-9a-fA-F]{6}$/.test(v) ? "#" + v.toLowerCase() : String(s || "");
+};
 
 function flatten(tags) {
   const out = [];
@@ -29,7 +35,7 @@ export default function TagForm() {
   const setColor = (i, v) => setF((s) => ({ ...s, colors: s.colors.map((x, idx) => (idx === i ? v : x)) }));
   const addColor = () => setF((s) => (s.colors.length < 8 ? { ...s, colors: [...s.colors, "#ffffff"] } : s));
   const removeColor = (i) => setF((s) => (s.colors.length > 1 ? { ...s, colors: s.colors.filter((_, idx) => idx !== i) } : s));
-  const gradient = `linear-gradient(180deg, ${f.colors.map(toHex).join(", ")})`;
+  const gradient = `linear-gradient(180deg, ${f.colors.map(normHex).join(", ")})`;
 
   async function onUpload(e) {
     const file = e.target.files && e.target.files[0];
@@ -51,7 +57,7 @@ export default function TagForm() {
   async function save() {
     setB(true); setT(null);
     try {
-      const def = { name: f.name || undefined, colors: f.colors.map(toHex), iconId: f.iconId || undefined, animated: f.animated };
+      const def = { name: f.name || undefined, colors: f.colors.map(normHex), iconId: f.iconId || undefined, animated: f.animated };
       const r = await fetch("/api/tag", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: f.groupId, def, rank: f.rank || undefined }) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error);
       setT({ ok: true, msg: `Tag saved for group ${f.groupId}${f.rank ? ` (rank ${f.rank})` : ""}.` });
@@ -96,19 +102,21 @@ export default function TagForm() {
           </div>
         </div>
 
-        <label style={{ marginTop: 14, display: "block" }}>Colors (top → bottom gradient)</label>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid var(--line)", backgroundImage: gradient }} />
-          {f.colors.map((c, i) => (
-            <div key={i} style={{ position: "relative" }}>
-              <input type="color" value={toHex(c)} onChange={(e) => setColor(i, e.target.value)} />
-              {f.colors.length > 1 && (
-                <button onClick={() => removeColor(i)} title="Remove color"
-                  style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", border: "none", background: "var(--danger)", color: "#000", fontSize: 11, cursor: "pointer", lineHeight: "18px", padding: 0 }}>×</button>
-              )}
-            </div>
-          ))}
-          {f.colors.length < 8 && <button className="btn ghost" style={{ width: "auto", padding: "7px 12px" }} onClick={addColor}>+ Color</button>}
+        <label style={{ marginTop: 14, display: "block" }}>Colors (top → bottom gradient) — type hex codes</label>
+        <div style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid var(--line)", backgroundImage: gradient, flex: "0 0 auto" }} />
+          <div className="stack" style={{ gap: 8, flex: 1, minWidth: 240 }}>
+            {f.colors.map((c, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid var(--line)", background: normHex(c), flex: "0 0 auto" }} />
+                <input className="mono" style={{ flex: 1 }} value={c} onChange={(e) => setColor(i, e.target.value)} placeholder="#FF0090" />
+                {f.colors.length > 1 && (
+                  <button className="btn ghost" style={{ width: "auto", padding: "7px 12px", color: "var(--danger)" }} onClick={() => removeColor(i)}>Remove</button>
+                )}
+              </div>
+            ))}
+            {f.colors.length < 8 && <button className="btn ghost" style={{ width: "auto", padding: "7px 12px" }} onClick={addColor}>+ Color</button>}
+          </div>
         </div>
 
         <label style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
