@@ -54,8 +54,8 @@ export default function GrantForm({ category, items, verb = "Grant" }) {
         </div>
         <div className="row" style={{ marginTop: 18 }}>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <label>Roblox username</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman" />
+            <label>Roblox username or ID</label>
+            <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman or 156" />
           </div>
           <button className="btn" disabled={busy} onClick={() => submit("grant")}>{busy ? "…" : verb}</button>
           <button className="btn ghost" disabled={busy} onClick={() => submit("revoke")}>Revoke</button>

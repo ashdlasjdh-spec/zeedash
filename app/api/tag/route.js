@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { setTag, deleteTag, listTags } from "@/lib/perksApi";
-import { query } from "@/lib/db";
+import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -23,8 +23,7 @@ export async function POST(req) {
   if (!groupId || !def) return NextResponse.json({ error: "Missing groupId/def" }, { status: 400 });
   try {
     await setTag(groupId, rank, def);
-    await query(`insert into audit_log (actor_id, actor_name, action, category, target, detail) values ($1,$2,'grant','tag',$3,$4)`,
-      [s.id, s.name, String(groupId), rank ? `rank ${rank}` : "group-wide"]);
+    await logAudit({ actorId: s.id, actorName: s.name, action: "grant", category: "tag", target: String(groupId), detail: rank ? `rank ${rank}` : "group-wide" });
     return NextResponse.json({ ok: true });
   } catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
@@ -33,6 +32,9 @@ export async function DELETE(req) {
   const s = await getSession();
   if (!s || !can(s.role, "tag")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { groupId, rank } = await req.json();
-  try { await deleteTag(groupId, rank); return NextResponse.json({ ok: true }); }
-  catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+  try {
+    await deleteTag(groupId, rank);
+    await logAudit({ actorId: s.id, actorName: s.name, action: "revoke", category: "tag", target: String(groupId), detail: rank ? `rank ${rank}` : "group-wide" });
+    return NextResponse.json({ ok: true });
+  } catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }

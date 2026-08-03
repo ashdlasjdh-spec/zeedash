@@ -3,7 +3,7 @@ import { can } from "@/lib/permissions";
 import { publish, resolveUsername } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
 import { grantPerks, revokePerks } from "@/lib/perksApi";
-import { query } from "@/lib/db";
+import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // Categories that live in the shared perks table (so they persist + show up on
@@ -61,8 +61,7 @@ export async function POST(req) {
       }
     } catch (e) { warn = `Applied in-game, but DB sync failed: ${e.message}`; }
 
-    await query(`insert into audit_log (actor_id, actor_name, action, category, item_key, target) values ($1,$2,$3,$4,$5,$6)`,
-      [s.id, s.name, action, category, key, `${user.username} (${uid})`]);
+    await logAudit({ actorId: s.id, actorName: s.name, action, category, itemKey: key, target: `${user.username} (${uid})` });
     return NextResponse.json({ ok: true, target: user, warn });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });

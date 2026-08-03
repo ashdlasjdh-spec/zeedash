@@ -2,9 +2,9 @@ import { getSession } from "@/lib/session";
 import { canGroup } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { resolveUsername } from "@/lib/roblox";
-import { listGroupRoles, setRank, kickFromGroup, findMembership,
+import { listGroupRoles, setRank, shiftRank, kickFromGroup, findMembership,
   listJoinRequests, acceptJoinRequest, declineJoinRequest, processAllRequests, shout } from "@/lib/robloxGroups";
-import { query } from "@/lib/db";
+import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,11 @@ export async function POST(req) {
       await log(s, "rank", user, `role ${roleId}`);
       return NextResponse.json({ ok: true, target: user });
     }
+    if (action === "promote" || action === "demote") {
+      const r = await shiftRank(groupId, user.userId, action === "promote" ? 1 : -1);
+      await log(s, action, user, `${r.from} → ${r.to}`);
+      return NextResponse.json({ ok: true, target: user, ...r });
+    }
     if (action === "kick") {
       await kickFromGroup(groupId, user.userId);
       await log(s, "kick", user, "removed from group");
@@ -57,7 +62,7 @@ export async function POST(req) {
   } catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 
+// Best-effort audit — a logging hiccup must never fail the group action it records.
 async function log(s, action, user, detail) {
-  await query(`insert into audit_log (actor_id, actor_name, action, category, target, detail) values ($1,$2,$3,'group',$4,$5)`,
-    [s.id, s.name, action, `${user.username} (${user.userId})`, detail]);
+  await logAudit({ actorId: s.id, actorName: s.name, action, category: "group", target: `${user.username} (${user.userId})`, detail });
 }

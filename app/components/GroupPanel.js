@@ -24,6 +24,8 @@ export default function GroupPanel() {
       const d = await post({ action, username, roleId });
       if (action === "lookup") { setStatus(d); if (d.roleId) setRoleId(d.roleId); setT({ ok: true, msg: d.inGroup ? `${d.target.username} is in the group.` : `${d.target.username} is NOT in the group.` }); }
       else if (action === "rank") setT({ ok: true, msg: `Changed ${d.target.username}'s rank.` });
+      else if (action === "promote") setT({ ok: true, msg: `Promoted ${d.target.username}: ${d.from} → ${d.to}.` });
+      else if (action === "demote") setT({ ok: true, msg: `Demoted ${d.target.username}: ${d.from} → ${d.to}.` });
       else if (action === "kick") setT({ ok: true, msg: `Kicked ${d.target.username} from the group.` });
     } catch (e) { setT({ bad: true, msg: e.message }); }
     setB(false);
@@ -87,23 +89,30 @@ export default function GroupPanel() {
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Member rank &amp; removal</div>
         <div className="muted" style={{ fontSize: 13, marginBottom: 14 }}>Look up a member to change their rank or kick them.</div>
         <div className="row">
-          <div style={{ flex: 1, minWidth: 220 }}><label>Roblox username</label>
-            <input value={username} onChange={(e) => { setU(e.target.value); setStatus(null); }} placeholder="Builderman" /></div>
+          <div style={{ flex: 1, minWidth: 220 }}><label>Roblox username or ID</label>
+            <input value={username} onChange={(e) => { setU(e.target.value); setStatus(null); }} placeholder="Builderman or 156" /></div>
           <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => act("lookup")}>Look up</button>
         </div>
         {status && (
-          <div className="grid g2" style={{ marginTop: 18 }}>
-            <div><label>Set rank</label>
-              <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
-                <option value="">Choose a role…</option>
-                {roles.map((r) => <option key={r.id} value={r.id}>{r.rank} — {r.name}</option>)}
-              </select>
+          <>
+            <div className="grid g2" style={{ marginTop: 18 }}>
+              <div><label>Set rank</label>
+                <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
+                  <option value="">Choose a role…</option>
+                  {roles.map((r) => <option key={r.id} value={r.id}>{r.rank} — {r.name}</option>)}
+                </select>
+              </div>
+              <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
+                <button className="btn" style={{ width: "auto" }} disabled={busy || !roleId} onClick={() => act("rank")}>Change rank</button>
+                <button className="btn danger" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("kick")}>Kick</button>
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
-              <button className="btn" style={{ width: "auto" }} disabled={busy || !roleId} onClick={() => act("rank")}>Change rank</button>
-              <button className="btn danger" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("kick")}>Kick</button>
+            <div className="row" style={{ marginTop: 12, gap: 10 }}>
+              <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("demote")}>◄ Demote</button>
+              <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("promote")}>Promote ►</button>
+              <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>One step down / up the rank ladder.</span>
             </div>
-          </div>
+          </>
         )}
       </div>
 
