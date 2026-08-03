@@ -2,8 +2,25 @@ import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { publish, resolveUsername } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
+import { grantPerks, revokePerks } from "@/lib/perksApi";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+
+const MAX_ARMOR = 200;
+// Which categories are stored in the shared perks table (so grants persist +
+// show up on the bot too). "stand" is topic-only in-game, not a DB column.
+function dbPatch(category, key) {
+  if (category === "power") return { powers: [key] };
+  if (category === "gamepass") return { gamepasses: [key] };
+  if (category === "tool") return { tools: [key] };
+  if (category === "perk") return { armor: MAX_ARMOR };
+  return null;
+}
+function dbRevokeWhat(category, key) {
+  if (category === "perk") return "armor";
+  if (["power", "gamepass", "tool"].includes(category)) return `${category}:${key}`;
+  return null;
+}
 
 // Same MessagingService topics your bot uses (overridable via env).
 const T = () => ({
@@ -36,9 +53,21 @@ export async function POST(req) {
     } else {
       return NextResponse.json({ error: "Unhandled category" }, { status: 400 });
     }
+    // Persist to the shared perks DB so it's in sync with the bot (best-effort).
+    let warn = null;
+    try {
+      if (revoke) {
+        const what = dbRevokeWhat(category, key);
+        if (what) await revokePerks(uid, what, by);
+      } else {
+        const patch = dbPatch(category, key);
+        if (patch) await grantPerks(uid, patch, by);
+      }
+    } catch (e) { warn = `Applied in-game, but DB sync failed: ${e.message}`; }
+
     await query(`insert into audit_log (actor_id, actor_name, action, category, item_key, target) values ($1,$2,$3,$4,$5,$6)`,
       [s.id, s.name, action, category, key, `${user.username} (${uid})`]);
-    return NextResponse.json({ ok: true, target: user });
+    return NextResponse.json({ ok: true, target: user, warn });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

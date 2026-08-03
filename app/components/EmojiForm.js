@@ -1,28 +1,69 @@
 "use client";
 import { useState } from "react";
+
 export default function EmojiForm() {
   const [username, setU] = useState(""); const [emojis, setE] = useState("");
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
+  const [list, setList] = useState(null); const [loading, setLoading] = useState(false);
+
   async function go(action) {
     setB(true); setT(null);
     try {
-      const r = await fetch("/api/emoji", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ username, emojis, action }) });
+      const r = await fetch("/api/emoji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, emojis, action }) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error);
-      setT({ ok:true, msg:`${action==="remove"?"Cleared emojis for":"Set emojis for"} ${d.target.username}.` });
-    } catch(e){ setT({bad:true,msg:e.message}); } setB(false);
+      setT({ ok: true, msg: `${action === "remove" ? "Cleared emojis for" : "Set emojis for"} ${d.target.username}.` });
+      if (list) load();
+    } catch (e) { setT({ bad: true, msg: e.message }); } setB(false);
   }
+  async function load() {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/emoji"); const d = await r.json(); if (!r.ok) throw new Error(d.error);
+      setList(Object.entries(d.emojis || {}).map(([userId, e]) => ({ userId, emojis: e })));
+    } catch (e) { setT({ bad: true, msg: e.message }); } setLoading(false);
+  }
+  async function remove(userId) {
+    try {
+      const r = await fetch("/api/emoji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, action: "remove" }) });
+      const d = await r.json(); if (!r.ok) throw new Error(d.error);
+      setT({ ok: true, msg: `Cleared emojis for ${userId}.` }); load();
+    } catch (e) { setT({ bad: true, msg: e.message }); }
+  }
+
   return (
-    <div className="card">
-      <div className="grid g2">
-        <div><label>Roblox username</label><input value={username} onChange={e=>setU(e.target.value)} placeholder="Builderman"/></div>
-        <div><label>Emojis (paste any)</label><input value={emojis} onChange={e=>setE(e.target.value)} placeholder="⭐💖🔥"/></div>
+    <>
+      <div className="card">
+        <div className="grid g2">
+          <div><label>Roblox username</label><input value={username} onChange={(e) => setU(e.target.value)} placeholder="Builderman" /></div>
+          <div><label>Emojis (paste any)</label><input value={emojis} onChange={(e) => setE(e.target.value)} placeholder="⭐💖🔥" /></div>
+        </div>
+        <div className="row" style={{ marginTop: 16 }}>
+          <button className="btn" disabled={busy} onClick={() => go("set")}>Give emojis</button>
+          <button className="btn ghost" disabled={busy} onClick={() => go("remove")}>Remove all</button>
+        </div>
+        {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
-      <div className="row" style={{marginTop:16}}>
-        <button className="btn" style={{width:"auto"}} disabled={busy} onClick={()=>go("set")}>Give emojis</button>
-        <button className="btn ghost" style={{width:"auto"}} disabled={busy} onClick={()=>go("remove")}>Remove all</button>
+
+      <div className="card">
+        <div className="between">
+          <div><div style={{ fontWeight: 700, fontSize: 15 }}>Players with custom emojis</div><div className="muted" style={{ fontSize: 13 }}>Everyone in the emoji datastore.</div></div>
+          <button className="btn ghost" style={{ width: "auto" }} disabled={loading} onClick={load}>{loading ? "Loading…" : list ? "Refresh" : "Load"}</button>
+        </div>
+        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No custom emojis set yet.</p> : (
+          <table style={{ marginTop: 14 }}>
+            <thead><tr><th>User</th><th>Emojis</th><th></th></tr></thead>
+            <tbody>
+              {list.map((r) => (
+                <tr key={r.userId}>
+                  <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer">{r.userId}</a></td>
+                  <td style={{ fontSize: 18 }}>{r.emojis}</td>
+                  <td style={{ textAlign: "right" }}><button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} onClick={() => remove(r.userId)}>Remove</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
       </div>
-      {toast && <div className={`toast ${toast.ok?"ok":"bad"}`}>{toast.msg}</div>}
-    </div>
+    </>
   );
 }
