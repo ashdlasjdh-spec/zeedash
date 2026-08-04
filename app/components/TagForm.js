@@ -12,6 +12,44 @@ const normHex = (s) => {
   return /^[0-9a-fA-F]{6}$/.test(v) ? "#" + v.toLowerCase() : String(s || "");
 };
 
+// ---- Live preview: renders the tag exactly as the form describes it ----
+function TagPreview({ name, colors, animated, iconId }) {
+  const stops = (colors && colors.length ? colors : ["#ffffff"]).map(normHex);
+  // double the gradient so an infinite vertical scroll loops seamlessly
+  const grad = `linear-gradient(180deg, ${[...stops, ...stops].join(", ")})`;
+  const idNum = String(iconId || "").match(/\d+/);
+  const iconUrl = idNum ? `https://www.roblox.com/asset-thumbnail/image?assetId=${idNum[0]}&width=60&height=60&format=png` : null;
+  return (
+    <div style={{ flex: "0 0 auto", width: 200 }}>
+      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8, fontWeight: 600 }}>Live preview</div>
+      <div style={{
+        backgroundColor: "#14141c",
+        backgroundImage: "radial-gradient(130% 120% at 50% 25%, rgba(255,255,255,.05), transparent 60%)",
+        border: "1px solid var(--line)", borderRadius: 12, padding: "26px 14px",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        gap: 10, minHeight: 140, overflow: "hidden",
+      }}>
+        {iconUrl && (
+          <img src={iconUrl} alt="" width={44} height={44} style={{ objectFit: "contain" }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }} />
+        )}
+        <span style={{
+          fontWeight: 800, fontStyle: "italic", fontSize: 24, lineHeight: 1.15, whiteSpace: "nowrap",
+          backgroundImage: grad,
+          backgroundSize: animated ? "100% 200%" : "100% 100%",
+          WebkitBackgroundClip: "text", backgroundClip: "text",
+          WebkitTextFillColor: "transparent", color: "transparent",
+          animation: animated ? "zhdTagScroll 2s linear infinite" : "none",
+        }}>[{name || "CREW"}]</span>
+      </div>
+      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, textAlign: "center" }}>
+        {animated ? "animated" : "static"} · {stops.length} color{stops.length > 1 ? "s" : ""}
+      </div>
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes zhdTagScroll{from{background-position:50% 0%}to{background-position:50% 200%}}" }} />
+    </div>
+  );
+}
+
 function flatten(tags) {
   const out = [];
   for (const [g, def] of Object.entries(tags || {})) {
@@ -86,49 +124,55 @@ export default function TagForm() {
   return (
     <>
       <div className="card">
-        <div className="grid g2">
-          <div><label>Group ID</label><input className="mono" value={f.groupId} onChange={(e) => up("groupId", e.target.value)} placeholder="1099600954" /></div>
-          <div><label>Rank (blank = whole group)</label><input className="mono" value={f.rank} onChange={(e) => up("rank", e.target.value)} placeholder="e.g. 255" /></div>
-          <div><label>Tag text</label><input value={f.name} onChange={(e) => up("name", e.target.value)} placeholder="🍋 CREW" /></div>
-          <div>
-            <label>Icon (asset id, or upload a PNG)</label>
-            <div className="row" style={{ gap: 8 }}>
-              <input className="mono" style={{ flex: 1 }} value={f.iconId} onChange={(e) => up("iconId", e.target.value)} placeholder="rbxassetid…" />
-              <label className="btn ghost" style={{ width: "auto", cursor: "pointer", opacity: uploading ? 0.6 : 1 }}>
-                {uploading ? "Uploading…" : "Upload PNG"}
-                <input type="file" accept="image/png,image/jpeg" style={{ display: "none" }} disabled={uploading} onChange={onUpload} />
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <label style={{ marginTop: 14, display: "block" }}>Colors (top → bottom gradient) — type hex codes</label>
-        <div style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid var(--line)", backgroundImage: gradient, flex: "0 0 auto" }} />
-          <div className="stack" style={{ gap: 8, flex: 1, minWidth: 240 }}>
-            {f.colors.map((c, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input type="color" title="Pick a color — updates the hex" value={/^#[0-9a-fA-F]{6}$/.test(normHex(c)) ? normHex(c) : "#000000"}
-                  onChange={(e) => setColor(i, e.target.value)}
-                  style={{ width: 30, height: 30, padding: 0, border: "1px solid var(--line)", borderRadius: 6, background: "none", cursor: "pointer", flex: "0 0 auto" }} />
-                <input className="mono" style={{ flex: 1 }} value={c} onChange={(e) => setColor(i, e.target.value)} placeholder="#FF0090" />
-                {f.colors.length > 1 && (
-                  <button className="btn ghost" style={{ width: "auto", padding: "7px 12px", color: "var(--danger)" }} onClick={() => removeColor(i)}>Remove</button>
-                )}
+        <div style={{ display: "flex", gap: 22, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 320 }}>
+            <div className="grid g2">
+              <div><label>Group ID</label><input className="mono" value={f.groupId} onChange={(e) => up("groupId", e.target.value)} placeholder="1099600954" /></div>
+              <div><label>Rank (blank = whole group)</label><input className="mono" value={f.rank} onChange={(e) => up("rank", e.target.value)} placeholder="e.g. 255" /></div>
+              <div><label>Tag text</label><input value={f.name} onChange={(e) => up("name", e.target.value)} placeholder="🍋 CREW" /></div>
+              <div>
+                <label>Icon (asset id, or upload a PNG)</label>
+                <div className="row" style={{ gap: 8 }}>
+                  <input className="mono" style={{ flex: 1 }} value={f.iconId} onChange={(e) => up("iconId", e.target.value)} placeholder="rbxassetid…" />
+                  <label className="btn ghost" style={{ width: "auto", cursor: "pointer", opacity: uploading ? 0.6 : 1 }}>
+                    {uploading ? "Uploading…" : "Upload PNG"}
+                    <input type="file" accept="image/png,image/jpeg" style={{ display: "none" }} disabled={uploading} onChange={onUpload} />
+                  </label>
+                </div>
               </div>
-            ))}
-            {f.colors.length < 8 && <button className="btn ghost" style={{ width: "auto", padding: "7px 12px" }} onClick={addColor}>+ Color</button>}
-          </div>
-        </div>
+            </div>
 
-        <label style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
-          <input type="checkbox" style={{ width: "auto" }} checked={f.animated} onChange={(e) => up("animated", e.target.checked)} /> Animated gradient
-        </label>
-        <div className="row" style={{ marginTop: 16, gap: 10 }}>
-          <button className="btn" disabled={busy || uploading} onClick={save}>Save tag</button>
-          <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => { setF(EMPTY); setT(null); }}>Clear / new</button>
+            <label style={{ marginTop: 14, display: "block" }}>Colors (top → bottom gradient) — type hex codes</label>
+            <div style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid var(--line)", backgroundImage: gradient, flex: "0 0 auto" }} />
+              <div className="stack" style={{ gap: 8, flex: 1, minWidth: 240 }}>
+                {f.colors.map((c, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input type="color" title="Pick a color — updates the hex" value={/^#[0-9a-fA-F]{6}$/.test(normHex(c)) ? normHex(c) : "#000000"}
+                      onChange={(e) => setColor(i, e.target.value)}
+                      style={{ width: 30, height: 30, padding: 0, border: "1px solid var(--line)", borderRadius: 6, background: "none", cursor: "pointer", flex: "0 0 auto" }} />
+                    <input className="mono" style={{ flex: 1 }} value={c} onChange={(e) => setColor(i, e.target.value)} placeholder="#FF0090" />
+                    {f.colors.length > 1 && (
+                      <button className="btn ghost" style={{ width: "auto", padding: "7px 12px", color: "var(--danger)" }} onClick={() => removeColor(i)}>Remove</button>
+                    )}
+                  </div>
+                ))}
+                {f.colors.length < 8 && <button className="btn ghost" style={{ width: "auto", padding: "7px 12px" }} onClick={addColor}>+ Color</button>}
+              </div>
+            </div>
+
+            <label style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
+              <input type="checkbox" style={{ width: "auto" }} checked={f.animated} onChange={(e) => up("animated", e.target.checked)} /> Animated gradient
+            </label>
+            <div className="row" style={{ marginTop: 16, gap: 10 }}>
+              <button className="btn" disabled={busy || uploading} onClick={save}>Save tag</button>
+              <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => { setF(EMPTY); setT(null); }}>Clear / new</button>
+            </div>
+            {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+          </div>
+
+          <TagPreview name={f.name} colors={f.colors} animated={f.animated} iconId={f.iconId} />
         </div>
-        {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
 
       <div className="card">
