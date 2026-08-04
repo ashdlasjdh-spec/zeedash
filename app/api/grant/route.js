@@ -76,7 +76,7 @@ export async function POST(req) {
       // grant — the admin topic above doesn't handle them.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
       await patchWhitelistStore(uid, key, revoke);
-    } else if (category === "stand" || category === "car" || category === "tool") {
+    } else if (category === "stand" || category === "car" || category === "tool" || category === "startbr") {
       // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
     } else if (category === "shazam") {

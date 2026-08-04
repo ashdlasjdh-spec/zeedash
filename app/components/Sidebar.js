@@ -35,6 +35,7 @@ const NAV = [
   { href: "/dashboard/car", label: "SVJ Car", perm: "car" },
   { href: "/dashboard/tools", label: "Tools", perm: "tool" },
   { href: "/dashboard/gamepasses", label: "Gamepasses", perm: "gamepass" },
+  { href: "/dashboard/startbr", label: "Start BR", perm: "startbr" },
   { href: "/dashboard/tags", label: "Crew Tags", perm: "tag" },
   { href: "/dashboard/emojis", label: "Emojis", perm: "emoji" },
   { sec: "Moderation", needGroup: true },
