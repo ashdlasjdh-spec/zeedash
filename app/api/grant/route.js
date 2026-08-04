@@ -80,8 +80,9 @@ export async function POST(req) {
       // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
     } else if (category === "shazam") {
-      // Live apply/remove NOW via ShazamReceiver.lua (DashboardGrant topic) ...
-      await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
+      // ShazamManager.getColor checks HasGrant(uid, "Shazam:<variant>"), so the
+      // DashboardGrant key MUST be prefixed. (PlayerPerks/DB below keep the bare key.)
+      await publish("DashboardGrant", { action, userId: uid, category, key: `Shazam:${key}`, by: s.id });
       // ... and persist in PlayerPerks so PerkReceiver re-applies it every spawn.
       await patchPlayerPerksShazam(uid, key, revoke);
     } else if (category === "gamepass") {
