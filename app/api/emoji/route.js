@@ -6,8 +6,8 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Split into individual emojis (grapheme clusters) and join with "] [" so the in-game
-// renderer — which wraps the whole tag in [ ] — shows "[😀] [⭐]" instead of "[😀⭐]".
+// Split into individual emojis (grapheme clusters) and wrap EACH in its own [ ], space
+// separated — so the overhead tag shows "[😀] [⭐]" instead of "[😀⭐]".
 function bracketJoin(input) {
   if (!input) return "";
   let parts;
@@ -18,7 +18,7 @@ function bracketJoin(input) {
     parts = Array.from(String(input)); // fallback if Intl.Segmenter unavailable
   }
   parts = parts.filter((s) => s.trim() !== "" && s !== "[" && s !== "]");
-  return parts.join("] [");
+  return parts.map((e) => "[" + e + "]").join(" ");
 }
 
 // GET — list every player's custom emojis from the datastore.
