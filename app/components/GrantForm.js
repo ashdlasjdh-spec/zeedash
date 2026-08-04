@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Avatar from "./Avatar";
 
 const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools" };
 
@@ -103,7 +104,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
                 <tbody>
                   {list.map((r) => (
                     <tr key={r.userId}>
-                      <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer">{r.userId}</a></td>
+                      <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}><Avatar userId={r.userId} size={26} />{r.userId}</a></td>
                       <td>{r.items.join(", ")}</td>
                       <td className="muted">{r.by || "—"}</td>
                       <td style={{ textAlign: "right" }}>

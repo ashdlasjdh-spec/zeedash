@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Avatar from "./Avatar";
 
 export default function EmojiForm() {
   const [username, setU] = useState(""); const [emojis, setE] = useState("");
@@ -55,7 +56,7 @@ export default function EmojiForm() {
             <tbody>
               {list.map((r) => (
                 <tr key={r.userId}>
-                  <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer">{r.userId}</a></td>
+                  <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}><Avatar userId={r.userId} size={26} />{r.userId}</a></td>
                   <td style={{ fontSize: 18 }}>{r.emojis}</td>
                   <td style={{ textAlign: "right" }}><button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} onClick={() => remove(r.userId)}>Remove</button></td>
                 </tr>

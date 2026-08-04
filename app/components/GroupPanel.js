@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Avatar from "./Avatar";
 
 export default function GroupPanel() {
   const [roles, setRoles] = useState([]); const [groupId, setGid] = useState("");
@@ -74,11 +75,7 @@ export default function GroupPanel() {
             {reqs.map((r) => (
               <div key={r.userId} className="between" style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 13px" }}>
                 <a href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 12, fontWeight: 600, textDecoration: "none" }}>
-                  <img
-                    src={`https://www.roblox.com/headshot-thumbnail/image?userId=${r.userId}&width=48&height=48&format=png`}
-                    alt="" width={34} height={34} loading="lazy"
-                    style={{ borderRadius: "50%", background: "var(--surface-3)", border: "1px solid var(--line)", flex: "0 0 auto" }}
-                  />
+                  <Avatar userId={r.userId} size={34} />
                   <span>{r.username} <span className="muted mono" style={{ fontWeight: 400 }}>({r.userId})</span></span>
                 </a>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -102,7 +99,15 @@ export default function GroupPanel() {
         </div>
         {status && (
           <>
-            <div className="grid g2" style={{ marginTop: 18 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18, padding: "10px 13px", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10 }}>
+              <Avatar userId={status.target.userId} size={44} />
+              <div>
+                <a href={`https://www.roblox.com/users/${status.target.userId}/profile`} target="_blank" rel="noreferrer" style={{ fontWeight: 700, textDecoration: "none" }}>{status.target.username}</a>
+                <span className="muted mono" style={{ marginLeft: 8, fontSize: 12 }}>({status.target.userId})</span>
+                <div className="muted" style={{ fontSize: 12 }}>{status.inGroup ? "In the group" : "Not in the group"}</div>
+              </div>
+            </div>
+            <div className="grid g2" style={{ marginTop: 14 }}>
               <div><label>Set rank</label>
                 <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
                   <option value="">Choose a role…</option>
