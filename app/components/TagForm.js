@@ -1,22 +1,28 @@
 "use client";
 import { useState } from "react";
 
-// Colors come back from the DB as hex strings ("#ff0090") or [r,g,b] arrays. Render
-// both, and normalize [r,g,b] -> hex so they can go straight into a <input type=color>.
 const toHex = (c) =>
   Array.isArray(c) ? "#" + c.map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, "0")).join("") : String(c || "#ffffff");
-// Tidy a typed hex ("FF0090" / "#ff0090" / "#FFF") into "#rrggbb" for saving/preview.
 const normHex = (s) => {
   let v = String(s || "").trim().replace(/^#/, "");
   if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split("").map((x) => x + x).join("");
   return /^[0-9a-fA-F]{6}$/.test(v) ? "#" + v.toLowerCase() : String(s || "");
 };
 
-// ---- Live preview: renders the tag exactly as the form describes it ----
-function TagPreview({ name, colors, animated, iconId }) {
+// direction -> css gradient angle + background-size + which keyframe to run
+const DIRCSS = {
+  down:     { angle: 180, size: "100% 200%" },
+  up:       { angle: 180, size: "100% 200%" },
+  right:    { angle: 90,  size: "200% 100%" },
+  left:     { angle: 90,  size: "200% 100%" },
+  diagonal: { angle: 135, size: "200% 200%" },
+};
+
+function TagPreview({ name, colors, animated, iconId, dir, speed }) {
   const stops = (colors && colors.length ? colors : ["#ffffff"]).map(normHex);
-  // double the gradient so an infinite vertical scroll loops seamlessly
-  const grad = `linear-gradient(180deg, ${[...stops, ...stops].join(", ")})`;
+  const d = DIRCSS[dir] || DIRCSS.diagonal;
+  const grad = `linear-gradient(${d.angle}deg, ${[...stops, ...stops].join(", ")})`;
+  const dur = Math.min(8, Math.max(0.3, 1 / (Number(speed) || 0.5)));
   const idNum = String(iconId || "").match(/\d+/);
   const iconUrl = idNum ? `https://www.roblox.com/asset-thumbnail/image?assetId=${idNum[0]}&width=60&height=60&format=png` : null;
   return (
@@ -36,32 +42,37 @@ function TagPreview({ name, colors, animated, iconId }) {
         <span style={{
           fontWeight: 800, fontStyle: "italic", fontSize: 24, lineHeight: 1.15, whiteSpace: "nowrap",
           backgroundImage: grad,
-          backgroundSize: animated ? "100% 200%" : "100% 100%",
+          backgroundSize: animated ? d.size : "100% 100%",
           WebkitBackgroundClip: "text", backgroundClip: "text",
           WebkitTextFillColor: "transparent", color: "transparent",
-          animation: animated ? "zhdTagScroll 2s linear infinite" : "none",
+          animation: animated ? `zhdScroll_${dir || "diagonal"} ${dur}s linear infinite` : "none",
         }}>[{name || "CREW"}]</span>
       </div>
       <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, textAlign: "center" }}>
-        {animated ? "animated" : "static"} · {stops.length} color{stops.length > 1 ? "s" : ""}
+        {animated ? `${dir || "diagonal"} · speed ${Number(speed) || 0.5}` : "static"} · {stops.length} color{stops.length > 1 ? "s" : ""}
       </div>
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes zhdTagScroll{from{background-position:50% 0%}to{background-position:50% 200%}}" }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes zhdScroll_down{from{background-position:50% 0%}to{background-position:50% 200%}}
+        @keyframes zhdScroll_up{from{background-position:50% 200%}to{background-position:50% 0%}}
+        @keyframes zhdScroll_right{from{background-position:0% 50%}to{background-position:200% 50%}}
+        @keyframes zhdScroll_left{from{background-position:200% 50%}to{background-position:0% 50%}}
+        @keyframes zhdScroll_diagonal{from{background-position:0% 0%}to{background-position:200% 200%}}
+      ` }} />
     </div>
   );
 }
 
 function flatten(tags) {
   const out = [];
+  const m = (t) => ({ name: t.name, colors: t.colors || [], iconId: t.iconId || "", animated: t.animated !== false, dir: t.dir || "diagonal", speed: t.speed != null ? t.speed : 0.5 });
   for (const [g, def] of Object.entries(tags || {})) {
-    if (def && (def.name || (def.colors && def.colors.length)))
-      out.push({ group: g, rank: null, name: def.name, colors: def.colors || [], iconId: def.iconId || "", animated: def.animated !== false });
-    for (const [r, t] of Object.entries((def && def.rankTags) || {}))
-      out.push({ group: g, rank: Number(r), name: t.name, colors: t.colors || [], iconId: t.iconId || "", animated: t.animated !== false });
+    if (def && (def.name || (def.colors && def.colors.length))) out.push({ group: g, rank: null, ...m(def) });
+    for (const [r, t] of Object.entries((def && def.rankTags) || {})) out.push({ group: g, rank: Number(r), ...m(t) });
   }
   return out.sort((a, b) => a.group.localeCompare(b.group) || (a.rank ?? -1) - (b.rank ?? -1));
 }
 
-const EMPTY = { groupId: "", name: "", colors: ["#7c5cff", "#22d3ee"], iconId: "", animated: true, rank: "" };
+const EMPTY = { groupId: "", name: "", colors: ["#7c5cff", "#22d3ee"], iconId: "", animated: true, dir: "diagonal", speed: 0.5, rank: "" };
 
 export default function TagForm() {
   const [f, setF] = useState(EMPTY);
@@ -82,8 +93,7 @@ export default function TagForm() {
     setUploading(true); setT({ ok: true, msg: "Uploading icon & waiting for Roblox moderation…" });
     try {
       const fd = new FormData();
-      fd.append("file", file);
-      fd.append("name", f.name || "CrewTagIcon");
+      fd.append("file", file); fd.append("name", f.name || "CrewTagIcon");
       const r = await fetch("/api/tag/upload", { method: "POST", body: fd });
       const d = await r.json(); if (!r.ok) throw new Error(d.error);
       up("iconId", d.assetId);
@@ -95,7 +105,7 @@ export default function TagForm() {
   async function save() {
     setB(true); setT(null);
     try {
-      const def = { name: f.name || undefined, colors: f.colors.map(normHex), iconId: f.iconId || undefined, animated: f.animated };
+      const def = { name: f.name || undefined, colors: f.colors.map(normHex), iconId: f.iconId || undefined, animated: f.animated, dir: f.dir, speed: f.speed };
       const r = await fetch("/api/tag", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: f.groupId, def, rank: f.rank || undefined }) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error);
       setT({ ok: true, msg: `Tag saved for group ${f.groupId}${f.rank ? ` (rank ${f.rank})` : ""}.` });
@@ -108,7 +118,7 @@ export default function TagForm() {
     catch (e) { setT({ bad: true, msg: e.message }); } setLoading(false);
   }
   function edit(t) {
-    setF({ groupId: t.group, name: t.name || "", colors: (t.colors.length ? t.colors : ["#ffffff"]).map(toHex), iconId: t.iconId || "", animated: t.animated !== false, rank: t.rank == null ? "" : String(t.rank) });
+    setF({ groupId: t.group, name: t.name || "", colors: (t.colors.length ? t.colors : ["#ffffff"]).map(toHex), iconId: t.iconId || "", animated: t.animated !== false, dir: t.dir || "diagonal", speed: t.speed != null ? t.speed : 0.5, rank: t.rank == null ? "" : String(t.rank) });
     setT({ ok: true, msg: `Loaded ${t.rank == null ? "group-wide" : `rank ${t.rank}`} tag for group ${t.group} — edit and Save to update.` });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -164,6 +174,30 @@ export default function TagForm() {
             <label style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
               <input type="checkbox" style={{ width: "auto" }} checked={f.animated} onChange={(e) => up("animated", e.target.checked)} /> Animated gradient
             </label>
+            {f.animated && (
+              <div className="grid g2" style={{ marginTop: 10 }}>
+                <div>
+                  <label>Direction</label>
+                  <select value={f.dir} onChange={(e) => up("dir", e.target.value)}>
+                    <option value="down">Top → bottom (down)</option>
+                    <option value="up">Bottom → top (up)</option>
+                    <option value="right">Left → right</option>
+                    <option value="left">Right → left</option>
+                    <option value="diagonal">Diagonal</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Speed — {Number(f.speed).toFixed(2)}× {Number(f.speed) >= 1.5 ? "(fast)" : Number(f.speed) <= 0.4 ? "(slow)" : ""}</label>
+                  <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                    <input type="range" min="0.05" max="4" step="0.05" value={f.speed} onChange={(e) => up("speed", Number(e.target.value))} style={{ flex: 1 }} />
+                    <input className="mono" type="number" min="0.05" max="4" step="0.05" value={f.speed}
+                      onChange={(e) => up("speed", Math.max(0.05, Math.min(4, Number(e.target.value) || 0.5)))}
+                      style={{ width: 72 }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="row" style={{ marginTop: 16, gap: 10 }}>
               <button className="btn" disabled={busy || uploading} onClick={save}>Save tag</button>
               <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => { setF(EMPTY); setT(null); }}>Clear / new</button>
@@ -171,7 +205,7 @@ export default function TagForm() {
             {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
           </div>
 
-          <TagPreview name={f.name} colors={f.colors} animated={f.animated} iconId={f.iconId} />
+          <TagPreview name={f.name} colors={f.colors} animated={f.animated} iconId={f.iconId} dir={f.dir} speed={f.speed} />
         </div>
       </div>
 
@@ -188,6 +222,7 @@ export default function TagForm() {
                   <span style={{ fontWeight: 800, fontStyle: "italic", backgroundImage: `linear-gradient(180deg, ${t.colors.map(toHex).join(", ")})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>{t.name || "(no text)"}</span>
                   <span className="pill mono">{t.group}</span>
                   <span className="muted" style={{ fontSize: 12 }}>{t.rank == null ? "group-wide" : `rank ${t.rank}`}</span>
+                  {t.animated && <span className="muted" style={{ fontSize: 11 }}>{t.dir}</span>}
                   {t.iconId && <span className="muted mono" style={{ fontSize: 11 }}>icon {t.iconId}</span>}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
