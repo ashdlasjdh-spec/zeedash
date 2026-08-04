@@ -37,7 +37,7 @@ Variables. `.env.local` is git-ignored; **never commit real values**.
 | `BOOTSTRAP_OWNER_IDS` | ➖ | Break-glass Discord ids that always get in (level 255). |
 | `ROBLOX_API_KEY` | ✅ | Open Cloud key (DataStore + Messaging + Assets). |
 | `ROBLOX_CREATOR_ID` | ✅* | Roblox user id that **owns the API key** (`11080769482`). *Required for PNG icon upload.* |
-| `ROBLOX_UNIVERSE_ID` | ✅ | `10604778261`. |
+| `ROBLOX_UNIVERSE_ID` | ✅ | `10631060249`. |
 | `ROBLOX_GROUP_ID` | ✅ | `1099600954`. |
 | `ROBLOX_GROUP_COOKIE` | ✅* | `.ROBLOSECURITY` for group kicks / join-requests. |
 | `DATABASE_URL` | ✅ | Same Postgres as the perks-api (whitelist/config/audit tables auto-create). |

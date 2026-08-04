@@ -40,7 +40,7 @@ export default function SettingsPanel() {
         </div>
         <div className="grid g2">
           <div><label>Universe ID <span style={{ color: "var(--muted)" }}>({cfg.universeSource})</span></label>
-            <input className="mono" value={universeId} onChange={e => setUni(e.target.value)} placeholder="10604778261" /></div>
+            <input className="mono" value={universeId} onChange={e => setUni(e.target.value)} placeholder="10631060249" /></div>
           <div><label>Group ID <span style={{ color: "var(--muted)" }}>({cfg.groupSource})</span></label>
             <input className="mono" value={groupId} onChange={e => setGid(e.target.value)} placeholder="1099600954" /></div>
         </div>

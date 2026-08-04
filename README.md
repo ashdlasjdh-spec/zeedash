@@ -56,7 +56,7 @@ group rank/kick     ─► Open Cloud Groups API (cloud/v2)
 
 ## Environment (pre-filled from your bot)
 `.env.example` already has every **non-secret** value filled in from your bot's config:
-guild `1531917648588312677`, universe `10604778261`, group `1099600954`, and the exact grant
+guild `1531917648588312677`, universe `10631060249`, group `1099600954`, and the exact grant
 topics (`DiscordAdminPowerGrantV1` / `DiscordAdminGrantV1` + their remove topics). Copy it to
 `.env.local` and fill only these:
 
