@@ -73,7 +73,14 @@ export default function GroupPanel() {
           <div className="stack" style={{ marginTop: 14 }}>
             {reqs.map((r) => (
               <div key={r.userId} className="between" style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 13px" }}>
-                <a href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>{r.username} <span className="muted mono" style={{ fontWeight: 400 }}>({r.userId})</span></a>
+                <a href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 12, fontWeight: 600, textDecoration: "none" }}>
+                  <img
+                    src={`https://www.roblox.com/headshot-thumbnail/image?userId=${r.userId}&width=48&height=48&format=png`}
+                    alt="" width={34} height={34} loading="lazy"
+                    style={{ borderRadius: "50%", background: "var(--surface-3)", border: "1px solid var(--line)", flex: "0 0 auto" }}
+                  />
+                  <span>{r.username} <span className="muted mono" style={{ fontWeight: 400 }}>({r.userId})</span></span>
+                </a>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="btn" style={{ width: "auto", padding: "7px 14px" }} onClick={() => handleReq(r.userId, true)}>Accept</button>
                   <button className="btn ghost" style={{ width: "auto", padding: "7px 14px", color: "var(--danger)" }} onClick={() => handleReq(r.userId, false)}>Decline</button>
