@@ -108,7 +108,9 @@ export default function TagForm() {
           <div className="stack" style={{ gap: 8, flex: 1, minWidth: 240 }}>
             {f.colors.map((c, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid var(--line)", background: normHex(c), flex: "0 0 auto" }} />
+                <input type="color" title="Pick a color — updates the hex" value={/^#[0-9a-fA-F]{6}$/.test(normHex(c)) ? normHex(c) : "#000000"}
+                  onChange={(e) => setColor(i, e.target.value)}
+                  style={{ width: 30, height: 30, padding: 0, border: "1px solid var(--line)", borderRadius: 6, background: "none", cursor: "pointer", flex: "0 0 auto" }} />
                 <input className="mono" style={{ flex: 1 }} value={c} onChange={(e) => setColor(i, e.target.value)} placeholder="#FF0090" />
                 {f.colors.length > 1 && (
                   <button className="btn ghost" style={{ width: "auto", padding: "7px 12px", color: "var(--danger)" }} onClick={() => removeColor(i)}>Remove</button>
