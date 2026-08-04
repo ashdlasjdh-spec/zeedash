@@ -14,10 +14,12 @@ function dbPatch(category, key) {
   if (category === "shazam") return { shazam: [key] };
   if (category === "tool") return { tools: [key] };
   if (category === "startbr") return { startbr: [key] };
+  if (category === "stand") return { stand: [key] };
+  if (category === "car") return { car: [key] };
   return null;
 }
 function dbRevokeWhat(category, key) {
-  if (["power", "gamepass", "shazam", "tool", "startbr"].includes(category)) return `${category}:${key}`;
+  if (["power", "gamepass", "shazam", "tool", "startbr", "stand", "car"].includes(category)) return `${category}:${key}`;
   return null;
 }
 
