@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const toHex = (c) =>
   Array.isArray(c) ? "#" + c.map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, "0")).join("") : String(c || "#ffffff");
@@ -23,8 +23,18 @@ function TagPreview({ name, colors, animated, iconId, dir, speed }) {
   const d = DIRCSS[dir] || DIRCSS.diagonal;
   const grad = `linear-gradient(${d.angle}deg, ${[...stops, ...stops].join(", ")})`;
   const dur = Math.min(8, Math.max(0.3, 1 / (Number(speed) || 0.5)));
-  const idNum = String(iconId || "").match(/\d+/);
-  const iconUrl = idNum ? `https://www.roblox.com/asset-thumbnail/image?assetId=${idNum[0]}&width=60&height=60&format=png` : null;
+
+  // Resolve the uploaded decal's image through /api/asset-thumbnail (the direct
+  // asset-thumbnail URL is retired), so the icon actually shows in the preview.
+  const [iconUrl, setIconUrl] = useState("");
+  useEffect(() => {
+    const id = String(iconId || "").match(/\d+/)?.[0];
+    if (!id) { setIconUrl(""); return; }
+    let alive = true;
+    fetch(`/api/asset-thumbnail?id=${id}`).then((r) => r.json()).then((j) => { if (alive) setIconUrl(j.url || ""); }).catch(() => {});
+    return () => { alive = false; };
+  }, [iconId]);
+
   return (
     <div style={{ flex: "0 0 auto", width: 200 }}>
       <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8, fontWeight: 600 }}>Live preview</div>
@@ -32,12 +42,12 @@ function TagPreview({ name, colors, animated, iconId, dir, speed }) {
         backgroundColor: "#14141c",
         backgroundImage: "radial-gradient(130% 120% at 50% 25%, rgba(255,255,255,.05), transparent 60%)",
         border: "1px solid var(--line)", borderRadius: 12, padding: "26px 14px",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        gap: 10, minHeight: 140, overflow: "hidden",
+        display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center",
+        gap: 8, minHeight: 140, overflow: "hidden",
       }}>
         {iconUrl && (
-          <img src={iconUrl} alt="" width={44} height={44} style={{ objectFit: "contain" }}
-            onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          <img src={iconUrl} alt="" width={26} height={26}
+            style={{ objectFit: "contain", borderRadius: 4, flex: "0 0 auto" }} />
         )}
         <span style={{
           fontWeight: 800, fontStyle: "italic", fontSize: 24, lineHeight: 1.15, whiteSpace: "nowrap",
@@ -49,7 +59,7 @@ function TagPreview({ name, colors, animated, iconId, dir, speed }) {
         }}>[{name || "CREW"}]</span>
       </div>
       <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6, textAlign: "center" }}>
-        {animated ? `${dir || "diagonal"} · speed ${Number(speed) || 0.5}` : "static"} · {stops.length} color{stops.length > 1 ? "s" : ""}
+        {iconId ? "icon left of text · " : ""}{animated ? `${dir || "diagonal"} · speed ${Number(speed) || 0.5}` : "static"} · {stops.length} color{stops.length > 1 ? "s" : ""}
       </div>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes zhdScroll_down{from{background-position:50% 0%}to{background-position:50% 200%}}
