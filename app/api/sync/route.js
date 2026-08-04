@@ -41,13 +41,17 @@ export async function POST() {
       powers: p.powers || [],
       tools: p.tools || [],
       shazam: p.shazam || [],
+      stand: p.stand || [],
+      car: p.car || [],
+      startbr: p.startbr || [],
       armor: p.armor || 0,
       grantedBy: p.grantedBy || "db-sync",
       updatedAt: Math.floor(Date.now() / 1000),
     };
     const empty =
       !entry.armor && !entry.gamepasses.length && !entry.powers.length &&
-      !entry.tools.length && !entry.shazam.length;
+      !entry.tools.length && !entry.shazam.length && !entry.stand.length &&
+      !entry.car.length && !entry.startbr.length;
     if (empty) { out.perksSkipped++; continue; }
     try {
       await dsSet("PlayerPerks", String(p.userId), entry);

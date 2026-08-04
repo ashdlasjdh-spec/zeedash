@@ -40,15 +40,6 @@ async function patchWhitelistStore(uid, key, revoke) {
   await dsSet("DashboardWhitelist", "powers", cur);
 }
 
-async function patchPlayerPerksShazam(uid, key, revoke) {
-  const entryKey = String(uid);
-  const cur = (await dsGet("PlayerPerks", entryKey)) || {};
-  const list = Array.isArray(cur.shazam) ? cur.shazam : [];
-  cur.shazam = revoke ? list.filter((v) => v !== key) : [...new Set([...list, key])];
-  await dsSet("PlayerPerks", entryKey, cur);
-  await publish("PerkGrant", { userId: uid });
-}
-
 // Same MessagingService topics your bot uses (overridable via env).
 const T = () => ({
   power:       process.env.POWER_GRANT_TOPIC        || "DiscordAdminPowerGrantV1",
@@ -70,40 +61,50 @@ export async function POST(req) {
   const uid = user.userId, by = s.name, t = T(), revoke = action === "revoke";
 
   try {
+    // ---- 1) apply LIVE in running servers ----
     if (category === "power") {
       await publish(revoke ? t.powerRemove : t.power, { UserId: uid, Power: key, Admin: by });
-      // Also feed the WhitelistTools gate: live via DashboardGrant
-      // (DashboardWhitelistSync mutates the table in running servers) and
-      // persisted via the DashboardWhitelist DataStore (re-merged on boot).
-      // For Flash / Fly / Magic / OrangeFlameOn / PurpleFlameOn this IS the
-      // grant — the admin topic above doesn't handle them.
+      // WhitelistTools gate: live via DashboardGrant (DashboardWhitelistSync mutates the
+      // table in running servers) + persisted via the DashboardWhitelist DataStore. For
+      // Flash / Fly / Magic / the flames this IS the grant (the admin topic ignores them).
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
       await patchWhitelistStore(uid, key, revoke);
     } else if (category === "stand" || category === "car" || category === "tool" || category === "startbr") {
-      // DashboardGrant topic → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager apply on spawn.
+      // DashboardGrant → _G.DashboardGrants:HasGrant → StandsHandler / SVJCarManager on spawn.
       await publish("DashboardGrant", { action, userId: uid, category, key, by: s.id });
     } else if (category === "shazam") {
-      // ShazamManager.getColor checks HasGrant(uid, "Shazam:<variant>"), so the
-      // DashboardGrant key MUST be prefixed. (PlayerPerks/DB below keep the bare key.)
+      // ShazamManager.getColor checks HasGrant(uid, "Shazam:<variant>") — key MUST be prefixed.
       await publish("DashboardGrant", { action, userId: uid, category, key: `Shazam:${key}`, by: s.id });
-      // ... and persist in PlayerPerks so PerkReceiver re-applies it every spawn.
-      await patchPlayerPerksShazam(uid, key, revoke);
     } else if (category === "gamepass") {
       await publish(revoke ? t.itemRemove : t.item, { UserId: uid, Item: key, Admin: by });
     } else {
       return NextResponse.json({ error: "Unhandled category" }, { status: 400 });
     }
-    // Persist to the shared perks DB so it's in sync with the bot (best-effort).
+
+    // ---- 2) SAVE to the shared DB (source of truth), then project the WHOLE record into
+    // PlayerPerks so it re-applies on every spawn and survives universe swaps. Writing the
+    // full DB record (rather than a read-modify-write of the DataStore) avoids lost-update
+    // races when several grants hit the same user quickly — the "sometimes doesn't save".
     let warn = null;
     try {
+      let record = null;
       if (revoke) {
         const what = dbRevokeWhat(category, key);
-        if (what) await revokePerks(uid, what, by);
+        if (what) record = await revokePerks(uid, what, by);
       } else {
         const patch = dbPatch(category, key);
-        if (patch) await grantPerks(uid, patch, by);
+        if (patch) record = await grantPerks(uid, patch, by);
       }
-    } catch (e) { warn = `Applied in-game, but DB sync failed: ${e.message}`; }
+      if (record) {
+        await dsSet("PlayerPerks", String(uid), {
+          gamepasses: record.gamepasses || [], powers: record.powers || [],
+          tools: record.tools || [], shazam: record.shazam || [],
+          stand: record.stand || [], car: record.car || [], startbr: record.startbr || [],
+          armor: record.armor || 0, grantedBy: by, updatedAt: Math.floor(Date.now() / 1000),
+        });
+        await publish("PerkGrant", { userId: uid });
+      }
+    } catch (e) { warn = `Applied in-game, but save failed: ${e.message}`; }
 
     await logAudit({ actorId: s.id, actorName: s.name, action, category, itemKey: key, target: `${user.username} (${uid})` });
     return NextResponse.json({ ok: true, target: user, warn });
