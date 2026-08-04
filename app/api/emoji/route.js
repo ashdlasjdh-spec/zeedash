@@ -6,6 +6,21 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+// Split into individual emojis (grapheme clusters) and join with "] [" so the in-game
+// renderer — which wraps the whole tag in [ ] — shows "[😀] [⭐]" instead of "[😀⭐]".
+function bracketJoin(input) {
+  if (!input) return "";
+  let parts;
+  try {
+    const seg = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+    parts = [...seg.segment(String(input))].map((s) => s.segment);
+  } catch {
+    parts = Array.from(String(input)); // fallback if Intl.Segmenter unavailable
+  }
+  parts = parts.filter((s) => s.trim() !== "" && s !== "[" && s !== "]");
+  return parts.join("] [");
+}
+
 // GET — list every player's custom emojis from the datastore.
 export async function GET() {
   const s = await getSession();
@@ -27,11 +42,12 @@ export async function POST(req) {
   else { user = await resolveUsername(username); if (!user) return NextResponse.json({ error: "No such Roblox user" }, { status: 404 }); }
 
   const defs = (await dsGet("CustomEmojis", "emojis")) || {};
+  const stored = bracketJoin(emojis);
   if (action === "remove") delete defs[String(user.userId)];
-  else defs[String(user.userId)] = String(emojis || "");
+  else defs[String(user.userId)] = stored;
   await dsSet("CustomEmojis", "emojis", defs);
   await publish("CustomEmojiUpdate", { userId: user.userId }).catch(() => {});
   await logAudit({ actorId: s.id, actorName: s.name, action: action === "remove" ? "revoke" : "grant", category: "emoji",
-    target: `${user.username} (${user.userId})`, detail: action === "remove" ? "removed emojis" : emojis });
+    target: `${user.username} (${user.userId})`, detail: action === "remove" ? "removed emojis" : stored });
   return NextResponse.json({ ok: true, target: user });
 }
