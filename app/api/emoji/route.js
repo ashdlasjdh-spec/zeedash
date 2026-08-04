@@ -6,10 +6,9 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Split into individual emojis (grapheme clusters) and wrap EACH in its own [ ], space
-// separated — so the overhead tag shows "[😀] [⭐]" instead of "[😀⭐]".
-function bracketJoin(input) {
-  if (!input) return "";
+// Split into individual emojis (grapheme clusters), dropping stray brackets/space.
+function splitEmojis(input) {
+  if (!input) return [];
   let parts;
   try {
     const seg = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -17,9 +16,10 @@ function bracketJoin(input) {
   } catch {
     parts = Array.from(String(input)); // fallback if Intl.Segmenter unavailable
   }
-  parts = parts.filter((s) => s.trim() !== "" && s !== "[" && s !== "]");
-  return parts.map((e) => "[" + e + "]").join(" ");
+  return parts.filter((s) => s.trim() !== "" && s !== "[" && s !== "]");
 }
+// Wrap EACH emoji in its own [ ], space separated -> "[😀] [⭐]".
+function bracket(list) { return list.map((e) => "[" + e + "]").join(" "); }
 
 // GET — list every player's custom emojis from the datastore.
 export async function GET() {
@@ -32,22 +32,31 @@ export async function GET() {
 }
 
 // Emoji giver: per-user custom emoji string in the CustomEmojis datastore ("emojis" key).
+// action: "set" (replace all) | "add" (append to existing, de-duped) | "remove" (clear).
 export async function POST(req) {
   const s = await getSession();
   if (!s || !can(s.level, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { username, userId, emojis, action = "set" } = await req.json();
-  // Removing from the "loaded" list gives us a userId directly; setting resolves a username.
   let user;
   if (userId && action === "remove") user = { userId: String(userId), username: String(userId) };
   else { user = await resolveUsername(username); if (!user) return NextResponse.json({ error: "No such Roblox user" }, { status: 404 }); }
 
   const defs = (await dsGet("CustomEmojis", "emojis")) || {};
-  const stored = bracketJoin(emojis);
-  if (action === "remove") delete defs[String(user.userId)];
-  else defs[String(user.userId)] = stored;
+  const uid = String(user.userId);
+  let stored = "";
+  if (action === "remove") {
+    delete defs[uid];
+  } else if (action === "add") {
+    const merged = [...new Set([...splitEmojis(defs[uid] || ""), ...splitEmojis(emojis)])];
+    stored = bracket(merged);
+    defs[uid] = stored;
+  } else {
+    stored = bracket(splitEmojis(emojis));
+    defs[uid] = stored;
+  }
   await dsSet("CustomEmojis", "emojis", defs);
   await publish("CustomEmojiUpdate", { userId: user.userId }).catch(() => {});
   await logAudit({ actorId: s.id, actorName: s.name, action: action === "remove" ? "revoke" : "grant", category: "emoji",
     target: `${user.username} (${user.userId})`, detail: action === "remove" ? "removed emojis" : stored });
-  return NextResponse.json({ ok: true, target: user });
+  return NextResponse.json({ ok: true, target: user, value: stored });
 }

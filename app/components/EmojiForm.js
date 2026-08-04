@@ -12,7 +12,7 @@ export default function EmojiForm() {
     try {
       const r = await fetch("/api/emoji", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, emojis, action }) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error);
-      setT({ ok: true, msg: `${action === "remove" ? "Cleared emojis for" : "Set emojis for"} ${d.target.username}.` });
+      setT({ ok: true, msg: `${action === "remove" ? "Cleared emojis for" : action === "add" ? "Added to" : "Set emojis for"} ${d.target.username}${d.value ? ` — now: ${d.value}` : ""}.` });
       if (list) load();
     } catch (e) { setT({ bad: true, msg: e.message }); } setB(false);
   }
@@ -39,7 +39,8 @@ export default function EmojiForm() {
           <div><label>Emojis (paste any)</label><input value={emojis} onChange={(e) => setE(e.target.value)} placeholder="⭐💖🔥" /></div>
         </div>
         <div className="row" style={{ marginTop: 16 }}>
-          <button className="btn" disabled={busy} onClick={() => go("set")}>Give emojis</button>
+          <button className="btn" disabled={busy} onClick={() => go("add")}>Add to existing</button>
+          <button className="btn ghost" disabled={busy} onClick={() => go("set")}>Set (replace all)</button>
           <button className="btn ghost" disabled={busy} onClick={() => go("remove")}>Remove all</button>
         </div>
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
