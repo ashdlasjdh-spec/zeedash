@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Avatar from "./Avatar";
 
-const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools" };
+const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools", startbr: "startbr" };
 
 export default function GrantForm({ category, items, verb = "Grant", canManage = false }) {
   const [sel, setSel] = useState(null);
