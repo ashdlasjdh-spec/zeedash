@@ -101,6 +101,6 @@ Power/stand grants route through the game's OWN system: `MSModule.GrantAdminPowe
 `AdminPowers` datastore, applies immediately, and **re-applies on every join**. So the catalog's
 power keys (ACT4, Batman, SpiderMan, Venom, `_EveryPower`, …) work end-to-end with no per-power
 code. The two StandsHandler stands (`WonderOfU`, `D4C`) fall through to a local grant store.
-All perk/tag/emoji pipelines are wired too.
+All perk/tag/emoji pipelines are wired, too.
 
 <!-- zhd -->
