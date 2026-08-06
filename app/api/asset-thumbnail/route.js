@@ -18,14 +18,21 @@ export async function GET(req) {
   if (c && Date.now() - c.at < TTL) return NextResponse.json({ url: c.url });
 
   let url = "";
-  try {
-    const r = await fetch(`https://thumbnails.roblox.com/v1/assets?assetIds=${id}&size=150x150&format=Png&isCircular=false`);
-    if (r.ok) {
-      const d = await r.json();
-      const item = (d.data || [])[0];
-      if (item && item.state === "Completed" && item.imageUrl) url = item.imageUrl;
-    }
-  } catch { /* best-effort */ }
+  // Freshly uploaded decals return state "Pending" until Roblox generates the thumbnail,
+  // so poll a few times before giving up. This is why just-uploaded icons showed blank.
+  for (let attempt = 0; attempt < 6 && !url; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 1200));
+    try {
+      const r = await fetch(`https://thumbnails.roblox.com/v1/assets?assetIds=${id}&size=150x150&format=Png&isCircular=false`);
+      if (r.ok) {
+        const d = await r.json();
+        const item = (d.data || [])[0];
+        if (item && item.state === "Completed" && item.imageUrl) { url = item.imageUrl; break; }
+        // if Pending/Blocked, keep polling (Pending) or stop (Blocked/Error)
+        if (item && (item.state === "Blocked" || item.state === "Error")) break;
+      }
+    } catch { /* keep trying */ }
+  }
 
   if (url) cache.set(id, { url, at: Date.now() });
   return NextResponse.json({ url });
