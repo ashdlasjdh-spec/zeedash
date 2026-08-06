@@ -98,9 +98,13 @@ export async function POST() {
     out.errors.push(`tags: ${e.message}`);
   }
 
-  await logAudit({
-    actorId: s.id, actorName: s.name, action: "sync",
-    detail: `DB -> game: ${out.perksSynced} perk entries, ${out.tagsSynced} tags, ${out.errors.length} errors`,
-  });
+  try {
+    await logAudit({
+      actorId: s.id, actorName: s.name, action: "sync",
+      detail: `DB -> game: ${out.perksSynced} perk entries, ${out.tagsSynced} tags, ${out.errors.length} errors`,
+    });
+  } catch (e) {
+    out.errors.push(`audit-log: ${e.message}`);
+  }
   return NextResponse.json({ ok: out.errors.length === 0, ...out });
 }
