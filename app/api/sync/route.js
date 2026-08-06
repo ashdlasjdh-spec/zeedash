@@ -23,6 +23,9 @@ export const maxDuration = 300;
 // out for the most recently-updated users so anyone currently online updates now
 // (capped to stay well inside MessagingService rate limits).
 export async function POST() {
+  // Outer guard: ANY throw (auth, config, upstream) returns JSON so the client
+  // never gets a non-JSON error page ("Unexpected token 'A'... not valid JSON").
+  try {
   const s = await getSession();
   if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -107,4 +110,7 @@ export async function POST() {
     out.errors.push(`audit-log: ${e.message}`);
   }
   return NextResponse.json({ ok: out.errors.length === 0, ...out });
+  } catch (e) {
+    return NextResponse.json({ error: `Sync failed: ${e?.message || String(e)}` }, { status: 500 });
+  }
 }
