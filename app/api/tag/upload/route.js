@@ -10,6 +10,32 @@ export const dynamic = "force-dynamic";
 // polls Roblox moderation, and returns the finished decal asset id — so staff can
 // attach a crew-tag icon without leaving the dashboard. Gated by the tag permission
 // (Discord login already required to reach here).
+// Resolve a Decal wrapper asset id to the underlying image/texture id the game renders.
+// Uploaded decals wrap an Image; the game needs that inner id. We use the authenticated
+// Open Cloud key (owned asset, so this succeeds where anonymous calls 403). If resolution
+// fails we return the decal id unchanged — the game's ResolveIcon unwraps it as a fallback.
+async function resolveDecalTexture(decalId, apiKey) {
+  const id = String(decalId || "").replace(/\D/g, "");
+  if (!id) return id;
+  // assetdelivery v2 with the api key returns the asset's content location; the decal XML
+  // references the underlying image as rbxassetid://<textureId>.
+  try {
+    const r = await fetch(`https://assetdelivery.roblox.com/v2/assetId/${id}`, {
+      headers: { "x-api-key": apiKey, Accept: "application/json" },
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const loc = d?.locations?.[0]?.location;
+      if (loc) {
+        const body = await fetch(loc).then((x) => (x.ok ? x.text() : "")).catch(() => "");
+        const m = body.match(/rbxassetid:\/\/(\d+)/) || body.match(/asset\/?\?id=(\d+)/i);
+        if (m && m[1]) return m[1];
+      }
+    }
+  } catch { /* fall through */ }
+  return id; // fallback: game-side ResolveIcon will unwrap it
+}
+
 export async function POST(req) {
   const s = await getSession();
   if (!s || !can(s.level, "tag")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -60,5 +86,8 @@ export async function POST(req) {
     }
   }
   if (!assetId) return NextResponse.json({ error: "Timed out waiting for Roblox moderation — try again shortly." }, { status: 504 });
-  return NextResponse.json({ ok: true, assetId: String(assetId) });
+  // Resolve the Decal wrapper to its inner texture id so the datastore stores a ready-to-render
+  // id (no game-side unwrapping / first-load cost). Falls back to the decal id if resolution fails.
+  const textureId = await resolveDecalTexture(assetId, apiKey);
+  return NextResponse.json({ ok: true, assetId: String(textureId), decalId: String(assetId) });
 }
