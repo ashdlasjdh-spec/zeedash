@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { pillClassForLevel } from "@/lib/permissions";
 
 // Feather-style line icons (inner paths), keyed by label.
@@ -47,14 +48,26 @@ const NAV = [
 
 export default function Sidebar({ user, grants, canGroup, isCofounderPlus }) {
   const path = usePathname();
+  const [open, setOpen] = useState(false);
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => { setOpen(false); }, [path]);
   const link = (href, label) => (
-    <a key={href} className={`navlink ${path === href ? "active" : ""}`} href={href}>
+    <a key={href} className={`navlink ${path === href ? "active" : ""}`} href={href} onClick={() => setOpen(false)}>
       <Icon label={label} /><span>{label}</span>
     </a>
   );
   return (
-    <aside className="side">
-      <div className="brand">zhd<span>.lol</span></div>
+    <>
+      {/* Mobile-only top bar with a hamburger; hidden on desktop via CSS. */}
+      <div className="mtopbar">
+        <div className="brand">zhd<span>.lol</span></div>
+        <button className={`hamb ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>
+          <span /><span /><span />
+        </button>
+      </div>
+      {open && <div className="side-backdrop" onClick={() => setOpen(false)} />}
+      <aside className={`side ${open ? "open" : ""}`}>
+        <div className="brand side-brand">zhd<span>.lol</span></div>
       {link("/dashboard", "Overview")}
       {NAV.map((n, i) => {
         if (n.sec) {
@@ -74,6 +87,7 @@ export default function Sidebar({ user, grants, canGroup, isCofounderPlus }) {
       <form action="/api/auth/logout" method="post" style={{ marginTop: 10 }}>
         <button className="btn ghost" style={{ fontSize: 13, padding: "9px" }}>Sign out</button>
       </form>
-    </aside>
+      </aside>
+    </>
   );
 }
