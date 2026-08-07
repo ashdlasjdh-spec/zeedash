@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { dsGet, dsSet, publish, resolveUsername } from "@/lib/roblox";
+import { setEmoji } from "@/lib/perksApi";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -63,6 +64,9 @@ export async function POST(req) {
     return NextResponse.json({ error: `Aborted: emoji store would shrink from ${prevCount} to ${nextCount} entries (read looks lost). Left unchanged.` }, { status: 409 });
   }
   await dsSet("CustomEmojis", "emojis", defs);
+  // Mirror to the DB (source of truth) so emojis survive a universe swap. The datastore write
+  // above is what the game reads live; this keeps Postgres in sync for the sync-to-DB button.
+  try { await setEmoji(user.userId, action === "remove" ? "" : stored, s.name); } catch (e) { console.error("[emoji] db mirror failed:", e.message); }
   await publish("CustomEmojiUpdate", { userId: user.userId }).catch(() => {});
   await logAudit({ actorId: s.id, actorName: s.name, action: action === "remove" ? "revoke" : "grant", category: "emoji",
     target: `${user.username} (${user.userId})`, detail: action === "remove" ? "removed emojis" : stored });
