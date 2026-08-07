@@ -87,7 +87,10 @@ export async function POST(req) {
       const thumb = await headshotUrl(target.userId);
       const unix = Math.floor(Date.now() / 1000);
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
-      const description =
+      // Sent as message CONTENT (not an embed) so the "## " header renders its underline
+      // (the separator line) — embeds don't underline headers. The avatar rides along as a
+      // thumbnail-only embed so it isn't lost.
+      const content =
         `## ${target.displayName || target.username} (@${target.username})\n` +
         `> Username: [\`${target.username}\`](${profile})\n` +
         `> User ID: ${target.userId}\n` +
@@ -96,11 +99,12 @@ export async function POST(req) {
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
         `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
-      const embed = { ...(thumb ? { thumbnail: { url: thumb } } : {}), description };
+      const payload = { content, allowed_mentions: { parse: [] } };
+      if (thumb) payload.embeds = [{ thumbnail: { url: thumb } }];
       await fetch(hook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ embeds: [embed] }),
+        body: JSON.stringify(payload),
       }).catch(() => {});
     }
 
