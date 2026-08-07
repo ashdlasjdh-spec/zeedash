@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { listPerks, listTags } from "@/lib/perksApi";
-import { dsSet, publish } from "@/lib/roblox";
+import { dsGet, dsSet, publish } from "@/lib/roblox";
 import { pushTagsBulk } from "@/lib/crewtags";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -82,8 +82,19 @@ export async function POST() {
         (wl[pw] = wl[pw] || []).push(Number(p.userId));
       }
     }
-    await dsSet("DashboardWhitelist", "powers", wl);
-    out.whitelistPowers = Object.keys(wl).length;
+    // Anti-clobber: if the DB read (perks) came back empty/partial, wl would be tiny and this
+    // overwrite would wipe the live whitelist. Compare against what's already stored and refuse
+    // a drastic shrink. A genuinely-empty existing store (fresh universe) is allowed to populate.
+    let prevWl = {};
+    try { prevWl = (await dsGet("DashboardWhitelist", "powers")) || {}; } catch { prevWl = {}; }
+    const prevN = Object.keys(prevWl).length;
+    const nextN = Object.keys(wl).length;
+    if (prevN >= 3 && nextN < Math.max(1, Math.floor(prevN * 0.5))) {
+      out.errors.push(`whitelist: refused to shrink powers whitelist from ${prevN} to ${nextN} (DB read looks partial). Left unchanged.`);
+    } else {
+      await dsSet("DashboardWhitelist", "powers", wl);
+      out.whitelistPowers = nextN;
+    }
   } catch (e) {
     out.errors.push(`whitelist: ${e.message}`);
   }

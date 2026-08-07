@@ -42,6 +42,7 @@ export async function POST(req) {
   else { user = await resolveUsername(username); if (!user) return NextResponse.json({ error: "No such Roblox user" }, { status: 404 }); }
 
   const defs = (await dsGet("CustomEmojis", "emojis")) || {};
+  const prevCount = Object.keys(defs).length;
   const uid = String(user.userId);
   let stored = "";
   if (action === "remove") {
@@ -53,6 +54,13 @@ export async function POST(req) {
   } else {
     stored = bracket(splitEmojis(emojis));
     defs[uid] = stored;
+  }
+  // Anti-clobber: a single-user emoji op should change the entry count by at most 1. If the map
+  // shrank by more than that, the read came back empty/partial (e.g. after a universe swap) and
+  // writing would wipe everyone's emojis. Abort and leave the datastore untouched.
+  const nextCount = Object.keys(defs).length;
+  if (prevCount >= 5 && nextCount < prevCount - 1) {
+    return NextResponse.json({ error: `Aborted: emoji store would shrink from ${prevCount} to ${nextCount} entries (read looks lost). Left unchanged.` }, { status: 409 });
   }
   await dsSet("CustomEmojis", "emojis", defs);
   await publish("CustomEmojiUpdate", { userId: user.userId }).catch(() => {});
