@@ -103,7 +103,7 @@ export default function Lookup() {
                       return (
                         <tr key={i}>
                           <td className="muted" style={{ whiteSpace: "nowrap" }}>{fmtDate(h.created_at)}</td>
-                          <td style={{ color: h.action === "ban" ? "var(--danger)" : "var(--ok)", fontWeight: 700, textTransform: "capitalize" }}>{h.action}</td>
+                          <td style={{ color: h.action === "ban" || h.action === "kick" ? "var(--danger)" : h.action === "warn" ? "#e0a53a" : "var(--ok)", fontWeight: 700, textTransform: "capitalize" }}>{h.action}</td>
                           <td>{p.reason || "—"}</td>
                           <td className="mono">{p.caseId || "—"}</td>
                           <td className="muted">{h.actor_name || h.actor_id || "—"}</td>

@@ -113,10 +113,10 @@ export async function POST(req) {
 
     const { user: input, reason, duration, evidence, action = "ban" } = await req.json();
     const isBan = action === "ban";
-    const actionLabel = action === "kick" ? "Kick" : isBan ? "Ban" : "Unban";
+    const actionLabel = action === "kick" ? "Kick" : action === "warn" ? "Warn" : isBan ? "Ban" : "Unban";
     const reasonText = String(reason || "").trim();
     const evidenceText = String(evidence || "").trim();
-    if (isBan && !reasonText) return NextResponse.json({ error: "A reason is required to ban." }, { status: 400 });
+    if ((isBan || action === "warn") && !reasonText) return NextResponse.json({ error: `A reason is required to ${actionLabel.toLowerCase()}.` }, { status: 400 });
 
     // API key: the dedicated Bans key from Settings/env if set, else the main key.
     const { apiKey, universeId, banApiKey } = await getConfig();
@@ -128,19 +128,24 @@ export async function POST(req) {
     const target = await resolveUsername(input);
     if (!target) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
 
-    if (action === "kick") {
-      // There is no Open Cloud "kick" endpoint — a kick only affects someone already in a
-      // running server. We publish to a MessagingService topic ("ModKick"); a game-side script
-      // subscribed to it reads the payload and calls Player:Kick(). This needs the
-      // universe-messaging-service:publish scope on the key, plus the in-game listener.
+    let publishNote = "";
+    if (action === "kick" || action === "warn") {
+      // Neither kick nor warn is an Open Cloud restriction. We publish to a MessagingService
+      // topic; a game-side listener acts on it (ModKick -> Player:Kick, ModWarn -> notify the
+      // player). Needs the universe-messaging-service:publish scope + the in-game listener.
+      const topic = action === "kick" ? "ModKick" : "ModWarn";
       const message = JSON.stringify({ userId: Number(target.userId), reason: reasonText, by: s.name });
-      const kr = await fetch(`https://apis.roblox.com/messaging-service/v1/universes/${universeId}/topics/ModKick`, {
+      const kr = await fetch(`https://apis.roblox.com/messaging-service/v1/universes/${universeId}/topics/${topic}`, {
         method: "POST",
         headers: { "x-api-key": banKey, "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
       if (!kr.ok) {
-        return NextResponse.json({ error: `Kick publish failed — Roblox ${kr.status}: ${(await kr.text()).slice(0, 250)}` }, { status: 502 });
+        const detail = `Roblox ${kr.status}: ${(await kr.text()).slice(0, 250)}`;
+        // A kick is only meaningful in-game, so a failed publish is a hard error. A warn is a
+        // recorded action regardless, so we keep going and just note the delivery failure.
+        if (action === "kick") return NextResponse.json({ error: `Kick publish failed — ${detail}` }, { status: 502 });
+        publishNote = `in-game notice not delivered (${detail})`;
       }
     } else {
       const gameJoinRestriction = isBan
@@ -217,7 +222,7 @@ export async function POST(req) {
       target: `${target.username} (${target.userId})`, detail: `${reasonText || ""} [${caseId}]`.trim(),
     });
 
-    return NextResponse.json({ ok: true, action, user: target, caseId, webhook });
+    return NextResponse.json({ ok: true, action, user: target, caseId, webhook, note: publishNote || undefined });
   } catch (e) {
     return NextResponse.json({ error: `Ban failed: ${e?.message || String(e)}` }, { status: 500 });
   }

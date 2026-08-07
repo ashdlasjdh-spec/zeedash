@@ -5,7 +5,7 @@ import Avatar from "./Avatar";
 const SCOPE = "Zee Hood Game";
 
 export default function BansDashboard() {
-  const [action, setAction] = useState("ban"); // ban | unban | kick
+  const [action, setAction] = useState("ban"); // ban | warn | kick | unban
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("");
@@ -53,7 +53,7 @@ export default function BansDashboard() {
   async function apply(act, userOverride) {
     const u = (userOverride || target).trim();
     if (!u) { setToast({ bad: true, msg: "Enter a target player." }); return; }
-    if (act === "ban" && !reason.trim()) { setToast({ bad: true, msg: "A reason is required to ban." }); return; }
+    if ((act === "ban" || act === "warn") && !reason.trim()) { setToast({ bad: true, msg: `A reason is required to ${act}.` }); return; }
     setBusy(true); setToast(null);
     try {
       const r = await fetch("/api/bans", {
@@ -63,9 +63,10 @@ export default function BansDashboard() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
       const wh = d.webhook && d.webhook !== "sent" ? ` ⚠ webhook: ${d.webhook}` : "";
-      const verb = act === "ban" ? "Banned" : act === "kick" ? "Kicked" : "Unbanned";
-      setToast({ ok: !wh, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}` });
-      if (act === "ban" || act === "kick") { setReason(""); setDuration(""); setEvidence(""); }
+      const note = d.note ? ` ⚠ ${d.note}` : "";
+      const verb = act === "ban" ? "Banned" : act === "warn" ? "Warned" : act === "kick" ? "Kicked" : "Unbanned";
+      setToast({ ok: !wh && !note, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}${note}` });
+      if (act !== "unban") { setReason(""); setDuration(""); setEvidence(""); }
       loadBans();
       setTarget((t) => t); // keep target; resolve refreshes on next effect
     } catch (e) { setToast({ bad: true, msg: e.message }); }
@@ -101,8 +102,9 @@ export default function BansDashboard() {
           <div style={{ fontWeight: 800, fontSize: 15 }}>⚡ Take action</div>
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>Identify a player and apply a ban or unban to this game scope.</p>
 
-          <div className="row" style={{ marginTop: 6, marginBottom: 14 }}>
+          <div className="row" style={{ marginTop: 6, marginBottom: 14, flexWrap: "wrap" }}>
             <button className={`btn ${action === "ban" ? "danger" : "ghost"}`} onClick={() => setAction("ban")}>Ban</button>
+            <button className={`btn ${action === "warn" ? "" : "ghost"}`} onClick={() => setAction("warn")}>Warn</button>
             <button className={`btn ${action === "kick" ? "" : "ghost"}`} onClick={() => setAction("kick")}>Kick</button>
             <button className={`btn ${action === "unban" ? "" : "ghost"}`} onClick={() => setAction("unban")}>Unban</button>
           </div>
@@ -147,10 +149,17 @@ export default function BansDashboard() {
               <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Kick only affects a player currently in-game. Needs the in-game <span className="mono">ModKick</span> listener installed.</p>
             </div>
           )}
+          {action === "warn" && (
+            <div style={{ marginTop: 14 }}>
+              <div><label>Reason</label><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why they're being warned" /></div>
+              <div style={{ marginTop: 12 }}><label>Evidence link (optional)</label><input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Clip / proof URL" /></div>
+              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Recorded to their history and logged. Also shows in-game if they're online (needs the <span className="mono">ModWarn</span> listener).</p>
+            </div>
+          )}
 
           <div style={{ marginTop: 16 }}>
             <button className={`btn ${action === "ban" ? "danger" : ""}`} disabled={busy} onClick={() => apply(action)}>
-              {busy ? "Working…" : action === "ban" ? "Apply ban" : action === "kick" ? "Kick player" : "Apply unban"}
+              {busy ? "Working…" : action === "ban" ? "Apply ban" : action === "warn" ? "Warn player" : action === "kick" ? "Kick player" : "Apply unban"}
             </button>
           </div>
           {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
