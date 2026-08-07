@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const GAME_NAME = process.env.BAN_GAME_NAME || "Zee Hood Game";
+const GAME_NAME = "Zee Hood Game";
 
 // A short human-readable case reference, e.g. RD-MSIQGE14-YHRWVP.
 function newCaseId() {
@@ -29,19 +29,19 @@ export async function POST(req) {
     const s = await getSession();
     if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { user: input, reason, duration, action = "ban" } = await req.json();
+    const { user: input, duration, action = "ban" } = await req.json();
     const isBan = action !== "unban";
+    const reason = "exp - zhd"; // every ban uses the standard reason
 
-    // API key: a dedicated ROBLOX_BAN_API_KEY if set, else the main Open Cloud key.
-    const { apiKey, universeId } = await getConfig();
-    const banKey = process.env.ROBLOX_BAN_API_KEY || apiKey;
+    // API key: the dedicated Bans key from Settings/env if set, else the main key.
+    const { apiKey, universeId, banApiKey } = await getConfig();
+    const banKey = banApiKey || apiKey;
     if (!banKey || !universeId) {
-      return NextResponse.json({ error: "Ban not configured: set ROBLOX_BAN_API_KEY (or the main API key) + a universe id." }, { status: 500 });
+      return NextResponse.json({ error: "Ban not configured: set a Bans API key in Settings + a universe id." }, { status: 500 });
     }
 
     const target = await resolveUsername(input);
     if (!target) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
-    if (isBan && !String(reason || "").trim()) return NextResponse.json({ error: "A reason is required to ban." }, { status: 400 });
 
     // Build the game-join restriction (Open Cloud v2 user-restrictions).
     const gameJoinRestriction = isBan

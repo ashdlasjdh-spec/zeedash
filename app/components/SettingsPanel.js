@@ -3,16 +3,17 @@ import { useEffect, useState } from "react";
 export default function SettingsPanel() {
   const [cfg, setCfg] = useState(null);
   const [apiKey, setKey] = useState(""); const [universeId, setUni] = useState(""); const [groupId, setGid] = useState("");
+  const [banKey, setBanKey] = useState("");
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [syncing, setS] = useState(false); const [syncToast, setST] = useState(null);
   async function load() { const r = await fetch("/api/config"); const d = await r.json(); if (r.ok) { setCfg(d); setUni(d.universeId || ""); setGid(d.groupId || ""); } }
   useEffect(() => { load(); }, []);
   async function save() {
     setB(true); setT(null);
-    const body = {}; if (apiKey) body.apiKey = apiKey; if (universeId) body.universeId = universeId; if (groupId) body.groupId = groupId;
+    const body = {}; if (apiKey) body.apiKey = apiKey; if (universeId) body.universeId = universeId; if (groupId) body.groupId = groupId; if (banKey) body.banApiKey = banKey;
     const r = await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const d = await r.json();
-    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); load(); }
+    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); setBanKey(""); load(); }
     setB(false);
   }
   async function syncDb() {
@@ -44,6 +45,12 @@ export default function SettingsPanel() {
           <div><label>Group ID <span style={{ color: "var(--muted)" }}>({cfg.groupSource})</span></label>
             <input className="mono" value={groupId} onChange={e => setGid(e.target.value)} placeholder="1099600954" /></div>
         </div>
+        {cfg.canEditBanKey && (
+          <div>
+            <label>Bans API key <span style={{ color: cfg.banApiKeySet ? "var(--ok)" : "var(--muted)" }}>({cfg.banApiKeySet ? `set · ${cfg.banApiKeySource} · ${cfg.banApiKeyMasked}` : "not set — falls back to the main key"})</span></label>
+            <input className="mono" type="password" value={banKey} onChange={e => setBanKey(e.target.value)} placeholder="Open Cloud key with the User Restrictions scope (co founders+ only)" />
+          </div>
+        )}
       </div>
       <div className="row" style={{ marginTop: 16 }}><button className="btn" style={{ width: "auto" }} disabled={busy} onClick={save}>Save config</button></div>
       {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
