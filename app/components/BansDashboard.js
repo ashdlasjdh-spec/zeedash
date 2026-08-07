@@ -46,17 +46,28 @@ export default function BansDashboard() {
     return () => { clearTimeout(deb.current); ctrl.abort(); };
   }, [target]);
 
-  const loadBans = useCallback(async (fresh = false) => {
-    setLoadingBans(true);
+  // silent = background poll: don't flash the loading state or surface transient errors.
+  const loadBans = useCallback(async (fresh = false, silent = false) => {
+    if (!silent) setLoadingBans(true);
     try {
       const r = await fetch(`/api/bans${fresh ? "?fresh=1" : ""}`);
       const d = await r.json();
       if (r.ok) setBans(d.bans || []);
-      else setToast({ bad: true, msg: d.error });
-    } catch (e) { setToast({ bad: true, msg: e.message }); }
-    setLoadingBans(false);
+      else if (!silent) setToast({ bad: true, msg: d.error });
+    } catch (e) { if (!silent) setToast({ bad: true, msg: e.message }); }
+    if (!silent) setLoadingBans(false);
   }, []);
   useEffect(() => { loadBans(); }, [loadBans]);
+
+  // Live updates: poll the active-ban list in the background so bans/unbans from the game,
+  // bot, or another moderator appear on their own. Pauses while the tab is hidden and does an
+  // immediate refresh the moment it becomes visible again.
+  useEffect(() => {
+    const poll = () => { if (document.visibilityState === "visible") loadBans(false, true); };
+    const iv = setInterval(poll, 12000);
+    document.addEventListener("visibilitychange", poll);
+    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", poll); };
+  }, [loadBans]);
 
   async function apply(act, userOverride) {
     const u = (userOverride || target).trim();
@@ -177,8 +188,10 @@ export default function BansDashboard() {
         <div className="card">
           <div className="between">
             <div>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>🚫 Active bans</div>
-              <div className="muted" style={{ fontSize: 13 }}>Everyone currently banned in this scope. Live from Roblox.</div>
+              <div style={{ fontWeight: 800, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
+                🚫 Active bans <span className="livedot" title="Auto-updating live" />
+              </div>
+              <div className="muted" style={{ fontSize: 13 }}>Everyone currently banned in this scope. Auto-updates live from Roblox.</div>
             </div>
             <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={() => loadBans(true)}>{loadingBans ? "Scanning…" : "Refresh"}</button>
           </div>

@@ -20,7 +20,7 @@ function banConfig(c) {
 
 // Cache the full active-ban scan briefly so page loads, refreshes, and post-action reloads
 // don't re-scan Roblox (and re-resolve ~hundreds of usernames) on every single request.
-const SCAN_TTL_MS = 20_000;
+const SCAN_TTL_MS = 12_000;
 let scanCache = null; // { at:number, payload:object }
 function invalidateScan() { scanCache = null; }
 
