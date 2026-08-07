@@ -89,12 +89,12 @@ export async function POST(req) {
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
       const description =
         `## ${target.displayName || target.username} (@${target.username})\n` +
-        `>>> Username: [\`${target.username}\`](${profile})\n` +
-        `User ID: ${target.userId}\n` +
-        `Game: ${GAME_NAME}\n` +
-        `Reason: ${reasonText || "—"}\n` +
-        `case_id: \`${caseId}\`\n` +
-        `Moderator: ${s.name} (id: ${s.id})\n` +
+        `> Username: [\`${target.username}\`](${profile})\n` +
+        `> User ID: ${target.userId}\n` +
+        `> Game: ${GAME_NAME}\n` +
+        `> Reason: ${reasonText || "—"}\n` +
+        `> case_id: \`${caseId}\`\n` +
+        `> Moderator: ${s.name} (id: ${s.id})\n` +
         `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
       const embed = { ...(thumb ? { thumbnail: { url: thumb } } : {}), description };
       await fetch(hook, {
