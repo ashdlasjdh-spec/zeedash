@@ -9,6 +9,15 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
+// Open Cloud calls are ~200-500ms each and serial loops over ~1500 users blow past the 300s
+// budget. Run writes in bounded-concurrency batches so the whole sync finishes in ~1-2 min.
+async function runInBatches(items, size, worker) {
+  for (let i = 0; i < items.length; i += size) {
+    await Promise.all(items.slice(i, i + size).map(worker));
+  }
+}
+const BATCH = 15; // concurrent Open Cloud requests per wave (retry-on-429 in ds() covers bursts)
+
 // POST /api/sync — re-hydrate the CURRENT universe from the shared Postgres DB.
 // Writes EVERYTHING the game reads back after a universe swap:
 //   perks   -> PlayerPerks     (gamepasses / tools / armor; GearServer reads on spawn)
@@ -45,7 +54,7 @@ export async function POST() {
   }
 
   // ---- perks -> PlayerPerks ----
-  for (const p of perks) {
+  await runInBatches(perks, BATCH, async (p) => {
     const entry = {
       gamepasses: p.gamepasses || [], powers: p.powers || [], tools: p.tools || [],
       shazam: p.shazam || [], stand: p.stand || [], car: p.car || [], startbr: p.startbr || [],
@@ -54,23 +63,22 @@ export async function POST() {
     const empty = !entry.armor && !entry.gamepasses.length && !entry.powers.length &&
       !entry.tools.length && !entry.shazam.length && !entry.stand.length &&
       !entry.car.length && !entry.startbr.length;
-    if (empty) { out.perksSkipped++; continue; }
+    if (empty) { out.perksSkipped++; return; }
     try { await dsSet("PlayerPerks", String(p.userId), entry); out.perksSynced++; }
     catch (e) { out.errors.push(`perks ${p.userId}: ${e.message}`); }
-  }
+  });
 
   // ---- grants -> DashboardGrants (this is what actually gates powers/stands/shazam/car/startbr) ----
-  for (const p of perks) {
+  await runInBatches(perks, BATCH, async (p) => {
     const keys = grantKeysFor(p);
-    if (Object.keys(keys).length === 0) continue;
+    if (Object.keys(keys).length === 0) return;
     try {
-      const existing = (await dsGet("DashboardGrants", "u_" + p.userId)) || {};
-      const merged = (typeof existing === "object" && !Array.isArray(existing)) ? existing : {};
-      for (const k of Object.keys(keys)) merged[k] = true;
-      await dsSet("DashboardGrants", "u_" + p.userId, merged);
+      // Build straight from the DB row and write. No per-user read: this button restores a
+      // (typically empty) universe, so a read-merge would just be ~1500 wasted round-trips.
+      await dsSet("DashboardGrants", "u_" + p.userId, keys);
       out.grantsSynced++;
     } catch (e) { out.errors.push(`grants ${p.userId}: ${e.message}`); }
-  }
+  });
 
   for (const p of perks.slice(0, 15)) {
     try { await publish("PerkGrant", { userId: Number(p.userId) }); out.pinged++; } catch {}
