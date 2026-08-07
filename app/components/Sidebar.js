@@ -17,6 +17,7 @@ const ICON = {
   Emojis: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M8.5 14a4 4 0 0 0 7 0", "M9 9h.01", "M15 9h.01"],
   Group: ["M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M22 21v-2a4 4 0 0 0-3-3.9", "M16 3.1a4 4 0 0 1 0 7.8"],
   Whitelist: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M17 11l2 2 4-4"],
+  Bans: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M5.6 5.6l12.8 12.8"],
   Settings: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M19.4 13a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 5.4 13H5a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 6.7 6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 11 4.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9z"],
 };
 function Icon({ label }) {
@@ -39,14 +40,15 @@ const NAV = [
   { href: "/dashboard/startbr", label: "Start BR", perm: "startbr" },
   { href: "/dashboard/tags", label: "Crew Tags", perm: "tag" },
   { href: "/dashboard/emojis", label: "Emojis", perm: "emoji" },
-  { sec: "Moderation", needGroup: true },
+  { sec: "Moderation", needMod: true },
+  { href: "/dashboard/bans", label: "Bans", needBan: true },
   { href: "/dashboard/group", label: "Group", needGroup: true },
   { sec: "Manage", need: "cofounder" },
   { href: "/dashboard/whitelist", label: "Whitelist", need: "cofounder" },
   { href: "/dashboard/settings", label: "Settings", need: "cofounder" },
 ];
 
-export default function Sidebar({ user, grants, canGroup, isCofounderPlus }) {
+export default function Sidebar({ user, grants, canGroup, canBan, isCofounderPlus }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   // Close the mobile drawer whenever the route changes.
@@ -73,10 +75,12 @@ export default function Sidebar({ user, grants, canGroup, isCofounderPlus }) {
         if (n.sec) {
           if (n.need === "cofounder" && !isCofounderPlus) return null;
           if (n.needGroup && !canGroup) return null;
+          if (n.needMod && !canGroup && !canBan) return null;
           return <div key={i} className="navsec">{n.sec}</div>;
         }
         if (n.need === "cofounder" && !isCofounderPlus) return null;
         if (n.needGroup && !canGroup) return null;
+        if (n.needBan && !canBan) return null;
         if (n.perm && !grants.includes(n.perm)) return null;
         return link(n.href, n.label);
       })}
