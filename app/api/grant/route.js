@@ -34,9 +34,16 @@ function dbRevokeWhat(category, key) {
 // power — persist across servers and republishes.
 async function patchWhitelistStore(uid, key, revoke) {
   const cur = (await dsGet("DashboardWhitelist", "powers")) || {};
+  const prevKeys = Object.keys(cur).length;
   const list = Array.isArray(cur[key]) ? cur[key].map(Number) : [];
   const id = Number(uid);
   cur[key] = revoke ? list.filter((v) => v !== id) : [...new Set([...list, id])];
+  // Anti-clobber: modifying one power should not drop other powers' lists. If the map lost
+  // most of its keys, the read came back empty/partial — abort rather than wipe the whitelist.
+  const nextKeys = Object.keys(cur).length;
+  if (prevKeys >= 3 && nextKeys < Math.max(2, Math.floor(prevKeys * 0.5))) {
+    throw new Error(`Refusing whitelist write: would drop from ${prevKeys} to ${nextKeys} powers (read looks lost). Left unchanged.`);
+  }
   await dsSet("DashboardWhitelist", "powers", cur);
 }
 
