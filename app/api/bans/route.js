@@ -112,7 +112,8 @@ export async function POST(req) {
     if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { user: input, reason, duration, evidence, action = "ban" } = await req.json();
-    const isBan = action !== "unban";
+    const isBan = action === "ban";
+    const actionLabel = action === "kick" ? "Kick" : isBan ? "Ban" : "Unban";
     const reasonText = String(reason || "").trim();
     const evidenceText = String(evidence || "").trim();
     if (isBan && !reasonText) return NextResponse.json({ error: "A reason is required to ban." }, { status: 400 });
@@ -127,36 +128,52 @@ export async function POST(req) {
     const target = await resolveUsername(input);
     if (!target) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
 
-    const gameJoinRestriction = isBan
-      ? {
-          active: true,
-          privateReason: reasonText,
-          displayReason: reasonText,
-          excludeAltAccounts: false,
-          ...(duration ? { duration: /^\d+$/.test(String(duration)) ? `${duration}s` : String(duration) } : {}),
-        }
-      : { active: false };
-
-    // Roblox rate-limits user-restriction writes per user/universe (429 RESOURCE_EXHAUSTED).
-    // Auto-retry with backoff (honouring Retry-After) so a rate-limited ban/unban still goes
-    // through once the window clears, instead of just failing.
-    const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${target.userId}`;
-    let res, lastBody = "";
-    for (let attempt = 1; attempt <= 6; attempt++) {
-      res = await fetch(url, {
-        method: "PATCH",
+    if (action === "kick") {
+      // There is no Open Cloud "kick" endpoint — a kick only affects someone already in a
+      // running server. We publish to a MessagingService topic ("ModKick"); a game-side script
+      // subscribed to it reads the payload and calls Player:Kick(). This needs the
+      // universe-messaging-service:publish scope on the key, plus the in-game listener.
+      const message = JSON.stringify({ userId: Number(target.userId), reason: reasonText, by: s.name });
+      const kr = await fetch(`https://apis.roblox.com/messaging-service/v1/universes/${universeId}/topics/ModKick`, {
+        method: "POST",
         headers: { "x-api-key": banKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ gameJoinRestriction }),
+        body: JSON.stringify({ message }),
       });
-      if (res.ok) break;
-      lastBody = (await res.text()).slice(0, 250);
-      const retryable = res.status === 429 || (res.status >= 500 && res.status < 600);
-      if (!retryable || attempt === 6) {
-        return NextResponse.json({ error: `Roblox ${res.status}: ${lastBody}` }, { status: 502 });
+      if (!kr.ok) {
+        return NextResponse.json({ error: `Kick publish failed — Roblox ${kr.status}: ${(await kr.text()).slice(0, 250)}` }, { status: 502 });
       }
-      const ra = Number(res.headers.get("retry-after"));
-      const waitMs = ra > 0 ? Math.min(30000, ra * 1000) : Math.min(15000, 2000 * 2 ** (attempt - 1));
-      await new Promise((r) => setTimeout(r, waitMs));
+    } else {
+      const gameJoinRestriction = isBan
+        ? {
+            active: true,
+            privateReason: reasonText,
+            displayReason: reasonText,
+            excludeAltAccounts: false,
+            ...(duration ? { duration: /^\d+$/.test(String(duration)) ? `${duration}s` : String(duration) } : {}),
+          }
+        : { active: false };
+
+      // Roblox rate-limits user-restriction writes per user/universe (429 RESOURCE_EXHAUSTED).
+      // Auto-retry with backoff (honouring Retry-After) so a rate-limited ban/unban still goes
+      // through once the window clears, instead of just failing.
+      const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${target.userId}`;
+      let res, lastBody = "";
+      for (let attempt = 1; attempt <= 6; attempt++) {
+        res = await fetch(url, {
+          method: "PATCH",
+          headers: { "x-api-key": banKey, "Content-Type": "application/json" },
+          body: JSON.stringify({ gameJoinRestriction }),
+        });
+        if (res.ok) break;
+        lastBody = (await res.text()).slice(0, 250);
+        const retryable = res.status === 429 || (res.status >= 500 && res.status < 600);
+        if (!retryable || attempt === 6) {
+          return NextResponse.json({ error: `Roblox ${res.status}: ${lastBody}` }, { status: 502 });
+        }
+        const ra = Number(res.headers.get("retry-after"));
+        const waitMs = ra > 0 ? Math.min(30000, ra * 1000) : Math.min(15000, 2000 * 2 ** (attempt - 1));
+        await new Promise((r) => setTimeout(r, waitMs));
+      }
     }
 
     const caseId = newCaseId();
@@ -180,7 +197,7 @@ export async function POST(req) {
         (evidenceText ? `> Evidence: ${evidenceText}\n` : "") +
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
-        `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
+        `-# ⏱️ Action taken on: <t:${unix}:F> - ${actionLabel}`;
       const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}) };
       const payload = { embeds: [embed], allowed_mentions: { parse: [] } };
       try {
@@ -196,11 +213,11 @@ export async function POST(req) {
     }
 
     await logAudit({
-      actorId: s.id, actorName: s.name, action: isBan ? "ban" : "unban", category: "ban",
+      actorId: s.id, actorName: s.name, action, category: "ban",
       target: `${target.username} (${target.userId})`, detail: `${reasonText || ""} [${caseId}]`.trim(),
     });
 
-    return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId, webhook });
+    return NextResponse.json({ ok: true, action, user: target, caseId, webhook });
   } catch (e) {
     return NextResponse.json({ error: `Ban failed: ${e?.message || String(e)}` }, { status: 500 });
   }

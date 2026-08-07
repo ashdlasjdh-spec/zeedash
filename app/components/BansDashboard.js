@@ -5,7 +5,7 @@ import Avatar from "./Avatar";
 const SCOPE = "Zee Hood Game";
 
 export default function BansDashboard() {
-  const [action, setAction] = useState("ban"); // ban | unban
+  const [action, setAction] = useState("ban"); // ban | unban | kick
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("");
@@ -63,8 +63,9 @@ export default function BansDashboard() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
       const wh = d.webhook && d.webhook !== "sent" ? ` ⚠ webhook: ${d.webhook}` : "";
-      setToast({ ok: !wh, msg: `${act === "ban" ? "Banned" : "Unbanned"} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}` });
-      if (act === "ban") { setReason(""); setDuration(""); setEvidence(""); }
+      const verb = act === "ban" ? "Banned" : act === "kick" ? "Kicked" : "Unbanned";
+      setToast({ ok: !wh, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}` });
+      if (act === "ban" || act === "kick") { setReason(""); setDuration(""); setEvidence(""); }
       loadBans();
       setTarget((t) => t); // keep target; resolve refreshes on next effect
     } catch (e) { setToast({ bad: true, msg: e.message }); }
@@ -102,6 +103,7 @@ export default function BansDashboard() {
 
           <div className="row" style={{ marginTop: 6, marginBottom: 14 }}>
             <button className={`btn ${action === "ban" ? "danger" : "ghost"}`} onClick={() => setAction("ban")}>Ban</button>
+            <button className={`btn ${action === "kick" ? "" : "ghost"}`} onClick={() => setAction("kick")}>Kick</button>
             <button className={`btn ${action === "unban" ? "" : "ghost"}`} onClick={() => setAction("unban")}>Unban</button>
           </div>
 
@@ -138,10 +140,17 @@ export default function BansDashboard() {
           {action === "ban" && (
             <div style={{ marginTop: 12 }}><label>Evidence link (optional)</label><input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Clip / proof URL" /></div>
           )}
+          {action === "kick" && (
+            <div style={{ marginTop: 14 }}>
+              <label>Reason (optional)</label>
+              <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason shown to the player" />
+              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Kick only affects a player currently in-game. Needs the in-game <span className="mono">ModKick</span> listener installed.</p>
+            </div>
+          )}
 
           <div style={{ marginTop: 16 }}>
             <button className={`btn ${action === "ban" ? "danger" : ""}`} disabled={busy} onClick={() => apply(action)}>
-              {busy ? "Working…" : action === "ban" ? "Apply ban" : "Apply unban"}
+              {busy ? "Working…" : action === "ban" ? "Apply ban" : action === "kick" ? "Kick player" : "Apply unban"}
             </button>
           </div>
           {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
@@ -157,18 +166,25 @@ export default function BansDashboard() {
             <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={loadBans}>{loadingBans ? "Scanning…" : "Refresh"}</button>
           </div>
           <input style={{ marginTop: 12 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search user, reason…" />
-          <div className="muted" style={{ fontSize: 12, margin: "8px 0" }}>{bans == null ? "" : `${list.length} of ${bans.length} shown`}</div>
-          <div className="stack" style={{ maxHeight: 560, overflowY: "auto" }}>
+          <div className="muted" style={{ fontSize: 12, margin: "10px 0 6px" }}>{bans == null ? "" : `${list.length} of ${bans.length} shown`}</div>
+          <div style={{ maxHeight: 620, overflowY: "auto", overflowX: "hidden" }}>
             {bans == null && <p className="muted">Loading…</p>}
             {bans && list.length === 0 && <p className="muted">No active bans.</p>}
             {list.map((b) => (
-              <div key={b.userId} className="item" style={{ display: "flex", alignItems: "center", gap: 12, cursor: "default" }}>
-                <Avatar userId={b.userId} size={38} />
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontWeight: 700 }}>{b.displayName} <span className="muted" style={{ fontWeight: 400 }}>@{b.username}</span></div>
-                  <div className="muted" style={{ fontSize: 12 }}>ID {b.userId} · {b.reason || "no reason"}{b.duration ? " · temp" : ""}</div>
+              <div
+                key={b.userId}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 8px", borderBottom: "1px solid var(--line)" }}
+              >
+                <Avatar userId={b.userId} size={44} />
+                <div style={{ minWidth: 0, flex: 1, lineHeight: 1.45 }}>
+                  <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {b.displayName} <span className="muted" style={{ fontWeight: 400 }}>@{b.username}</span>
+                  </div>
+                  <div className="muted" style={{ fontSize: 12.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    ID {b.userId}{b.reason ? ` · ${b.reason}` : ""}{b.duration ? " · temp" : ""}
+                  </div>
                 </div>
-                <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => apply("unban", String(b.userId))}>Unban</button>
+                <button className="btn ghost" style={{ width: "auto", flex: "0 0 auto" }} disabled={busy} onClick={() => apply("unban", String(b.userId))}>Unban</button>
               </div>
             ))}
           </div>

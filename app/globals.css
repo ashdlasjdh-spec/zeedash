@@ -128,7 +128,10 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
 /* ============ main ============ */
 .main{padding:44px 52px;max-width:1000px;width:100%;animation:fade .4s ease;
+
   background-image:radial-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+/* Pages that opt into full width (moderation dashboard, lookup) drop the reading-width cap. */
+.main:has(.fullbleed){max-width:1500px}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .page-h{font-size:27px;font-weight:800;letter-spacing:-.7px;margin:0;color:var(--white)}
 .page-sub{color:var(--muted);font-size:14px;margin:8px 0 30px;max-width:660px}
