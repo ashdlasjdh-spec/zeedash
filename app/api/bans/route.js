@@ -88,10 +88,9 @@ export async function POST(req) {
       const thumb = await headshotUrl(target.userId);
       const unix = Math.floor(Date.now() / 1000);
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
-      // Sent as message CONTENT (not an embed / not V2) so it reliably posts via any
-      // webhook and the "## " header renders its underline. Avatar rides along as a
-      // thumbnail-only embed.
-      const content =
+      // Classic embed (no separator lines — those need Components V2 which webhooks reject).
+      // Avatar on the right as the embed thumbnail; timestamp via <t:..:F>.
+      const description =
         `## ${target.displayName || target.username} (@${target.username})\n` +
         `> Username: [\`${target.username}\`](${profile})\n` +
         `> User ID: ${target.userId}\n` +
@@ -100,8 +99,8 @@ export async function POST(req) {
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
         `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
-      const payload = { content, allowed_mentions: { parse: [] } };
-      if (thumb) payload.embeds = [{ thumbnail: { url: thumb } }];
+      const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}) };
+      const payload = { embeds: [embed], allowed_mentions: { parse: [] } };
       try {
         const wr = await fetch(hook, {
           method: "POST",
