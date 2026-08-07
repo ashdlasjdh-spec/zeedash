@@ -20,10 +20,11 @@ export default function BanForm() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
+      const wh = d.webhook && d.webhook !== "sent" ? ` ⚠ ${d.webhook}` : "";
       setT({
-        ok: true,
+        ok: !wh,
         msg: `${action === "ban" ? "Banned" : "Unbanned"} ${d.user?.username || user}` +
-          (d.caseId ? ` — case ${d.caseId}` : "") + ".",
+          (d.caseId ? ` — case ${d.caseId}` : "") + "." + wh,
       });
       if (action === "ban") { setR(""); setD(""); }
     } catch (e) { setT({ bad: true, msg: e.message }); }

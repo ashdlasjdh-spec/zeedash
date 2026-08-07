@@ -82,6 +82,7 @@ export async function POST(req) {
 
     // Webhook log embed — exact format: ## header, >>> blockquote, linked+code username,
     // code case id, avatar thumbnail, and a -# subtext line with a Discord timestamp.
+    let webhook = "no BAN_WEBHOOK_URL set";
     const hook = process.env.BAN_WEBHOOK_URL;
     if (hook) {
       const thumb = await headshotUrl(target.userId);
@@ -103,19 +104,24 @@ export async function POST(req) {
         type: 17,
         components: [
           { type: 10, content: title },
-          { type: 14 },
+          { type: 14, divider: true, spacing: 1 },
           thumb
             ? { type: 9, components: [{ type: 10, content: body }], accessory: { type: 11, media: { url: thumb } } }
             : { type: 10, content: body },
-          { type: 14 },
+          { type: 14, divider: true, spacing: 1 },
           { type: 10, content: footer },
         ],
       };
-      await fetch(hook, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flags: 1 << 15, allowed_mentions: { parse: [] }, components: [container] }),
-      }).catch(() => {});
+      try {
+        const wr = await fetch(hook, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ flags: 1 << 15, allowed_mentions: { parse: [] }, components: [container] }),
+        });
+        webhook = wr.ok ? "sent" : `webhook ${wr.status}: ${(await wr.text()).slice(0, 300)}`;
+      } catch (e) {
+        webhook = `webhook error: ${e.message}`;
+      }
     }
 
     await logAudit({
@@ -123,7 +129,7 @@ export async function POST(req) {
       target: `${target.username} (${target.userId})`, detail: `${reasonText || ""} [${caseId}]`.trim(),
     });
 
-    return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId });
+    return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId, webhook });
   } catch (e) {
     return NextResponse.json({ error: `Ban failed: ${e?.message || String(e)}` }, { status: 500 });
   }
