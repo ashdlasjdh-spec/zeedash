@@ -10,7 +10,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const GAME_NAME = "Zee Hood Game";
-const CLOCK_ICON = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/23f0.png";
 
 // A short human-readable case reference, e.g. RD-MSIQGE14-YHRWVP.
 function newCaseId() {
@@ -32,9 +31,10 @@ export async function POST(req) {
     const s = await getSession();
     if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { user: input, duration, action = "ban" } = await req.json();
+    const { user: input, reason, duration, action = "ban" } = await req.json();
     const isBan = action !== "unban";
-    const reason = "exp - zhd"; // every ban uses the standard reason
+    const reasonText = String(reason || "").trim();
+    if (isBan && !reasonText) return NextResponse.json({ error: "A reason is required to ban." }, { status: 400 });
 
     // API key: the dedicated Bans key from Settings/env if set, else the main key.
     const { apiKey, universeId, banApiKey } = await getConfig();
@@ -49,8 +49,8 @@ export async function POST(req) {
     const gameJoinRestriction = isBan
       ? {
           active: true,
-          privateReason: reason,
-          displayReason: reason,
+          privateReason: reasonText,
+          displayReason: reasonText,
           excludeAltAccounts: false,
           ...(duration ? { duration: /^\d+$/.test(String(duration)) ? `${duration}s` : String(duration) } : {}),
         }
@@ -80,30 +80,23 @@ export async function POST(req) {
 
     const caseId = newCaseId();
 
-    // Webhook log embed — matches the ban-log format (description lines, linked username,
-    // code-styled case id, avatar thumbnail, clock footer).
+    // Webhook log embed — exact format: ## header, >>> blockquote, linked+code username,
+    // code case id, avatar thumbnail, and a -# subtext line with a Discord timestamp.
     const hook = process.env.BAN_WEBHOOK_URL;
     if (hook) {
       const thumb = await headshotUrl(target.userId);
-      const d = new Date();
-      const datePart = d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-      const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      const unix = Math.floor(Date.now() / 1000);
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
-      const description = [
-        `Username: [${target.username}](${profile})`,
-        `User ID: ${target.userId}`,
-        `Game: ${GAME_NAME}`,
-        `Reason: ${reason}`,
-        `case_id: \`${caseId}\``,
-        `Moderator: ${s.name} (id: ${s.id})`,
-      ].join("\n");
-      const embed = {
-        title: `${target.displayName || target.username} (@${target.username})`,
-        color: isBan ? 0xed4245 : 0x57f287,
-        ...(thumb ? { thumbnail: { url: thumb } } : {}),
-        description,
-        footer: { text: `Action taken on: ${datePart} ${timePart} - ${isBan ? "Ban" : "Unban"}`, icon_url: CLOCK_ICON },
-      };
+      const description =
+        `## ${target.displayName || target.username} (@${target.username})\n` +
+        `>>> Username: [\`${target.username}\`](${profile})\n` +
+        `User ID: ${target.userId}\n` +
+        `Game: ${GAME_NAME}\n` +
+        `Reason: ${reasonText || "—"}\n` +
+        `case_id: \`${caseId}\`\n` +
+        `Moderator: ${s.name} (id: ${s.id})\n` +
+        `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
+      const embed = { ...(thumb ? { thumbnail: { url: thumb } } : {}), description };
       await fetch(hook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,7 +106,7 @@ export async function POST(req) {
 
     await logAudit({
       actorId: s.id, actorName: s.name, action: isBan ? "ban" : "unban", category: "ban",
-      target: `${target.username} (${target.userId})`, detail: `${reason} [${caseId}]`,
+      target: `${target.username} (${target.userId})`, detail: `${reasonText || ""} [${caseId}]`.trim(),
     });
 
     return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId });
