@@ -6,8 +6,11 @@ import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+// Allow time to sit through a rate-limit window and retry (see the retry loop below).
+export const maxDuration = 60;
 
 const GAME_NAME = "Zee Hood Game";
+const CLOCK_ICON = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/23f0.png";
 
 // A short human-readable case reference, e.g. RD-MSIQGE14-YHRWVP.
 function newCaseId() {
@@ -43,50 +46,63 @@ export async function POST(req) {
     const target = await resolveUsername(input);
     if (!target) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
 
-    // Build the game-join restriction (Open Cloud v2 user-restrictions).
     const gameJoinRestriction = isBan
       ? {
           active: true,
-          privateReason: String(reason || "No reason provided").slice(0, 999),
-          displayReason: String(reason || "You have been banned from this experience.").slice(0, 399),
+          privateReason: reason,
+          displayReason: reason,
           excludeAltAccounts: false,
           ...(duration ? { duration: /^\d+$/.test(String(duration)) ? `${duration}s` : String(duration) } : {}),
         }
       : { active: false };
 
+    // Roblox rate-limits user-restriction writes per user/universe (429 RESOURCE_EXHAUSTED).
+    // Auto-retry with backoff (honouring Retry-After) so a rate-limited ban/unban still goes
+    // through once the window clears, instead of just failing.
     const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${target.userId}`;
-    const res = await fetch(url, {
-      method: "PATCH",
-      headers: { "x-api-key": banKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ gameJoinRestriction }),
-    });
-    if (!res.ok) {
-      const body = (await res.text()).slice(0, 250);
-      return NextResponse.json({ error: `Roblox ${res.status}: ${body}` }, { status: 500 });
+    let res, lastBody = "";
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      res = await fetch(url, {
+        method: "PATCH",
+        headers: { "x-api-key": banKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ gameJoinRestriction }),
+      });
+      if (res.ok) break;
+      lastBody = (await res.text()).slice(0, 250);
+      const retryable = res.status === 429 || (res.status >= 500 && res.status < 600);
+      if (!retryable || attempt === 6) {
+        return NextResponse.json({ error: `Roblox ${res.status}: ${lastBody}` }, { status: 502 });
+      }
+      const ra = Number(res.headers.get("retry-after"));
+      const waitMs = ra > 0 ? Math.min(30000, ra * 1000) : Math.min(15000, 2000 * 2 ** (attempt - 1));
+      await new Promise((r) => setTimeout(r, waitMs));
     }
 
     const caseId = newCaseId();
 
-    // Webhook log embed (matches the ban-log format).
+    // Webhook log embed — matches the ban-log format (description lines, linked username,
+    // code-styled case id, avatar thumbnail, clock footer).
     const hook = process.env.BAN_WEBHOOK_URL;
     if (hook) {
       const thumb = await headshotUrl(target.userId);
-      const when = new Date().toLocaleString("en-US", {
-        weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
-      });
+      const d = new Date();
+      const datePart = d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      const profile = `https://www.roblox.com/users/${target.userId}/profile`;
+      const description = [
+        `Username: [${target.username}](${profile})`,
+        `User ID: ${target.userId}`,
+        `Game: ${GAME_NAME}`,
+        `Reason: ${reason}`,
+        `case_id: \`${caseId}\``,
+        `Moderator: ${s.name} (id: ${s.id})`,
+      ].join("\n");
       const embed = {
         title: `${target.displayName || target.username} (@${target.username})`,
-        color: isBan ? 0xe74c3c : 0x2ecc71,
+        color: isBan ? 0xed4245 : 0x57f287,
         ...(thumb ? { thumbnail: { url: thumb } } : {}),
-        fields: [
-          { name: "Username", value: String(target.username) },
-          { name: "User ID", value: String(target.userId) },
-          { name: "Game", value: GAME_NAME },
-          { name: "Reason", value: String(reason || "—") },
-          { name: "case_id", value: caseId },
-          { name: "Moderator", value: `${s.name} (id: ${s.id})` },
-        ],
-        footer: { text: `Action taken on: ${when} - ${isBan ? "Ban" : "Unban"}` },
+        description,
+        footer: { text: `Action taken on: ${datePart} ${timePart} - ${isBan ? "Ban" : "Unban"}`, icon_url: CLOCK_ICON },
       };
       await fetch(hook, {
         method: "POST",
@@ -97,10 +113,10 @@ export async function POST(req) {
 
     await logAudit({
       actorId: s.id, actorName: s.name, action: isBan ? "ban" : "unban", category: "ban",
-      target: `${target.username} (${target.userId})`, detail: `${reason || ""}${isBan ? ` [${caseId}]` : ""}`.trim(),
+      target: `${target.username} (${target.userId})`, detail: `${reason} [${caseId}]`,
     });
 
-    return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId: isBan ? caseId : null });
+    return NextResponse.json({ ok: true, action: isBan ? "ban" : "unban", user: target, caseId });
   } catch (e) {
     return NextResponse.json({ error: `Ban failed: ${e?.message || String(e)}` }, { status: 500 });
   }
