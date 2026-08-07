@@ -19,6 +19,7 @@ export default function BansDashboard() {
   const [bans, setBans] = useState(null);
   const [loadingBans, setLoadingBans] = useState(false);
   const [search, setSearch] = useState("");
+  const sigRef = useRef(""); // last list signature — skip no-op re-renders during polling
 
   // live resolve the target as you type (debounced, cancellable, latest-wins)
   const deb = useRef();
@@ -52,8 +53,13 @@ export default function BansDashboard() {
     try {
       const r = await fetch(`/api/bans${fresh ? "?fresh=1" : ""}`);
       const d = await r.json();
-      if (r.ok) setBans(d.bans || []);
-      else if (!silent) setToast({ bad: true, msg: d.error });
+      if (r.ok) {
+        const next = d.bans || [];
+        // Only update state when the list actually changed, so a background poll doesn't
+        // re-render (and jump the scroll / reload avatars) when nothing moved.
+        const sig = next.map((b) => `${b.userId}:${b.username}:${b.reason}`).join("|");
+        if (sig !== sigRef.current) { sigRef.current = sig; setBans(next); }
+      } else if (!silent) setToast({ bad: true, msg: d.error });
     } catch (e) { if (!silent) setToast({ bad: true, msg: e.message }); }
     if (!silent) setLoadingBans(false);
   }, []);

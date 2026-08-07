@@ -24,6 +24,10 @@ const SCAN_TTL_MS = 12_000;
 let scanCache = null; // { at:number, payload:object }
 function invalidateScan() { scanCache = null; }
 
+// Resolved usernames persist across scans so a rate-limited batch call can't flip names back
+// to raw ids, and repeat polls don't re-resolve everyone. userId(str) -> { username, displayName }.
+const nameCache = new Map();
+
 // Lightweight sliding-window rate limiter keyed per session — a best-effort abuse guard on
 // top of the auth gate. Caps runaway typing/refresh loops and a hammered leaked session.
 const rlHits = new Map(); // key -> number[]
@@ -116,16 +120,21 @@ export async function GET(req) {
     return NextResponse.json({ error: "Scan failed — see server logs." }, { status: 500 });
   }
 
-  // resolve usernames (batch 100)
-  const ids = active.map((a) => Number(a.userId)).filter(Boolean);
-  const info = {};
-  for (let i = 0; i < ids.length; i += 100) {
+  // Resolve usernames, persisting them across scans in a module cache. This keeps names stable
+  // when a batch call gets rate-limited (they'd otherwise flip back to raw IDs on the next
+  // poll), and means each poll only resolves NEW ids instead of re-resolving all ~170 every 12s.
+  const idStrs = active.map((a) => a.userId).filter(Boolean);
+  const missing = [...new Set(idStrs.filter((id) => !nameCache.has(id)).map(Number).filter(Boolean))];
+  for (let i = 0; i < missing.length; i += 100) {
     try {
-      const r = await fetch("https://users.roblox.com/v1/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userIds: ids.slice(i, i + 100), excludeBannedUsers: false }) });
-      if (r.ok) { const d = await r.json(); for (const u of d.data || []) info[u.id] = { username: u.name, displayName: u.displayName }; }
+      const r = await fetch("https://users.roblox.com/v1/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userIds: missing.slice(i, i + 100), excludeBannedUsers: false }) });
+      if (r.ok) { const d = await r.json(); for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName }); }
     } catch {}
   }
-  const bans = active.map((a) => ({ ...a, username: info[a.userId]?.username || a.userId, displayName: info[a.userId]?.displayName || info[a.userId]?.username || a.userId }));
+  const bans = active.map((a) => {
+    const n = nameCache.get(a.userId);
+    return { ...a, username: n?.username || a.userId, displayName: n?.displayName || n?.username || a.userId };
+  });
   const payload = { scope: GAME_NAME, count: bans.length, bans };
   scanCache = { at: Date.now(), payload };
   return NextResponse.json(payload);
@@ -166,8 +175,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "Ban not configured: set a Bans API key in Settings + a universe id." }, { status: 500 });
     }
 
-    const target = await resolveUsername(input);
-    if (!target) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+    let target = await resolveUsername(input).catch(() => null);
+    if (!target) {
+      // Terminated / unresolvable accounts (exactly the ones that show as raw ids in the list)
+      // won't resolve by username. For unban/kick/warn we already have the id, so fall back to
+      // it so the action AND its webhook still go through. A fresh ban still needs a real resolve.
+      const idOnly = String(input).trim();
+      if (isBan || !/^\d+$/.test(idOnly)) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+      const cached = nameCache.get(idOnly);
+      target = { userId: idOnly, username: cached?.username || idOnly, displayName: cached?.displayName || cached?.username || idOnly };
+    }
 
     let publishNote = "";
     if (action === "kick" || action === "warn") {
