@@ -20,22 +20,30 @@ export default function BansDashboard() {
   const [loadingBans, setLoadingBans] = useState(false);
   const [search, setSearch] = useState("");
 
-  // live resolve the target as you type (debounced)
+  // live resolve the target as you type (debounced, cancellable, latest-wins)
   const deb = useRef();
+  const seq = useRef(0);
   useEffect(() => {
     clearTimeout(deb.current);
     const q = target.trim();
     if (!q) { setResolved(null); setResolving(false); return; }
     setResolving(true);
+    const mySeq = ++seq.current;
+    const ctrl = new AbortController();
     deb.current = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/bans?user=${encodeURIComponent(q)}`);
-        const d = await r.json();
-        setResolved(r.ok ? d.user : null);
-      } catch { setResolved(null); }
-      setResolving(false);
-    }, 400);
-    return () => clearTimeout(deb.current);
+        const r = await fetch(`/api/bans?user=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+        const d = await r.json().catch(() => ({}));
+        if (mySeq !== seq.current) return; // a newer keystroke already superseded this one
+        setResolved(r.ok && d.user ? d.user : null);
+        setResolving(false);
+      } catch (e) {
+        if (e.name === "AbortError" || mySeq !== seq.current) return;
+        setResolved(null);
+        setResolving(false);
+      }
+    }, 350);
+    return () => { clearTimeout(deb.current); ctrl.abort(); };
   }, [target]);
 
   const loadBans = useCallback(async () => {

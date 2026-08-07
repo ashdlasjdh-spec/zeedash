@@ -39,22 +39,29 @@ export async function GET(req) {
 
   // ---- single-target lookup (live resolve while typing / full lookup page) ----
   if (user) {
-    const t = await resolveUsername(user);
+    // resolveUsername can throw (Roblox 429/network) — never let that 500 the endpoint,
+    // or the "resolve as you type" card just goes blank.
+    let t = null;
+    try { t = await resolveUsername(user); } catch { return NextResponse.json({ error: "Lookup rate-limited — try again." }, { status: 503 }); }
     if (!t) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
-    let active = false, reason = "", duration = null, startTime = null;
-    try {
-      const r = await fetch(`https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${t.userId}`, { headers: { "x-api-key": key } });
-      if (r.ok) { const d = await r.json(); const g = d.gameJoinRestriction || {}; active = !!g.active; reason = g.displayReason || g.privateReason || ""; duration = g.duration || null; startTime = g.startTime || null; }
-    } catch {}
-    let history = [];
-    try {
-      history = await query(
+
+    // Ban status and history are independent — fetch them in parallel. The avatar is resolved
+    // client-side via <Avatar/>, so we deliberately skip the slow thumbnails call here.
+    const restrUrl = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${t.userId}`;
+    const [restr, history] = await Promise.all([
+      fetch(restrUrl, { headers: { "x-api-key": key } }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      query(
         "select action, detail, actor_name, actor_id, created_at from audit_log where category='ban' and target like $1 order by created_at desc limit 100",
         [`%(${t.userId})%`],
-      );
-    } catch {}
-    const thumb = await headshotUrl(t.userId);
-    const u = { userId: String(t.userId), username: t.username, displayName: t.displayName || t.username, avatar: thumb, active, reason, duration, startTime, historyCount: history.length };
+      ).catch(() => []),
+    ]);
+    const g = (restr && restr.gameJoinRestriction) || {};
+    const u = {
+      userId: String(t.userId), username: t.username, displayName: t.displayName || t.username,
+      active: !!g.active, reason: g.displayReason || g.privateReason || "",
+      duration: g.duration || null, startTime: g.startTime || null,
+      historyCount: history.length,
+    };
     return NextResponse.json(full ? { user: u, history } : { user: u });
   }
 
