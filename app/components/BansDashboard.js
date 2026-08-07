@@ -46,10 +46,10 @@ export default function BansDashboard() {
     return () => { clearTimeout(deb.current); ctrl.abort(); };
   }, [target]);
 
-  const loadBans = useCallback(async () => {
+  const loadBans = useCallback(async (fresh = false) => {
     setLoadingBans(true);
     try {
-      const r = await fetch("/api/bans");
+      const r = await fetch(`/api/bans${fresh ? "?fresh=1" : ""}`);
       const d = await r.json();
       if (r.ok) setBans(d.bans || []);
       else setToast({ bad: true, msg: d.error });
@@ -180,7 +180,7 @@ export default function BansDashboard() {
               <div style={{ fontWeight: 800, fontSize: 15 }}>🚫 Active bans</div>
               <div className="muted" style={{ fontSize: 13 }}>Everyone currently banned in this scope. Live from Roblox.</div>
             </div>
-            <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={loadBans}>{loadingBans ? "Scanning…" : "Refresh"}</button>
+            <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={() => loadBans(true)}>{loadingBans ? "Scanning…" : "Refresh"}</button>
           </div>
           <input style={{ marginTop: 12 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search user, reason…" />
           <div className="muted" style={{ fontSize: 12, margin: "10px 0 6px" }}>{bans == null ? "" : `${list.length} of ${bans.length} shown`}</div>

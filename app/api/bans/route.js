@@ -16,11 +16,32 @@ function banConfig(c) {
   return { key, universeId: c.universeId };
 }
 
+// --- per-instance helpers (best-effort; reset on cold start, per serverless node) ---
+
+// Cache the full active-ban scan briefly so page loads, refreshes, and post-action reloads
+// don't re-scan Roblox (and re-resolve ~hundreds of usernames) on every single request.
+const SCAN_TTL_MS = 20_000;
+let scanCache = null; // { at:number, payload:object }
+function invalidateScan() { scanCache = null; }
+
+// Lightweight sliding-window rate limiter keyed per session — a best-effort abuse guard on
+// top of the auth gate. Caps runaway typing/refresh loops and a hammered leaked session.
+const rlHits = new Map(); // key -> number[]
+function rateLimited(key, max, windowMs) {
+  const now = Date.now();
+  const arr = (rlHits.get(key) || []).filter((t) => now - t < windowMs);
+  arr.push(now);
+  rlHits.set(key, arr);
+  if (rlHits.size > 500) for (const [k, v] of rlHits) if (!v.some((t) => now - t < windowMs)) rlHits.delete(k);
+  return arr.length > max;
+}
+
 // GET /api/bans          -> scan every ACTIVE game ban (live from Open Cloud)
 // GET /api/bans?user=X   -> resolve one target (avatar, id, ban status, history)
 export async function GET(req) {
   const s = await getSession();
   if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (rateLimited(`get:${s.id}`, 50, 10_000)) return NextResponse.json({ error: "Slow down — too many requests." }, { status: 429 });
   const { key, universeId } = banConfig(await getConfig());
   if (!key || !universeId) return NextResponse.json({ error: "Bans not configured (API key + universe id)." }, { status: 500 });
 
@@ -66,13 +87,22 @@ export async function GET(req) {
   }
 
   // ---- full scan of active bans (paginate the restriction list) ----
+  // Serve from the short-lived cache unless the caller forces a fresh scan (Refresh button).
+  const fresh = req.nextUrl.searchParams.get("fresh") === "1";
+  if (!fresh && scanCache && Date.now() - scanCache.at < SCAN_TTL_MS) {
+    return NextResponse.json({ ...scanCache.payload, cached: true });
+  }
+
   const active = [];
   let pageToken = "";
   try {
     for (let i = 0; i < 40; i++) {
       const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions?maxPageSize=100${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""}`;
       const r = await fetch(url, { headers: { "x-api-key": key } });
-      if (!r.ok) return NextResponse.json({ error: `Roblox ${r.status}: ${(await r.text()).slice(0, 200)}` }, { status: 502 });
+      if (!r.ok) {
+        console.error(`[bans] scan Roblox ${r.status}:`, (await r.text()).slice(0, 300));
+        return NextResponse.json({ error: `Roblox scan failed (${r.status}).` }, { status: 502 });
+      }
       const d = await r.json();
       for (const ur of d.userRestrictions || []) {
         const g = ur.gameJoinRestriction || {};
@@ -82,7 +112,8 @@ export async function GET(req) {
       if (!pageToken) break;
     }
   } catch (e) {
-    return NextResponse.json({ error: `Scan failed: ${e.message}` }, { status: 500 });
+    console.error("[bans] scan failed:", e);
+    return NextResponse.json({ error: "Scan failed — see server logs." }, { status: 500 });
   }
 
   // resolve usernames (batch 100)
@@ -95,7 +126,9 @@ export async function GET(req) {
     } catch {}
   }
   const bans = active.map((a) => ({ ...a, username: info[a.userId]?.username || a.userId, displayName: info[a.userId]?.displayName || info[a.userId]?.username || a.userId }));
-  return NextResponse.json({ scope: GAME_NAME, count: bans.length, bans });
+  const payload = { scope: GAME_NAME, count: bans.length, bans };
+  scanCache = { at: Date.now(), payload };
+  return NextResponse.json(payload);
 }
 
 // A short human-readable case reference, e.g. RD-MSIQGE14-YHRWVP.
@@ -117,6 +150,7 @@ export async function POST(req) {
   try {
     const s = await getSession();
     if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (rateLimited(`post:${s.id}`, 15, 60_000)) return NextResponse.json({ error: "Slow down — too many actions." }, { status: 429 });
 
     const { user: input, reason, duration, evidence, action = "ban" } = await req.json();
     const isBan = action === "ban";
@@ -229,8 +263,11 @@ export async function POST(req) {
       target: `${target.username} (${target.userId})`, detail: `${reasonText || ""} [${caseId}]`.trim(),
     });
 
+    if (action === "ban" || action === "unban") invalidateScan(); // active-ban set changed
+
     return NextResponse.json({ ok: true, action, user: target, caseId, webhook, note: publishNote || undefined });
   } catch (e) {
-    return NextResponse.json({ error: `Ban failed: ${e?.message || String(e)}` }, { status: 500 });
+    console.error("[bans] POST failed:", e);
+    return NextResponse.json({ error: "Action failed — see server logs." }, { status: 500 });
   }
 }
