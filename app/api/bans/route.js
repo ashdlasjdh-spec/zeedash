@@ -87,24 +87,34 @@ export async function POST(req) {
       const thumb = await headshotUrl(target.userId);
       const unix = Math.floor(Date.now() / 1000);
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
-      // Sent as message CONTENT (not an embed) so the "## " header renders its underline
-      // (the separator line) — embeds don't underline headers. The avatar rides along as a
-      // thumbnail-only embed so it isn't lost.
-      const content =
-        `## ${target.displayName || target.username} (@${target.username})\n` +
-        `> Username: [\`${target.username}\`](${profile})\n` +
-        `> User ID: ${target.userId}\n` +
-        `> Game: ${GAME_NAME}\n` +
-        `> Reason: ${reasonText || "—"}\n` +
-        `> case_id: \`${caseId}\`\n` +
-        `> Moderator: ${s.name} (id: ${s.id})\n` +
-        `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
-      const payload = { content, allowed_mentions: { parse: [] } };
-      if (thumb) payload.embeds = [{ thumbnail: { url: thumb } }];
+      const title = `## ${target.displayName || target.username} (@${target.username})`;
+      const body =
+        `Username: [\`${target.username}\`](${profile})\n` +
+        `User ID: ${target.userId}\n` +
+        `Game: ${GAME_NAME}\n` +
+        `Reason: ${reasonText || "—"}\n` +
+        `case_id: \`${caseId}\`\n` +
+        `Moderator: ${s.name} (id: ${s.id})`;
+      const footer = `-# ⏱️ Action taken on: <t:${unix}:F> - ${isBan ? "Ban" : "Unban"}`;
+      // Components V2 (flag 1<<15): the Separator (type 14) components draw the divider
+      // lines that classic embeds can't. The Section (type 9) holds the fields with the
+      // avatar as its thumbnail accessory (type 11). No content/embeds allowed alongside V2.
+      const container = {
+        type: 17,
+        components: [
+          { type: 10, content: title },
+          { type: 14 },
+          thumb
+            ? { type: 9, components: [{ type: 10, content: body }], accessory: { type: 11, media: { url: thumb } } }
+            : { type: 10, content: body },
+          { type: 14 },
+          { type: 10, content: footer },
+        ],
+      };
       await fetch(hook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ flags: 1 << 15, allowed_mentions: { parse: [] }, components: [container] }),
       }).catch(() => {});
     }
 
