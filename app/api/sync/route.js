@@ -14,9 +14,11 @@ export const maxDuration = 300;
 async function runInBatches(items, size, worker) {
   for (let i = 0; i < items.length; i += size) {
     await Promise.all(items.slice(i, i + size).map(worker));
+    // Brief breather between waves so we don't sustain a burst past the DataStore write quota.
+    if (i + size < items.length) await new Promise((r) => setTimeout(r, 150));
   }
 }
-const BATCH = 15; // concurrent Open Cloud requests per wave (retry-on-429 in ds() covers bursts)
+const BATCH = 8; // concurrent Open Cloud requests per wave (lower burst + jittered retry in ds() absorbs 429s)
 
 // POST /api/sync — re-hydrate the CURRENT universe from the shared Postgres DB.
 // Writes EVERYTHING the game reads back after a universe swap:
