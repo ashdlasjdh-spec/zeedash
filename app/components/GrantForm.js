@@ -11,19 +11,23 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
   const [toast, setToast] = useState(null);
   const [list, setList] = useState(null);
   const [loadingList, setLoadingList] = useState(false);
-  const [days, setDays] = useState("0"); // 0 = permanent; >0 = temporary (auto-revokes)
+  const [durAmount, setDurAmount] = useState("1");
+  const [durUnit, setDurUnit] = useState("perm"); // perm | s | m | h | d | w
+
+  const UNIT = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
 
   async function submit(action) {
     if (!sel || !username) { setToast({ bad: true, msg: "Pick an item and enter a username." }); return; }
+    const seconds = action === "grant" && durUnit !== "perm" ? Math.max(0, Math.floor((Number(durAmount) || 0) * (UNIT[durUnit] || 0))) : 0;
     setBusy(true); setToast(null);
     try {
       const res = await fetch("/api/grant", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, key: sel, username, action, days: action === "grant" ? Number(days) || 0 : 0 }),
+        body: JSON.stringify({ category, key: sel, username, action, seconds }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      const temp = data.expiresInDays ? ` (auto-revokes in ${data.expiresInDays}d)` : "";
+      const temp = data.expiresIn ? ` (auto-revokes in ${data.expiresIn})` : "";
       setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}${temp}.` + (data.warn ? " ⚠ " + data.warn : "") });
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
@@ -80,15 +84,19 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
             <label>Roblox username or ID</label>
             <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman or 156" />
           </div>
-          <div style={{ minWidth: 130 }}>
+          <div style={{ minWidth: 170 }}>
             <label>Duration</label>
-            <select value={days} onChange={(e) => setDays(e.target.value)}>
-              <option value="0">Permanent</option>
-              <option value="1">1 day</option>
-              <option value="7">7 days</option>
-              <option value="14">14 days</option>
-              <option value="30">30 days</option>
-            </select>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input value={durAmount} onChange={(e) => setDurAmount(e.target.value)} inputMode="numeric" style={{ width: 60 }} disabled={durUnit === "perm"} placeholder="1" />
+              <select value={durUnit} onChange={(e) => setDurUnit(e.target.value)}>
+                <option value="perm">Permanent</option>
+                <option value="s">Seconds</option>
+                <option value="m">Minutes</option>
+                <option value="h">Hours</option>
+                <option value="d">Days</option>
+                <option value="w">Weeks</option>
+              </select>
+            </div>
           </div>
           <button className="btn" disabled={busy} onClick={() => submit("grant")}>{busy ? "…" : verb}</button>
           <button className="btn ghost" disabled={busy} onClick={() => submit("revoke")}>Revoke</button>
