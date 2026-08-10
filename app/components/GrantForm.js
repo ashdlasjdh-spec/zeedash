@@ -11,6 +11,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
   const [toast, setToast] = useState(null);
   const [list, setList] = useState(null);
   const [loadingList, setLoadingList] = useState(false);
+  const [days, setDays] = useState("0"); // 0 = permanent; >0 = temporary (auto-revokes)
 
   async function submit(action) {
     if (!sel || !username) { setToast({ bad: true, msg: "Pick an item and enter a username." }); return; }
@@ -18,11 +19,12 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
     try {
       const res = await fetch("/api/grant", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, key: sel, username, action }),
+        body: JSON.stringify({ category, key: sel, username, action, days: action === "grant" ? Number(days) || 0 : 0 }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}.` + (data.warn ? " ⚠ " + data.warn : "") });
+      const temp = data.expiresInDays ? ` (auto-revokes in ${data.expiresInDays}d)` : "";
+      setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}${temp}.` + (data.warn ? " ⚠ " + data.warn : "") });
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(false);
@@ -74,9 +76,19 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
           ))}
         </div>
         <div className="row" style={{ marginTop: 18 }}>
-          <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
             <label>Roblox username or ID</label>
             <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman or 156" />
+          </div>
+          <div style={{ minWidth: 130 }}>
+            <label>Duration</label>
+            <select value={days} onChange={(e) => setDays(e.target.value)}>
+              <option value="0">Permanent</option>
+              <option value="1">1 day</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+            </select>
           </div>
           <button className="btn" disabled={busy} onClick={() => submit("grant")}>{busy ? "…" : verb}</button>
           <button className="btn ghost" disabled={busy} onClick={() => submit("revoke")}>Revoke</button>
