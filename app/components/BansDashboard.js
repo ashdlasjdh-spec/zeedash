@@ -79,11 +79,15 @@ export default function BansDashboard() {
     const u = (userOverride || target).trim();
     if (!u) { setToast({ bad: true, msg: "Enter a target player." }); return; }
     if ((act === "ban" || act === "warn") && !reason.trim()) { setToast({ bad: true, msg: `A reason is required to ${act}.` }); return; }
+    // Act on the already-resolved numeric id when we have it (row-unban passes an id too) — the
+    // API resolves ids reliably even when a username lookup is flaky, so a valid target never
+    // fails with "No such Roblox user".
+    const sendUser = userOverride ? u : resolved?.userId ? String(resolved.userId) : u;
     setBusy(true); setToast(null);
     try {
       const r = await fetch("/api/bans", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: u, reason, duration: duration.trim() || undefined, evidence: evidence.trim() || undefined, action: act }),
+        body: JSON.stringify({ user: sendUser, reason, duration: duration.trim() || undefined, evidence: evidence.trim() || undefined, action: act }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");

@@ -175,13 +175,18 @@ export async function POST(req) {
       return NextResponse.json({ error: "Ban not configured: set a Bans API key in Settings + a universe id." }, { status: 500 });
     }
 
+    // Resolve once; retry once on a flaky/rate-limited lookup before giving up.
     let target = await resolveUsername(input).catch(() => null);
     if (!target) {
-      // Terminated / unresolvable accounts (exactly the ones that show as raw ids in the list)
-      // won't resolve by username. For unban/kick/warn we already have the id, so fall back to
-      // it so the action AND its webhook still go through. A fresh ban still needs a real resolve.
+      await new Promise((r) => setTimeout(r, 400));
+      target = await resolveUsername(input).catch(() => null);
+    }
+    if (!target) {
+      // If the username lookup is still flaky, or it's a terminated account, fall back to a
+      // numeric id — the frontend sends the already-resolved id, so a valid target NEVER fails
+      // with "No such Roblox user". Applies to every action (ban/unban/kick/warn).
       const idOnly = String(input).trim();
-      if (isBan || !/^\d+$/.test(idOnly)) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+      if (!/^\d+$/.test(idOnly)) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
       const cached = nameCache.get(idOnly);
       target = { userId: idOnly, username: cached?.username || idOnly, displayName: cached?.displayName || cached?.username || idOnly };
     }

@@ -62,28 +62,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
     setBusy(false);
   }
 
-  // Owner-only: wipe EVERY grant in this section from EVERY player who has one.
-  async function purgeAll() {
-    if (typeof window !== "undefined") {
-      const typed = window.prompt(`This removes EVERY ${category} from EVERY player who has one. Type "${category}" to confirm.`);
-      if (typed !== category) { setToast({ bad: true, msg: "Cancelled — nothing removed." }); return; }
-    }
-    setBusy(true); setToast(null);
-    try {
-      const res = await fetch("/api/grant/purge", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.warn, msg: `Removed ${d.removed.items} ${category}(s) from ${d.removed.users} user(s).` + (d.warn ? " ⚠ " + d.warn : "") });
-      if (list) loadGranted();
-    } catch (e) { setToast({ bad: true, msg: e.message }); }
-    setBusy(false);
-  }
-
   const showList = canManage && !!FIELD[category];
-  const showPurge = canPurge && !!FIELD[category];
 
   return (
     <>
@@ -104,20 +83,6 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
         </div>
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
-
-      {showPurge && (
-        <div className="card" style={{ borderColor: "var(--danger)" }}>
-          <div className="between">
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--danger)" }}>Remove all {category}s</div>
-              <div className="muted" style={{ fontSize: 13 }}>Owner only. Revokes every {category} from every player who currently has one. Cannot be undone.</div>
-            </div>
-            <button className="btn" style={{ width: "auto", background: "var(--danger)", borderColor: "var(--danger)" }} disabled={busy} onClick={purgeAll}>
-              {busy ? "…" : `Remove all ${category}s`}
-            </button>
-          </div>
-        </div>
-      )}
 
       {showList && (
         <div className="card">
