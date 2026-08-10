@@ -25,7 +25,13 @@ async function handle(req) {
     const errors = [];
     for (const r of due) {
       try {
-        await applyGrant({ category: r.category, key: r.item_key, uid: r.user_id, by: "auto-expire", byId: "system", action: "revoke" });
+        const { warn } = await applyGrant({ category: r.category, key: r.item_key, uid: r.user_id, by: "auto-expire", byId: "system", action: "revoke" });
+        if (warn) {
+          // The shared-DB removal didn't confirm — KEEP the expiry row so the next sweep retries,
+          // instead of silently leaving the perk in the DB. Record why.
+          errors.push(`${r.user_id}/${r.category}:${r.item_key}: ${warn}`);
+          continue;
+        }
         await query("delete from grant_expiry where user_id = $1 and category = $2 and item_key = $3", [r.user_id, r.category, r.item_key]);
         revoked++;
         await logAudit({
