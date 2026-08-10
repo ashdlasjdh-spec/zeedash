@@ -126,10 +126,27 @@ export async function GET(req) {
   const idStrs = active.map((a) => a.userId).filter(Boolean);
   const missing = [...new Set(idStrs.filter((id) => !nameCache.has(id)).map(Number).filter(Boolean))];
   for (let i = 0; i < missing.length; i += 100) {
-    try {
-      const r = await fetch("https://users.roblox.com/v1/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userIds: missing.slice(i, i + 100), excludeBannedUsers: false }) });
-      if (r.ok) { const d = await r.json(); for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName }); }
-    } catch {}
+    const chunk = missing.slice(i, i + 100);
+    // Retry each batch on rate-limit / transient failure with jittered backoff — otherwise a
+    // throttled batch silently leaves ~100 users showing as raw ids until a later scan.
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      try {
+        const r = await fetch("https://users.roblox.com/v1/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: chunk, excludeBannedUsers: false }),
+        });
+        if (r.ok) {
+          const d = await r.json();
+          for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName });
+          break;
+        }
+        if (r.status === 429 || r.status >= 500) { await new Promise((res) => setTimeout(res, 300 * attempt + Math.random() * 400)); continue; }
+        break; // non-retryable
+      } catch {
+        await new Promise((res) => setTimeout(res, 300 * attempt));
+      }
+    }
   }
   const bans = active.map((a) => {
     const n = nameCache.get(a.userId);
