@@ -287,7 +287,7 @@ export default function BansDashboard() {
           <div style={{ maxHeight: 620, overflowY: "auto", overflowX: "hidden" }}>
             {bans == null && <p className="muted">Loading…</p>}
             {bans && list.length === 0 && <p className="muted">No active bans.</p>}
-            {list.map((b) => (
+            {list.slice(0, 200).map((b) => (
               <div
                 key={b.userId}
                 style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 8px", borderBottom: "1px solid var(--line)" }}
@@ -304,6 +304,11 @@ export default function BansDashboard() {
                 <button className="btn ghost" style={{ width: "auto", flex: "0 0 auto" }} disabled={busy} onClick={() => apply("unban", String(b.userId))}>Unban</button>
               </div>
             ))}
+            {list.length > 200 && (
+              <div className="muted" style={{ fontSize: 12, textAlign: "center", padding: "12px 0" }}>
+                Showing first 200 of {list.length.toLocaleString()} — use search to narrow, or Export CSV for the full list.
+              </div>
+            )}
           </div>
         </div>
       </div>
