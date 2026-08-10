@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { can, canManageGrants } from "@/lib/permissions";
+import { can, canManageGrants, canPurge } from "@/lib/permissions";
 import { CATALOG } from "@/lib/catalog";
 import { redirect } from "next/navigation";
 import GrantForm from "../../components/GrantForm";
@@ -14,7 +14,7 @@ export default async function Page() {
         Grant a player permission to run <b>/startbr</b>. Works in any server, applies live,
         and persists across sessions via the DashboardGrants store.
       </p>
-      <GrantForm category="startbr" items={CATALOG.startbr} canManage={canManageGrants(user.level)} />
+      <GrantForm category="startbr" items={CATALOG.startbr} canManage={canManageGrants(user.level)} canPurge={canPurge(user.id)} />
     </>
   );
 }

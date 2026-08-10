@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { can, canManageGrants } from "@/lib/permissions";
+import { can, canManageGrants, canPurge } from "@/lib/permissions";
 import { CATALOG } from "@/lib/catalog";
 import { redirect } from "next/navigation";
 import GrantForm from "../../components/GrantForm";
@@ -14,7 +14,7 @@ export default async function Page() {
         Grant a Shazam variant to any player. Applies live if they&apos;re in-game and
         persists across sessions (PlayerPerks + shared DB), so it survives universe swaps.
       </p>
-      <GrantForm category="shazam" items={CATALOG.shazam} canManage={canManageGrants(user.level)} />
+      <GrantForm category="shazam" items={CATALOG.shazam} canManage={canManageGrants(user.level)} canPurge={canPurge(user.id)} />
     </>
   );
 }
