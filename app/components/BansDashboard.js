@@ -10,6 +10,8 @@ export default function BansDashboard() {
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("");
   const [evidence, setEvidence] = useState("");
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -102,10 +104,46 @@ export default function BansDashboard() {
     setBusy(false);
   }
 
+  // Bulk ban/unban a pasted list (server-side loop; not blocked by the per-request limiter).
+  async function applyBulk(act) {
+    const users = bulkText.split(/[\s,]+/).map((u) => u.trim()).filter(Boolean);
+    if (!users.length) { setToast({ bad: true, msg: "Paste some player IDs or usernames (one per line)." }); return; }
+    if (act === "ban" && !reason.trim()) { setToast({ bad: true, msg: "A reason is required to ban." }); return; }
+    if (typeof window !== "undefined" && !window.confirm(`${act === "ban" ? "Ban" : "Unban"} ${users.length} player(s)?`)) return;
+    setBulkBusy(true); setToast(null);
+    try {
+      const r = await fetch("/api/bans/bulk", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users, action: act, reason }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed");
+      setToast({ ok: !d.failed, msg: `${act === "ban" ? "Banned" : "Unbanned"} ${d.done}/${d.total} player(s).` + (d.failed ? ` ⚠ ${d.failed} failed: ${d.errors.join("; ")}` : "") });
+      loadBans(true);
+    } catch (e) { setToast({ bad: true, msg: e.message }); }
+    setBulkBusy(false);
+  }
+
   const list = (bans || []).filter((b) => {
     const q = search.trim().toLowerCase();
     return !q || String(b.username).toLowerCase().includes(q) || String(b.userId).includes(q) || String(b.reason).toLowerCase().includes(q);
   });
+
+  // Download the current (filtered) ban list as CSV.
+  function exportCsv() {
+    const data = list.length ? list : bans || [];
+    if (!data.length) { setToast({ bad: true, msg: "No bans to export." }); return; }
+    const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["userId", "username", "displayName", "reason", "duration", "startTime"].join(",")].concat(
+      data.map((b) => [b.userId, b.username, b.displayName, b.reason, b.duration || "permanent", b.startTime || ""].map(esc).join(",")),
+    );
+    const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `active-bans-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <>
@@ -136,8 +174,26 @@ export default function BansDashboard() {
             <button className={`btn ${action === "warn" ? "" : "ghost"}`} onClick={() => setAction("warn")}>Warn</button>
             <button className={`btn ${action === "kick" ? "" : "ghost"}`} onClick={() => setAction("kick")}>Kick</button>
             <button className={`btn ${action === "unban" ? "" : "ghost"}`} onClick={() => setAction("unban")}>Unban</button>
+            <button className={`btn ${action === "bulk" ? "danger" : "ghost"}`} onClick={() => setAction("bulk")}>Bulk</button>
           </div>
 
+          {action === "bulk" ? (
+            <>
+              <label>Players — one per line (username or ID)</label>
+              <textarea value={bulkText} onChange={(e) => setBulkText(e.target.value)} rows={7} placeholder={"156\nBuilderman\n11080769482"} style={{ resize: "vertical" }} />
+              <div style={{ marginTop: 12 }}>
+                <label>Reason (required to ban)</label>
+                <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="exp - zhd" />
+              </div>
+              <div className="row" style={{ marginTop: 16, gap: 8 }}>
+                <button className="btn danger" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => applyBulk("ban")}>{bulkBusy ? "Working…" : "Ban all"}</button>
+                <button className="btn" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => applyBulk("unban")}>{bulkBusy ? "Working…" : "Unban all"}</button>
+              </div>
+              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Up to 500 at once. No per-player webhook is posted (one audit entry is logged).</p>
+              {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+            </>
+          ) : (
+          <>
           <label>Target player</label>
           <input value={target} onChange={(e) => setTarget(e.target.value)} placeholder="Username, user ID, or Roblox profile link" />
 
@@ -164,8 +220,24 @@ export default function BansDashboard() {
 
           {action === "ban" && (
             <div className="grid g2" style={{ marginTop: 14 }}>
-              <div><label>Reason</label><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="exp - zhd" /></div>
-              <div><label>Duration (seconds) — blank = permanent</label><input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="permanent" inputMode="numeric" /></div>
+              <div>
+                <label>Reason</label>
+                <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="exp - zhd" />
+                <div className="row" style={{ gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                  {["exp - zhd", "lock - zhd", "Silent - zhd", "avoiding ban - zhd"].map((r) => (
+                    <button key={r} type="button" className="btn ghost" style={{ width: "auto", fontSize: 12, padding: "5px 9px" }} onClick={() => setReason(r)}>{r}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label>Duration (seconds) — blank = permanent</label>
+                <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="permanent" inputMode="numeric" />
+                <div className="row" style={{ gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                  {[["Permanent", ""], ["1h", "3600"], ["1d", "86400"], ["7d", "604800"], ["30d", "2592000"]].map(([lbl, v]) => (
+                    <button key={lbl} type="button" className="btn ghost" style={{ width: "auto", fontSize: 12, padding: "5px 9px" }} onClick={() => setDuration(v)}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           {action === "ban" && (
@@ -192,6 +264,8 @@ export default function BansDashboard() {
             </button>
           </div>
           {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+          </>
+          )}
         </div>
 
         {/* ---- active bans ---- */}
@@ -203,7 +277,10 @@ export default function BansDashboard() {
               </div>
               <div className="muted" style={{ fontSize: 13 }}>Everyone currently banned in this scope. Auto-updates live from Roblox.</div>
             </div>
-            <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={() => loadBans(true)}>{loadingBans ? "Scanning…" : "Refresh"}</button>
+            <div className="row" style={{ gap: 8 }}>
+              <button className="btn ghost" style={{ width: "auto" }} disabled={!bans || !bans.length} onClick={exportCsv}>Export CSV</button>
+              <button className="btn ghost" style={{ width: "auto" }} disabled={loadingBans} onClick={() => loadBans(true)}>{loadingBans ? "Scanning…" : "Refresh"}</button>
+            </div>
           </div>
           <input style={{ marginTop: 12 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search user, reason…" />
           <div className="muted" style={{ fontSize: 12, margin: "10px 0 6px" }}>{bans == null ? "" : `${list.length} of ${bans.length} shown`}</div>
