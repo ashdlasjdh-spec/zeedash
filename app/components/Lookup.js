@@ -41,7 +41,7 @@ export default function Lookup() {
   const history = data?.history || [];
   const actions = data?.actions || [];
   const current = u ? parseDetail(history.find((h) => h.action === "ban")?.detail) : { caseId: "", reason: "" };
-  const badgeClass = (a) => (["grant", "revoke", "ban", "unban", "kick", "warn"].includes(String(a).toLowerCase()) ? `ab-${String(a).toLowerCase()}` : "");
+  const badgeClass = (a) => { const s = String(a).toLowerCase(); return /^[a-z]+$/.test(s) ? `ab-${s}` : ""; };
 
   return (
     <>

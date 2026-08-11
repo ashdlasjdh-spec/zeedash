@@ -117,7 +117,12 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
         return link(n.href, n.label);
       })}
       <div className="side-foot">
-        <div className="avatar">{(user.name || "?")[0].toUpperCase()}<span className="online" /></div>
+        <div className="avatar" style={user.avatar ? { background: "transparent", overflow: "hidden" } : undefined}>
+          {user.avatar
+            ? <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`} alt="" referrerPolicy="no-referrer" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />
+            : (user.name || "?")[0].toUpperCase()}
+          <span className="online" />
+        </div>
         <div><div className="who">{user.name}</div><span className={`role-pill role-${pillClassForLevel(user.level)}`}>{user.role}</span></div>
       </div>
       <form action="/api/auth/logout" method="post" style={{ marginTop: 10 }}>

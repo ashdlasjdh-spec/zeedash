@@ -48,7 +48,7 @@ const GRANT_META = {
 
 function actionBadge(action) {
   const a = String(action || "").toLowerCase();
-  const cls = ["grant", "revoke", "ban", "unban", "kick", "warn"].includes(a) ? `ab-${a}` : "";
+  const cls = /^[a-z]+$/.test(a) ? `ab-${a}` : ""; // colored per-action via .ab-<action> CSS
   return <span className={`ab ${cls}`}>{a || "action"}</span>;
 }
 
