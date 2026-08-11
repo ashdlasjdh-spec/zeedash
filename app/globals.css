@@ -240,7 +240,7 @@ button.tb-kv:hover{background:var(--surface-3)}
 .grid{display:grid;gap:16px}
 .g2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok,#3fb950);box-shadow:0 0 0 0 rgba(63,185,80,.5);animation:livepulse 2s infinite}
+.livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3fb950;box-shadow:0 0 0 0 rgba(63,185,80,.5);animation:livepulse 2s infinite}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(63,185,80,.5)}70%{box-shadow:0 0 0 6px rgba(63,185,80,0)}100%{box-shadow:0 0 0 0 rgba(63,185,80,0)}}
 
 /* ============ inputs ============ */
