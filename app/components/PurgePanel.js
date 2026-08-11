@@ -17,6 +17,26 @@ export default function PurgePanel() {
   const [toast, setToast] = useState(null);
   const [granter, setGranter] = useState("");
   const [gBusy, setGBusy] = useState(false);
+  const [wipeUser, setWipeUser] = useState("");
+  const [wBusy, setWBusy] = useState(false);
+
+  // Owner-only: nuke every trace of one player — both datastores + all their DB rows.
+  async function doWipe() {
+    const u = wipeUser.trim();
+    if (!u) { setToast({ bad: true, msg: "Enter a username or ID to wipe." }); return; }
+    if (typeof window !== "undefined") {
+      const typed = window.prompt(`This WIPES all datastore + database data for "${u}" (perks, powers, emojis, temp grants, whitelist, PlayerPerks). Irreversible. Type WIPE to confirm.`);
+      if (typed !== "WIPE") { setToast({ bad: true, msg: "Cancelled — nothing wiped." }); return; }
+    }
+    setWBusy(true); setToast(null);
+    try {
+      const res = await fetch("/api/wipe-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: u }) });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Failed");
+      setToast({ ok: !d.warn?.length, msg: `Wiped ${d.target.username} (${d.target.userId}) — ${d.done.join(", ") || "nothing found"}.` + (d.warn?.length ? ` ⚠ ${d.warn.join("; ")}` : "") });
+    } catch (e) { setToast({ bad: true, msg: e.message }); }
+    setWBusy(false);
+  }
 
   async function purge(category, label) {
     if (typeof window !== "undefined") {
@@ -103,6 +123,19 @@ export default function PurgePanel() {
             onClick={purgeByGranter}
           >
             {gBusy ? "Revoking…" : "Revoke their grants"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 18, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+        <div style={{ fontWeight: 700, fontSize: 15, color: "var(--danger)" }}>Wipe user data</div>
+        <div className="muted" style={{ fontSize: 13, margin: "4px 0 10px" }}>
+          Erase <b>everything</b> tied to one player — powers, perks, emojis, temp grants, and their entries in the <span className="mono">DashboardWhitelist</span> + <span className="mono">PlayerPerks</span> datastores. Use for GDPR-style requests or a full reset. Irreversible.
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input value={wipeUser} onChange={(e) => setWipeUser(e.target.value)} placeholder="Roblox username or ID" style={{ flex: 1, minWidth: 200 }} />
+          <button className="btn" style={{ width: "auto", background: "var(--danger)", borderColor: "var(--danger)" }} disabled={wBusy} onClick={doWipe}>
+            {wBusy ? "Wiping…" : "Wipe user data"}
           </button>
         </div>
       </div>
