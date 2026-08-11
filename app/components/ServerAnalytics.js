@@ -4,9 +4,9 @@ import Dropdown from "./Dropdown";
 
 const RANGES = [7, 14, 30, 90];
 const METRICS = [
-  { k: "messages", label: "Messages", acc: (s) => s.messages },
-  { k: "reactions", label: "Reactions", acc: (s) => s.reactions },
-  { k: "voice", label: "Voice hours", acc: (s) => Math.round((s.voiceMinutes / 60) * 10) / 10 },
+  { k: "messages", label: "Messages", acc: (s) => s.messages, color: "#5b8cff" },
+  { k: "reactions", label: "Reactions", acc: (s) => s.reactions, color: "#a78bfa" },
+  { k: "voice", label: "Voice hours", acc: (s) => Math.round((s.voiceMinutes / 60) * 10) / 10, color: "#34d399" },
 ];
 const fmt = (n) => {
   n = Number(n) || 0;
@@ -58,9 +58,11 @@ function smooth(p) {
   return d;
 }
 
-function AreaChart({ series, label = "messages", accessor = (s) => s.messages }) {
+function AreaChart({ series, label = "messages", accessor = (s) => s.messages, color = "#ffffff" }) {
   const [hi, setHi] = useState(null);
   const wrapRef = useRef(null);
+  const uid = color.replace(/[^a-z0-9]/gi, "");
+  const fillId = "af" + uid, glowId = "ag" + uid;
   const W = 1000, H = 240, pad = { l: 48, r: 16, t: 18, b: 26 };
   const vals = series.map(accessor);
   const { max, pts } = points(vals, W, H, pad);
@@ -87,13 +89,13 @@ function AreaChart({ series, label = "messages", accessor = (s) => s.messages })
     <div ref={wrapRef} className="an-chart2" onMouseMove={onMove} onMouseLeave={() => setHi(null)}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }}>
         <defs>
-          <linearGradient id="msgfill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fff" stopOpacity="0.20" />
-            <stop offset="70%" stopColor="#fff" stopOpacity="0.04" />
-            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+            <stop offset="70%" stopColor={color} stopOpacity="0.05" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
-          <filter id="lineglow" x="-20%" y="-40%" width="140%" height="180%">
-            <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#fff" floodOpacity="0.35" />
+          <filter id={glowId} x="-20%" y="-40%" width="140%" height="180%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor={color} floodOpacity="0.45" />
           </filter>
         </defs>
         {yTicks.map((v, i) => {
@@ -105,15 +107,15 @@ function AreaChart({ series, label = "messages", accessor = (s) => s.messages })
             </g>
           );
         })}
-        {area && <path d={area} fill="url(#msgfill)" />}
-        {line && <path d={line} fill="none" stroke="#fff" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" filter="url(#lineglow)" />}
-        {pts.length > 0 && <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="3.5" fill="#fff" />}
+        {area && <path d={area} fill={`url(#${fillId})`} />}
+        {line && <path d={line} fill="none" stroke={color} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" filter={`url(#${glowId})`} />}
+        {pts.length > 0 && <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="3.5" fill={color} />}
         {xIdx.map((i) => (
           <text key={i} x={pts[i].x} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--faint)">{series[i].label.split(" ")[1]}</text>
         ))}
         {hp && <>
           <line x1={hp.x} x2={hp.x} y1={pad.t} y2={base} stroke="rgba(255,255,255,.25)" strokeWidth="1" />
-          <circle cx={hp.x} cy={hp.y} r="4.5" fill="#fff" stroke="var(--bg)" strokeWidth="2" />
+          <circle cx={hp.x} cy={hp.y} r="4.5" fill={color} stroke="var(--bg)" strokeWidth="2" />
         </>}
       </svg>
       {hp && (
@@ -231,7 +233,7 @@ export default function ServerAnalytics() {
                 ))}
               </div>
             </div>
-            <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} />
+            <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} />
           </div>
         );
       })()}

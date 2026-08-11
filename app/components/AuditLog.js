@@ -11,11 +11,12 @@ function fmt(v) {
   const d = new Date(v);
   return isNaN(d) ? String(v) : d.toLocaleString();
 }
-const actionColor = (a) =>
-  a === "grant" ? "var(--ok)"
-  : a === "revoke" || a === "ban" || a === "kick" || a === "purge" ? "var(--danger)"
-  : a === "warn" ? "#e0a53a"
-  : "var(--muted)";
+const A_GREEN = new Set(["grant", "accept", "rank", "promote", "acceptall", "unblacklist"]);
+const A_RED = new Set(["revoke", "ban", "kick", "exile", "decline", "declineall", "wipe", "warn", "blacklist", "purge"]);
+const actionColor = (a) => {
+  a = String(a || "").toLowerCase();
+  return A_GREEN.has(a) ? "#4ade80" : A_RED.has(a) ? "var(--danger)" : "var(--text)";
+};
 
 export default function AuditLog() {
   const [actor, setActor] = useState("");
