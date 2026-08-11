@@ -27,20 +27,33 @@ function fillSeries(series, days) {
   return out;
 }
 
-// value points -> {x,y} in a viewBox, and a smooth (Catmull-Rom -> bezier) path.
+// value points -> {x,y} in a viewBox. Values clamped >= 0 so the plot never leaves the box.
 function points(vals, w, h, pad) {
   const n = vals.length;
-  const max = Math.max(1, ...vals);
+  const max = Math.max(1, ...vals.map((v) => Math.max(0, v)));
   const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
-  return { max, pts: vals.map((v, i) => ({ x: pad.l + (n <= 1 ? pw / 2 : (i / (n - 1)) * pw), y: pad.t + ph - (v / max) * ph })) };
+  return { max, pts: vals.map((v, i) => ({ x: pad.l + (n <= 1 ? pw / 2 : (i / (n - 1)) * pw), y: pad.t + ph - (Math.max(0, v) / max) * ph })) };
 }
+// Monotone cubic (Fritsch–Carlson) path — smooth, but NEVER overshoots the data, so flat/sparse
+// series stay clean with no dips below the baseline or bulges above a spike. This is the fix for
+// the glitchy Catmull-Rom curves.
 function smooth(p) {
-  if (!p.length) return "";
-  if (p.length === 1) return `M${p[0].x},${p[0].y}`;
+  const n = p.length;
+  if (n === 0) return "";
+  if (n === 1) return `M${p[0].x},${p[0].y}`;
+  const dx = [], slope = [];
+  for (let i = 0; i < n - 1; i++) { dx[i] = p[i + 1].x - p[i].x || 1e-6; slope[i] = (p[i + 1].y - p[i].y) / dx[i]; }
+  const m = new Array(n);
+  m[0] = slope[0]; m[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / slope[i], b = m[i + 1] / slope[i], s = a * a + b * b;
+    if (s > 9) { const t = 3 / Math.sqrt(s); m[i] = t * a * slope[i]; m[i + 1] = t * b * slope[i]; }
+  }
   let d = `M${p[0].x},${p[0].y}`;
-  for (let i = 0; i < p.length - 1; i++) {
-    const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
-    d += ` C${p1.x + (p2.x - p0.x) / 6},${p1.y + (p2.y - p0.y) / 6} ${p2.x - (p3.x - p1.x) / 6},${p2.y - (p3.y - p1.y) / 6} ${p2.x},${p2.y}`;
+  for (let i = 0; i < n - 1; i++) {
+    d += ` C${p[i].x + dx[i] / 3},${p[i].y + (m[i] * dx[i]) / 3} ${p[i + 1].x - dx[i] / 3},${p[i + 1].y - (m[i + 1] * dx[i]) / 3} ${p[i + 1].x},${p[i + 1].y}`;
   }
   return d;
 }
