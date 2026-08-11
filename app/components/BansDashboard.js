@@ -292,15 +292,17 @@ export default function BansDashboard({ canBulk = false }) {
                 key={b.userId}
                 style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 8px", borderBottom: "1px solid var(--line)" }}
               >
-                <Avatar userId={b.userId} size={44} />
-                <div style={{ minWidth: 0, flex: 1, lineHeight: 1.45 }}>
-                  <div style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {b.displayName} <span className="muted" style={{ fontWeight: 400 }}>@{b.username}</span>
+                <a className="ban-link" href={`https://www.roblox.com/users/${b.userId}/profile`} target="_blank" rel="noreferrer" title="Open Roblox profile" style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
+                  <Avatar userId={b.userId} size={44} />
+                  <div style={{ minWidth: 0, flex: 1, lineHeight: 1.45 }}>
+                    <div className="ban-name" style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {b.displayName} <span className="muted" style={{ fontWeight: 400 }}>@{b.username}</span>
+                    </div>
+                    <div className="muted" style={{ fontSize: 12.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      ID {b.userId}{b.reason ? ` · ${b.reason}` : ""}{b.duration ? " · temp" : ""}
+                    </div>
                   </div>
-                  <div className="muted" style={{ fontSize: 12.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    ID {b.userId}{b.reason ? ` · ${b.reason}` : ""}{b.duration ? " · temp" : ""}
-                  </div>
-                </div>
+                </a>
                 <button className="btn ghost" style={{ width: "auto", flex: "0 0 auto" }} disabled={busy} onClick={() => apply("unban", String(b.userId))}>Unban</button>
               </div>
             ))}

@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canBan } from "@/lib/permissions";
-import { resolveUsername } from "@/lib/roblox";
+import { resolveUsername, cacheGetMany, cachePut } from "@/lib/roblox";
 import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -131,8 +131,15 @@ export async function GET(req) {
   // when a batch call gets rate-limited (they'd otherwise flip back to raw IDs on the next
   // poll), and means each poll only resolves NEW ids instead of re-resolving all ~170 every 12s.
   const idStrs = active.map((a) => a.userId).filter(Boolean);
-  const missing = [...new Set(idStrs.filter((id) => !nameCache.has(id)).map(Number).filter(Boolean))];
-  // Resolve missing usernames in PARALLEL batches with a hard time budget. With ~1,450 bans the
+  let missing = [...new Set(idStrs.filter((id) => !nameCache.has(id)).map(Number).filter(Boolean))];
+  // First fill from the persistent DB cache (cross-instance) so we only hit Roblox for names
+  // we've genuinely never seen — this is what stops Vercel's shared IP getting 429'd every load.
+  if (missing.length) {
+    const dbHits = await cacheGetMany(missing);
+    for (const [id, v] of dbHits) nameCache.set(id, v);
+    missing = missing.filter((id) => !dbHits.has(String(id)));
+  }
+  // Resolve remaining usernames in PARALLEL batches with a hard time budget. With ~1,450 bans the
   // old sequential loop (15 batches × up to 4 retries) could take 30–60s and block the whole
   // response. Now a pool of workers drains the batches, and once the budget elapses we return
   // what we have — anything still a raw id gets filled by the next 12s poll (nameCache persists).
@@ -152,7 +159,11 @@ export async function GET(req) {
           });
           if (r.ok) {
             const d = await r.json();
-            for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName });
+            for (const u of d.data || []) {
+              const v = { username: u.name, displayName: u.displayName };
+              nameCache.set(String(u.id), v);
+              cachePut({ userId: u.id, username: u.name, displayName: u.displayName }); // persist to DB cache
+            }
             break;
           }
           if (r.status === 429 || r.status >= 500) { await new Promise((res) => setTimeout(res, 250 * attempt + Math.random() * 300)); continue; }

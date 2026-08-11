@@ -256,6 +256,11 @@ input[type=checkbox]{width:auto;accent-color:var(--white)}
 textarea{resize:vertical;min-height:60px}
 .mono{font-family:var(--mono);font-size:13px}
 
+/* clickable ban rows -> Roblox profile */
+.ban-link{border-radius:10px;transition:background .14s}
+.ban-link:hover{background:var(--surface-2)}
+.ban-link:hover .ban-name{text-decoration:underline}
+
 /* ============ custom dropdown (replaces native <select>) ============ */
 .dd{position:relative;display:inline-block;width:100%}
 .dd-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
