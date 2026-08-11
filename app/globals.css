@@ -228,7 +228,101 @@ td a:hover{border-color:var(--muted)}
   .login-card{padding:36px 22px}
   .brand{font-size:26px}
 }
+/* ============================================================
+   OVERVIEW  (dashboard landing)
+   ============================================================ */
+.ov-hero{
+  position:relative;overflow:hidden;border-radius:var(--radius);
+  border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05);
+  background:linear-gradient(150deg,var(--surface-2),var(--bg-2) 60%);
+  padding:34px 34px 30px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:28px;flex-wrap:wrap;
+}
+.ov-hero::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(720px 320px at 82% -30%,rgba(255,255,255,.10),transparent 62%);pointer-events:none}
+.ov-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
+  background:conic-gradient(from var(--sa),transparent 0 58%,rgba(255,255,255,.7) 74%,rgba(255,255,255,.15) 86%,transparent 94%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:1;animation:sa-spin 7s linear infinite;pointer-events:none}
+.ov-hero-l{position:relative;z-index:1;min-width:0}
+.ov-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--faint);
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;margin-bottom:14px}
+.ov-hero h1{font-size:32px;line-height:1.08;font-weight:800;letter-spacing:-1px;margin:0;color:var(--white)}
+.ov-hero .ov-role{color:var(--muted);font-weight:800}
+.ov-hero-sub{color:var(--muted);font-size:14px;margin:12px 0 20px;max-width:520px}
+.ov-badges{display:flex;gap:8px;flex-wrap:wrap}
+.ov-badge{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:650;
+  padding:5px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.ov-badge svg{width:13px;height:13px}
+.ov-clock-wrap{position:relative;z-index:1;text-align:right;flex-shrink:0}
+.ov-clock{font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--white);font-variant-numeric:tabular-nums;line-height:1}
+.ov-clock-date{color:var(--muted);font-size:13px;margin-top:7px;font-weight:600}
+.ov-greeting{color:var(--faint);font-size:12px;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+
+.ov-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
+.ov-stat{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--surface),var(--bg-2));
+  border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 18px 16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);transition:transform .16s ease,border-color .18s}
+.ov-stat:hover{transform:translateY(-3px);border-color:#2f2f38}
+.ov-stat .ov-stat-ico{position:absolute;top:14px;right:14px;width:22px;height:22px;color:var(--faint);opacity:.7}
+.ov-stat .ov-n{font-size:30px;font-weight:800;letter-spacing:-1px;color:var(--white);font-variant-numeric:tabular-nums;line-height:1}
+.ov-stat .ov-l{color:var(--muted);font-size:12.5px;font-weight:650;margin-top:8px}
+.ov-stat .ov-hint{color:var(--faint);font-size:11px;margin-top:3px}
+
+.ov-sec-h{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.13em;color:var(--faint);margin:0 0 13px}
+.ov-sec-h .ov-line{flex:1;height:1px;background:var(--line)}
+
+.ov-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(214px,1fr));gap:12px;margin-bottom:28px}
+.ov-action{position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);
+  border-radius:12px;padding:15px 16px;transition:transform .15s ease,background .18s,border-color .18s,box-shadow .18s}
+.ov-action:hover{transform:translateY(-2px);background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-color:#2f2f38;box-shadow:0 14px 30px -18px rgba(0,0,0,.9)}
+.ov-action .ov-a-ico{width:38px;height:38px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--text)}
+.ov-action .ov-a-ico svg{width:18px;height:18px}
+.ov-action:hover .ov-a-ico{background:var(--white);color:#000;border-color:var(--white)}
+.ov-action .ov-a-t{font-weight:750;font-size:14px;color:var(--text)}
+.ov-action .ov-a-s{color:var(--muted);font-size:11.5px;margin-top:2px}
+.ov-action .ov-a-arrow{margin-left:auto;color:var(--faint);opacity:0;transform:translateX(-4px);transition:opacity .18s,transform .18s}
+.ov-action:hover .ov-a-arrow{opacity:1;transform:none}
+
+.ov-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+
+/* activity feed */
+.ov-feed{max-height:60vh;overflow-y:auto;padding-right:4px}
+.ov-feed-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line-soft)}
+.ov-feed-row:last-child{border-bottom:none}
+.ov-av{width:32px;height:32px;border-radius:9px;flex-shrink:0;background:var(--surface-3);color:var(--text);
+  display:grid;place-items:center;font-weight:800;font-size:13px}
+.ov-feed-main{min-width:0;flex:1;font-size:13px;line-height:1.4}
+.ov-feed-main b{color:var(--text);font-weight:700}
+.ov-feed-main .muted{color:var(--muted)}
+.ov-feed-time{color:var(--faint);font-size:11.5px;white-space:nowrap;flex-shrink:0}
+.ab{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);vertical-align:1px}
+.ab-grant{background:rgba(255,255,255,.12);color:var(--white);border-color:transparent}
+.ab-revoke,.ab-ban,.ab-kick{background:var(--danger-soft);color:var(--danger);border-color:rgba(255,107,107,.3)}
+.ab-unban,.ab-warn{background:var(--surface-3);color:var(--text)}
+
+/* top movers */
+.ov-mover{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
+.ov-mover:last-child{border-bottom:none}
+.ov-mover .ov-rank{width:20px;color:var(--faint);font-weight:800;font-size:12px;font-variant-numeric:tabular-nums}
+.ov-mover .ov-mname{flex:1;min-width:0;font-weight:650;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-mbar{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--white),var(--muted));min-width:6px;opacity:.85}
+.ov-mover .ov-mcount{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;width:34px;text-align:right}
+
+@media(max-width:960px){.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ov-grid{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .ov-hero{padding:22px}.ov-hero h1{font-size:25px}.ov-clock{font-size:30px}
+  .ov-clock-wrap{text-align:left}.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ov-stat .ov-n{font-size:24px}
+}
+
 @media(prefers-reduced-motion:reduce){
-  .card::after,.item::after,.btn.ghost::after{animation:none!important}
+  .card::after,.item::after,.btn.ghost::after,.ov-hero::after{animation:none!important}
   .main{animation:none}
 }
