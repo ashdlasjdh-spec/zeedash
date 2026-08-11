@@ -85,7 +85,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .shell{display:grid;grid-template-columns:250px 1fr;min-height:100dvh}
 .side{
   background:linear-gradient(180deg,var(--surface),var(--bg));border-right:1px solid var(--line);
-  padding:22px 14px 18px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100dvh;
+  padding:22px 14px 18px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100dvh;overflow-y:auto;
 }
 .side .brand{font-size:22px;padding:6px 10px 22px;font-weight:800;letter-spacing:-1px}
 /* content column holds the top bar + the page; min-width:0 stops wide children overflowing */
@@ -454,8 +454,9 @@ td a:hover{border-color:var(--muted)}
   .ov-grid{gap:12px}
   .an-hval{width:34px}
 }
-/* Never let a stray wide child scroll the whole page sideways; wide content scrolls itself. */
-.shell{max-width:100%;overflow-x:hidden}
+/* Never let a stray wide child scroll the whole page sideways; wide content scrolls itself.
+   Use `clip` (not `hidden`) — `hidden` forces a scroll container and breaks the sticky sidebar. */
+.shell{max-width:100%;overflow-x:clip}
 
 @media(prefers-reduced-motion:reduce){
   .card::after,.item::after,.btn.ghost::after,.ov-hero::after{animation:none!important}
