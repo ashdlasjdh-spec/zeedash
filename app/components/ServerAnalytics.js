@@ -100,18 +100,27 @@ export default function ServerAnalytics() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  const load = useCallback(async (g, d) => {
-    setLoading(true); setErr(null);
+  const load = useCallback(async (g, d, silent = false) => {
+    if (!silent) setLoading(true);
+    setErr(null);
     try {
       const r = await fetch(`/api/server-stats?days=${d}${g ? `&guild=${g}` : ""}`);
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
       setData(j);
       if (!g && j.guild) setGuild(j.guild);
-    } catch (e) { setErr(e.message); }
-    setLoading(false);
+    } catch (e) { if (!silent) setErr(e.message); }
+    if (!silent) setLoading(false);
   }, []);
   useEffect(() => { load(guild, days); }, [load, guild, days]);
+  // Live: the bot pushes fresh stats ~every 60s, so silently re-fetch every 30s (and the moment
+  // the tab becomes visible again). No loading flash — numbers/chart just update in place.
+  useEffect(() => {
+    const poll = () => { if (document.visibilityState === "visible") load(guild, days, true); };
+    const iv = setInterval(poll, 30000);
+    document.addEventListener("visibilitychange", poll);
+    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", poll); };
+  }, [load, guild, days]);
 
   if (err) return <div className="card"><div className="toast bad">{err}</div></div>;
   if (!data) return <div className="card"><p className="muted">Loading…</p></div>;
@@ -139,7 +148,8 @@ export default function ServerAnalytics() {
         <select value={guild} onChange={(e) => setGuild(e.target.value)} style={{ width: "auto", minWidth: 220 }}>
           {guilds.map((g) => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
         </select>
-        <div className="row" style={{ gap: 6 }}>
+        <div className="row" style={{ gap: 6, alignItems: "center" }}>
+          <span className="pill" title="Auto-updates every 30s"><span className="livedot" /> Live</span>
           {RANGES.map((d) => (
             <button key={d} className={`btn ${days === d ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 13px" }} onClick={() => setDays(d)}>{d}d</button>
           ))}
