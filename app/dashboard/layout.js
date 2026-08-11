@@ -3,6 +3,7 @@ import { grantsFor, canGroup, canWhitelist, canBan, canPurge, canManageGrants } 
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import CommandPalette from "../components/CommandPalette";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +43,15 @@ export default async function DashLayout({ children }) {
   if (canPurge(user.id)) manage.push({ label: "Remove All", href: "/dashboard/purge" });
   if (manage.length) allGroups.push({ sec: "Manage", items: manage });
 
+  // Flattened, de-duplicated list for the ⌘K command palette.
+  const seen = new Set();
+  const cmdItems = [];
+  for (const g of allGroups) for (const it of g.items) { if (seen.has(it.href)) continue; seen.add(it.href); cmdItems.push({ ...it, group: g.sec }); }
+
   return (
     <>
       <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
+      <CommandPalette items={cmdItems} />
       <div className="shell">
         <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
         <main className="main">{children}</main>
