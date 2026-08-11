@@ -417,6 +417,21 @@ td a:hover{border-color:var(--muted)}
 .ov-mbar{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--white),var(--muted));min-width:6px;opacity:.85}
 .ov-mover .ov-mcount{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;width:34px;text-align:right}
 
+/* analytics charts */
+.an-chart{display:flex;align-items:flex-end;gap:6px;height:190px;padding-top:6px}
+.an-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;min-width:0}
+.an-col-bar{width:100%;max-width:34px;min-height:3px;border-radius:6px 6px 3px 3px;position:relative;
+  background:linear-gradient(180deg,var(--white),var(--surface-3));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);transition:filter .15s}
+.an-col:hover .an-col-bar{filter:brightness(1.15)}
+.an-col-n{position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:10.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.an-col-l{font-size:10.5px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.an-hbars{display:flex;flex-direction:column;gap:11px}
+.an-hrow{display:flex;align-items:center;gap:12px}
+.an-hlabel{width:96px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text);text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-htrack{flex:1;height:9px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.an-hbar{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--white),var(--muted))}
+.an-hval{width:42px;text-align:right;flex-shrink:0;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
 @media(max-width:960px){.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ov-grid{grid-template-columns:1fr}}
 @media(max-width:560px){
   .ov-hero{padding:22px}.ov-hero h1{font-size:25px}.ov-clock{font-size:30px}

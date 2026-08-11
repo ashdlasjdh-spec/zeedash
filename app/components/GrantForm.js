@@ -73,7 +73,10 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
   return (
     <>
       <div className="card">
-        <label>Choose {category}</label>
+        <div className="between" style={{ marginBottom: 2 }}>
+          <label style={{ margin: 0 }}>Choose {category}</label>
+          <span className="pill">{items.length} available</span>
+        </div>
         <div className="item-grid">
           {items.map((it) => (
             <button key={it.key} className={`item ${sel === it.key ? "sel" : ""}`} onClick={() => setSel(it.key)}>{it.name}</button>

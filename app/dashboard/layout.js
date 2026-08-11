@@ -36,7 +36,7 @@ export default async function DashLayout({ children }) {
   const allGroups = [{ sec: "Grant", items: grantItems }];
   const mod = [];
   if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
-  if (canGroup(lvl)) mod.push({ label: "Group", href: "/dashboard/group" }, { label: "Audit Log", href: "/dashboard/audit" });
+  if (canGroup(lvl)) mod.push({ label: "Group", href: "/dashboard/group" }, { label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
   if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Settings", href: "/dashboard/settings" });

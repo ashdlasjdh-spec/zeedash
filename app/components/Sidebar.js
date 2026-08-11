@@ -24,6 +24,7 @@ const ICON = {
   "Remove All": ["M3 6h18", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6", "M10 11v6", "M14 11v6"],
   "Audit Log": ["M8 6h13", "M8 12h13", "M8 18h13", "M3 6h.01", "M3 12h.01", "M3 18h.01"],
   "Temp Grants": ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 7.5v5l3 2"],
+  Analytics: ["M3 21h18", "M6 21V11", "M11 21V5", "M16 21V14", "M21 21V8"],
   Settings: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M19.4 13a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 5.4 13H5a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 6.7 6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 11 4.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9z"],
 };
 function Icon({ label }) {
@@ -53,6 +54,7 @@ const NAV = [
   { href: "/dashboard/lookup", label: "Lookup", needBan: true },
   { href: "/dashboard/group", label: "Group", needGroup: true },
   { href: "/dashboard/audit", label: "Audit Log", needGroup: true },
+  { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
   { sec: "Manage", needManage: true },
   { href: "/dashboard/whitelist", label: "Whitelist", need: "cofounder" },
   { href: "/dashboard/settings", label: "Settings", need: "cofounder" },
