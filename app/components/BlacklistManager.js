@@ -1,6 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// A Discord user ID rendered as a link to that user's Discord profile.
+const DiscordId = ({ id }) => (id ? (
+  <a href={`https://discord.com/users/${id}`} target="_blank" rel="noopener noreferrer" title="Open Discord profile"
+    style={{ color: "inherit", textDecoration: "none", borderBottom: "1px dotted var(--faint)" }}>{id}</a>
+) : "—");
+
 // Co founders+ block/unblock Discord users from the whole site.
 export default function BlacklistManager() {
   const [list, setList] = useState(null);
@@ -61,9 +67,9 @@ export default function BlacklistManager() {
               <tbody>
                 {list.map((b) => (
                   <tr key={b.discord_id}>
-                    <td className="mono">{b.discord_id}</td>
+                    <td className="mono"><DiscordId id={b.discord_id} /></td>
                     <td>{b.note || "—"}</td>
-                    <td className="muted mono">{b.added_by || "—"}</td>
+                    <td className="muted mono"><DiscordId id={b.added_by} /></td>
                     <td className="muted" style={{ whiteSpace: "nowrap" }}>{new Date(b.added_at).toLocaleDateString()}</td>
                     <td style={{ textAlign: "right" }}><button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={() => remove(b.discord_id)}>Unblock</button></td>
                   </tr>

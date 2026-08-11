@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Dropdown from "./Dropdown";
+import { DiscordLink, RobloxLink, robloxIdFrom } from "./ProfileLinks";
 
 const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist"];
 const CATEGORIES = ["", "power", "stand", "car", "tool", "gamepass", "shazam", "startbr", "tag", "emoji", "ban", "granter"];
@@ -90,11 +91,11 @@ export default function AuditLog() {
               {(rows || []).map((r, i) => (
                 <tr key={i}>
                   <td className="muted" style={{ whiteSpace: "nowrap" }}>{fmt(r.created_at)}</td>
-                  <td>{r.actor_name || r.actor_id || "—"}</td>
+                  <td>{r.actor_id ? <DiscordLink id={r.actor_id}>{r.actor_name || r.actor_id}</DiscordLink> : (r.actor_name || "—")}</td>
                   <td style={{ color: actionColor(r.action), fontWeight: 700, textTransform: "capitalize" }}>{r.action}</td>
                   <td className="muted">{r.category || "—"}</td>
                   <td className="mono">{r.item_key || "—"}</td>
-                  <td>{r.target || "—"}</td>
+                  <td>{robloxIdFrom(r.target) ? <RobloxLink id={robloxIdFrom(r.target)}>{r.target}</RobloxLink> : (r.target || "—")}</td>
                   <td className="muted" style={{ maxWidth: 320, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.detail || ""}>{r.detail || "—"}</td>
                 </tr>
               ))}

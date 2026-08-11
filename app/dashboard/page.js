@@ -6,6 +6,7 @@ import StatusBadges from "../components/StatusBadges";
 import DiscordAvatar from "../components/DiscordAvatar";
 import LivePlayers from "../components/LivePlayers";
 import { getLivePlayers } from "@/lib/gamestats";
+import { DiscordLink, RobloxLink, robloxIdFrom } from "../components/ProfileLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -171,9 +172,9 @@ export default async function Overview() {
                 <div className="ov-feed-row" key={i}>
                   <DiscordAvatar actorId={r.actor_id} name={r.actor_name} size={32} />
                   <div className="ov-feed-main">
-                    <b>{r.actor_name}</b> {actionBadge(r.action)}{" "}
+                    <DiscordLink id={r.actor_id}><b>{r.actor_name}</b></DiscordLink> {actionBadge(r.action)}{" "}
                     {r.item_key ? <b>{r.item_key}</b> : (r.category && r.category !== r.action ? <span className="muted">{r.category}</span> : null)}
-                    {r.target ? <> <span className="muted">→</span> <b>{r.target}</b></> : ""}
+                    {r.target ? <> <span className="muted">→</span> {robloxIdFrom(r.target) ? <RobloxLink id={robloxIdFrom(r.target)}><b>{r.target}</b></RobloxLink> : <b>{r.target}</b>}</> : ""}
                     {r.detail ? <span className="muted"> · {r.detail}</span> : ""}
                   </div>
                   <div className="ov-feed-time">{new Date(r.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>

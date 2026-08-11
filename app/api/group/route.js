@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup, canGroupMass, isScopedRankName } from "@/lib/permissions";
+import { canGroup, canGroupMass, scopeMatches, scopeLabel } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { resolveUsername } from "@/lib/roblox";
 import { listGroupRoles, setRank, shiftRank, kickFromGroup, findMembership,
@@ -63,7 +63,7 @@ export async function POST(req) {
       if (scoped) {
         const roles = await listGroupRoles(groupId);
         const role = roles.find((r) => String(r.id) === String(roleId));
-        if (!role || !isScopedRankName(role.name)) return NextResponse.json({ error: "You can only assign the Crew Leader / Leaderboard Staff ranks." }, { status: 403 });
+        if (!role || !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only assign the ${scopeLabel(s.scope)} rank(s).` }, { status: 403 });
       }
       await setRank(groupId, user.userId, roleId);
       await log(s, "rank", user, `role ${roleId}`);
@@ -79,7 +79,7 @@ export async function POST(req) {
         const m = await findMembership(groupId, user.userId);
         const roles = await listGroupRoles(groupId);
         const role = roles.find((r) => String(r.id) === String(m?.roleId));
-        if (!role || !isScopedRankName(role.name)) return NextResponse.json({ error: "You can only kick Crew Leader / Leaderboard Staff members." }, { status: 403 });
+        if (!role || !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only kick ${scopeLabel(s.scope)} members.` }, { status: 403 });
       }
       await kickFromGroup(groupId, user.userId);
       await log(s, "kick", user, "removed from group");
