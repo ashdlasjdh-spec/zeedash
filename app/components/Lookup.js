@@ -39,7 +39,9 @@ export default function Lookup() {
 
   const u = data?.user;
   const history = data?.history || [];
+  const actions = data?.actions || [];
   const current = u ? parseDetail(history.find((h) => h.action === "ban")?.detail) : { caseId: "", reason: "" };
+  const badgeClass = (a) => (["grant", "revoke", "ban", "unban", "kick", "warn"].includes(String(a).toLowerCase()) ? `ab-${String(a).toLowerCase()}` : "");
 
   return (
     <>
@@ -86,9 +88,34 @@ export default function Lookup() {
             </table>
           </div>
 
-          {/* history */}
+          {/* full activity timeline — every recorded action on this user */}
           <div className="card" style={{ marginTop: 16 }}>
-            <div style={{ fontWeight: 800, marginBottom: 10 }}>Historical entries</div>
+            <div style={{ fontWeight: 800, marginBottom: 10 }}>Full activity timeline</div>
+            {actions.length === 0 ? (
+              <p className="muted">No recorded actions for this player.</p>
+            ) : (
+              <div className="ov-feed" style={{ maxHeight: 420 }}>
+                {actions.map((h, i) => {
+                  const p = parseDetail(h.detail);
+                  return (
+                    <div className="ov-feed-row" key={i}>
+                      <div className="ov-feed-main">
+                        <b>{h.actor_name || h.actor_id || "—"}</b> <span className={`ab ${badgeClass(h.action)}`}>{h.action}</span>{" "}
+                        {h.item_key ? <b>{h.item_key}</b> : (h.category && h.category !== h.action ? <span className="muted">{h.category}</span> : null)}
+                        {p.reason ? <span className="muted"> · {p.reason}</span> : ""}
+                        {p.caseId ? <span className="mono muted"> · {p.caseId}</span> : ""}
+                      </div>
+                      <div className="ov-feed-time">{fmtDate(h.created_at)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* moderation history */}
+          <div className="card" style={{ marginTop: 16 }}>
+            <div style={{ fontWeight: 800, marginBottom: 10 }}>Moderation history</div>
             {history.length === 0 ? (
               <p className="muted">No recorded moderation history.</p>
             ) : (

@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
+import StatusBadges from "../components/StatusBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -113,11 +114,7 @@ export default async function Overview() {
             Signed in as <span className="ov-role">{user.role || labelForLevel(lvl)}</span>.{" "}
             {seesActivity ? "Everything your team does across the dashboard is tracked here." : "Jump straight to the tools your rank can use."}
           </p>
-          <div className="ov-badges">
-            <span className="ov-badge"><Icon name="bolt" /> Bot online</span>
-            <span className="ov-badge"><Icon name="clock" /> Temp-grant expiry active</span>
-            <span className="ov-badge"><Icon name="shield" /> Open Cloud connected</span>
-          </div>
+          <StatusBadges />
         </div>
         <LiveClock name={user.name} />
       </section>

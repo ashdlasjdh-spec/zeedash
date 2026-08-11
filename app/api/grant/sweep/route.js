@@ -1,5 +1,6 @@
 import { applyGrant } from "@/lib/grantEngine";
 import { query, logAudit, ensureSchema } from "@/lib/db";
+import { setConfig } from "@/lib/config";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,9 @@ async function handle(req) {
 
   try {
     await ensureSchema();
+    // Heartbeat: the 24/7 bot pings this endpoint every ~15s, so a fresh last_sweep_at is proof
+    // the bot + dashboard + DB are all alive. The Overview status badges read it. Best-effort.
+    try { await setConfig("last_sweep_at", new Date().toISOString(), "system"); } catch {}
     const due = await query(
       "select user_id, category, item_key from grant_expiry where expires_at <= now() order by expires_at limit 500",
     );

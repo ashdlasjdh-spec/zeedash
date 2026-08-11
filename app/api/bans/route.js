@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/session";
 import { canBan } from "@/lib/permissions";
 import { resolveUsername } from "@/lib/roblox";
-import { getConfig } from "@/lib/config";
+import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -73,12 +73,19 @@ export async function GET(req) {
     // Ban status and history are independent — fetch them in parallel. The avatar is resolved
     // client-side via <Avatar/>, so we deliberately skip the slow thumbnails call here.
     const restrUrl = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${t.userId}`;
-    const [restr, history] = await Promise.all([
+    const [restr, history, actions] = await Promise.all([
       fetch(restrUrl, { headers: { "x-api-key": key } }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
       query(
         "select action, detail, actor_name, actor_id, created_at from audit_log where category='ban' and target like $1 order by created_at desc limit 100",
         [`%(${t.userId})%`],
       ).catch(() => []),
+      // Full profile: EVERY recorded action on this user (grants, moderation, tags…), not just bans.
+      full
+        ? query(
+            "select action, category, item_key, detail, actor_name, actor_id, created_at from audit_log where target like $1 order by created_at desc limit 200",
+            [`%(${t.userId})%`],
+          ).catch(() => [])
+        : Promise.resolve([]),
     ]);
     const g = (restr && restr.gameJoinRestriction) || {};
     const u = {
@@ -87,7 +94,7 @@ export async function GET(req) {
       duration: g.duration || null, startTime: g.startTime || null,
       historyCount: history.length,
     };
-    return NextResponse.json(full ? { user: u, history } : { user: u });
+    return NextResponse.json(full ? { user: u, history, actions } : { user: u });
   }
 
   // ---- full scan of active bans (paginate the restriction list) ----
@@ -163,6 +170,8 @@ export async function GET(req) {
   });
   const payload = { scope: GAME_NAME, count: bans.length, bans };
   scanCache = { at: Date.now(), payload };
+  // Record the latest count so the Overview can show a live ban total without re-scanning.
+  try { await setConfig("bans_count", String(bans.length), "system"); await setConfig("bans_scanned_at", new Date().toISOString(), "system"); } catch {}
   return NextResponse.json(payload);
 }
 
