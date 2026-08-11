@@ -19,6 +19,7 @@ export const GLYPHS = {
   list: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" {...P} />,
   trash: <><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" {...P} /></>,
   clock: <><circle cx="12" cy="12" r="9" {...P} /><path d="M12 7v5l3 2" {...P} /></>,
+  activity: <path d="M3 12h4l2.5 7 4-15L16 12h5" {...P} />,
 };
 
 export default function Glyph({ name, size = 24 }) {
