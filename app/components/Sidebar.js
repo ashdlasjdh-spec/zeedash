@@ -20,6 +20,7 @@ const ICON = {
   Group: ["M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M22 21v-2a4 4 0 0 0-3-3.9", "M16 3.1a4 4 0 0 1 0 7.8"],
   Whitelist: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M17 11l2 2 4-4"],
   Bans: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M5.6 5.6l12.8 12.8"],
+  Blacklist: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M5.6 5.6l12.8 12.8"],
   Lookup: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "M21 21l-4.3-4.3"],
   "Remove All": ["M3 6h18", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6", "M10 11v6", "M14 11v6"],
   "Audit Log": ["M8 6h13", "M8 12h13", "M8 18h13", "M3 6h.01", "M3 12h.01", "M3 18h.01"],
@@ -69,6 +70,7 @@ const NAV = [
 
   { sec: "Manage", needManage: true },
   { href: "/dashboard/whitelist", label: "Whitelist", need: "cofounder" },
+  { href: "/dashboard/blacklist", label: "Blacklist", need: "cofounder" },
   { href: "/dashboard/settings", label: "Settings", need: "cofounder" },
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];

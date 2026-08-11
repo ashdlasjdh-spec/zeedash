@@ -42,7 +42,7 @@ export default async function DashLayout({ children }) {
   if (canGroup(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" }, { label: "Server", href: "/dashboard/server" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
-  if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Settings", href: "/dashboard/settings" });
+  if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Blacklist", href: "/dashboard/blacklist" }, { label: "Settings", href: "/dashboard/settings" });
   if (canPurge(user.id)) manage.push({ label: "Remove All", href: "/dashboard/purge" });
   if (manage.length) allGroups.push({ sec: "Manage", items: manage });
 

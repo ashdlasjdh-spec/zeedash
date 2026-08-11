@@ -50,8 +50,14 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 }
 .card:hover::after,.item:hover::after,.item.sel::after,.btn.ghost:hover::after,
 .ov-stat:hover::after,.ov-action:hover::after,.tb-user:hover::after,.tb-search:hover::after{opacity:1;animation:sa-spin 2.6s linear infinite}
-/* Cards + stat tiles keep the shine slowly travelling around their whole border at rest. */
-.card::after,.ov-stat::after,.ov-action::after{opacity:.4;animation:sa-spin 10s linear infinite}
+/* Border beam — a light streak that travels the WHOLE perimeter at constant speed (any aspect
+   ratio, unlike the conic which pools on the sides of wide cards). GPU-cheap (offset-distance). */
+.card::before,.ov-hero::before,.ov-stat::before,.ov-action::before{
+  content:"";position:absolute;z-index:2;pointer-events:none;width:82px;height:2.5px;border-radius:3px;
+  offset-path:inset(0 round 15px);offset-distance:0%;offset-rotate:auto;
+  background:linear-gradient(90deg,transparent,#fff 50%,transparent);animation:beam 6s linear infinite}
+.card:hover::before,.ov-stat:hover::before,.ov-action:hover::before{animation-duration:2.8s}
+@keyframes beam{to{offset-distance:100%}}
 .item.sel::after{opacity:1}
 
 /* ============ login ============ */
@@ -376,10 +382,10 @@ td a:hover{border-color:var(--muted)}
 .ov-hero::before{content:"";position:absolute;inset:0;
   background:radial-gradient(720px 320px at 82% -30%,rgba(255,255,255,.10),transparent 62%);pointer-events:none}
 .ov-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
-  background:conic-gradient(from var(--sa),transparent 0 62%,rgba(255,255,255,.6) 78%,rgba(255,255,255,.15) 88%,transparent 96%);
+  background:rgba(255,255,255,.1);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;opacity:1;animation:sa-spin 9s linear infinite;pointer-events:none}
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:1;pointer-events:none}
 .ov-hero-l{position:relative;z-index:1;min-width:0}
 .ov-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--faint);
   font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;margin-bottom:14px}
