@@ -12,7 +12,7 @@ function fmt(v) {
   const d = new Date(v);
   return isNaN(d) ? String(v) : d.toLocaleString();
 }
-const A_GREEN = new Set(["grant", "accept", "rank", "promote", "acceptall", "unblacklist"]);
+const A_GREEN = new Set(["grant", "accept", "rank", "promote", "acceptall", "unblacklist", "unban", "whitelist"]);
 const A_RED = new Set(["revoke", "ban", "kick", "exile", "decline", "declineall", "wipe", "warn", "blacklist", "purge"]);
 const actionColor = (a) => {
   a = String(a || "").toLowerCase();
