@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import BundleManager from "../../components/BundleManager";
+import PageHeader from "../../components/PageHeader";
 
 export default async function Page() {
   const u = await getSession();
@@ -9,8 +10,7 @@ export default async function Page() {
   if (!canConfig(u.level)) redirect("/dashboard");
   return (
     <div className="fullbleed">
-      <h1 className="page-h">Grant Bundles</h1>
-      <p className="page-sub">Co owners+. Define a named set of perks (e.g. "VIP") and apply the whole set to a player in one click.</p>
+      <PageHeader icon="box" title="Grant Bundles" subtitle={'Co owners+. Define a named set of perks (e.g. "VIP") and apply the whole set to a player in one click.'} />
       <BundleManager />
     </div>
   );
