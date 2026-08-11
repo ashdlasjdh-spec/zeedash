@@ -3,6 +3,8 @@ import { canGroup } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { redirect } from "next/navigation";
 import PageHeader from "../../components/PageHeader";
+import BanTrendChart from "../../components/BanTrendChart";
+import { getBanTrends } from "@/lib/bantrends";
 
 export const dynamic = "force-dynamic";
 
@@ -25,25 +27,38 @@ export default async function Page() {
   if (!u) return null;
   if (!canGroup(u.level)) redirect("/dashboard");
 
-  const [ban7, kick7, warn7, mod30, byAction, daily, topMods] = await Promise.all([
+  const [ban7, kick7, warn7, mod30, byAction, dailyBans, topMods] = await Promise.all([
     one("select count(*)::int n from audit_log where action='ban' and created_at >= now() - interval '7 days'"),
     one("select count(*)::int n from audit_log where action='kick' and created_at >= now() - interval '7 days'"),
     one("select count(*)::int n from audit_log where action='warn' and created_at >= now() - interval '7 days'"),
     one(`select count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days'`),
     rows(`select action, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days' group by action order by n desc`),
-    rows(`select to_char(date_trunc('day', created_at),'YYYY-MM-DD') d, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '13 days' group by d order by d`),
+    rows(`select to_char(date_trunc('day', created_at),'YYYY-MM-DD') d, count(*)::int n from audit_log where action='ban' and created_at >= now() - interval '13 days' group by d order by d`),
     rows(`select actor_name, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days' group by actor_name order by n desc limit 8`),
   ]);
 
-  const dayMap = new Map(daily.map((r) => [r.d, r.n]));
-  const series = [];
+  // Fallback for the trend chart — daily bans recorded on-site. The chart prefers the live Roblox
+  // restriction-log data (every game ban), and falls back to this if Roblox can't be reached.
+  const banDayMap = new Map(dailyBans.map((r) => [r.d, r.n]));
+  const banFallback = [];
   for (let i = 13; i >= 0; i--) {
     const dt = new Date(Date.now() - i * 86400000);
     const key = dt.toISOString().slice(0, 10);
-    series.push({ key, label: dt.toLocaleDateString([], { month: "short", day: "numeric" }), n: dayMap.get(key) || 0 });
+    banFallback.push({ key, label: dt.toLocaleDateString([], { month: "short", day: "numeric" }), bans: banDayMap.get(key) || 0 });
   }
-  const dayMax = Math.max(1, ...series.map((s) => s.n));
   const actMax = Math.max(1, ...byAction.map((r) => r.n));
+
+  // Live game-ban trend (ALL bans on the Roblox game, via Open Cloud restriction logs). Powers
+  // both the chart's initial data and an accurate "New bans · 7d". Falls back to on-site bans.
+  const fallbackTotal = banFallback.reduce((s, r) => s + r.bans, 0);
+  const trend = await getBanTrends(14).catch(() => null);
+  // Every on-site ban is also a Roblox restriction, so the live total must be >= the on-site total.
+  // If it isn't (endpoint shape drifted / parse miss), the on-site series is the safer thing to show.
+  const trendTotal = trend?.series?.reduce((s, r) => s + (Number(r.bans) || 0), 0) || 0;
+  const useLive = !!(trend?.ok && trend.series?.length && trendTotal >= fallbackTotal);
+  const liveSeries = useLive ? trend.series : null;
+  const chartSeries = liveSeries || banFallback;
+  const ban7Accurate = liveSeries ? liveSeries.slice(-7).reduce((s, r) => s + (Number(r.bans) || 0), 0) : ban7;
   const modMax = Math.max(1, ...topMods.map((r) => r.n));
 
   // Live active-ban total straight from Roblox (recorded by the ban scan). Headline stat.
@@ -52,7 +67,7 @@ export default async function Page() {
 
   const stats = [
     { n: bansLive, l: "Active game bans", hint: cfg.bans_scanned_at ? agoStr(cfg.bans_scanned_at) : "live from Roblox" },
-    { n: ban7, l: "New bans · 7d" },
+    { n: ban7Accurate, l: "New bans · 7d", hint: liveSeries ? "all game bans" : "on-site only" },
     { n: kick7, l: "Kicks · 7d" },
     { n: warn7, l: "Warns · 7d" },
   ];
@@ -73,7 +88,7 @@ export default async function Page() {
 
   return (
     <div className="fullbleed">
-      <PageHeader icon="ban" title="Moderation analytics" subtitle="Live active game bans straight from Roblox, plus moderation activity over time — bans, kicks, warns, and unbans. Management+." />
+      <PageHeader icon="ban" title="Moderation analytics" subtitle="Live game bans straight from Roblox — every ban on the game, not just on-site actions — plus moderation activity over time. Management+." />
 
       <div className="ov-stats">
         {stats.map((s, i) => (
@@ -85,20 +100,7 @@ export default async function Page() {
         ))}
       </div>
 
-      <div className="card">
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>Moderation actions per day</div>
-        <div className="muted" style={{ fontSize: 12.5, marginBottom: 16 }}>Bans · unbans · kicks · warns — last 14 days.</div>
-        <div className="an-chart-wrap">
-          <div className="an-chart">
-            {series.map((s) => (
-              <div className="an-col" key={s.key} title={`${s.label}: ${s.n}`}>
-                <div className="an-col-bar" style={{ height: `${Math.round((s.n / dayMax) * 100)}%` }}><span className="an-col-n">{s.n || ""}</span></div>
-                <div className="an-col-l">{s.label.split(" ")[1]}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <BanTrendChart initial={chartSeries} liveInitial={!!liveSeries} minTotal={fallbackTotal} />
 
       <div className="ov-grid" style={{ marginTop: 16 }}>
         <div className="card">
