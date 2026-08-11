@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import Dropdown from "./Dropdown";
 
 const RANGES = [7, 14, 30, 90];
 const fmt = (n) => {
@@ -145,9 +146,7 @@ export default function ServerAnalytics() {
   return (
     <>
       <div className="between" style={{ marginBottom: 16, gap: 10 }}>
-        <select value={guild} onChange={(e) => setGuild(e.target.value)} style={{ width: "auto", minWidth: 220 }}>
-          {guilds.map((g) => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
-        </select>
+        <Dropdown value={guild} onChange={(e) => setGuild(e.target.value)} style={{ width: "auto" }} minWidth={220} options={guilds.map((g) => ({ value: g.guildId, label: g.guildName }))} />
         <div className="row" style={{ gap: 6, alignItems: "center" }}>
           <span className="pill" title="Auto-updates every 30s"><span className="livedot" /> Live</span>
           {RANGES.map((d) => (

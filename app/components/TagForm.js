@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Dropdown from "./Dropdown";
 
 const toHex = (c) =>
   Array.isArray(c) ? "#" + c.map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, "0")).join("") : String(c || "#ffffff");
@@ -188,13 +189,10 @@ export default function TagForm() {
               <div className="grid g2" style={{ marginTop: 10 }}>
                 <div>
                   <label>Direction</label>
-                  <select value={f.dir} onChange={(e) => up("dir", e.target.value)}>
-                    <option value="down">Top → bottom (down)</option>
-                    <option value="up">Bottom → top (up)</option>
-                    <option value="right">Left → right</option>
-                    <option value="left">Right → left</option>
-                    <option value="diagonal">Diagonal</option>
-                  </select>
+                  <Dropdown value={f.dir} onChange={(e) => up("dir", e.target.value)} options={[
+                    { value: "down", label: "Top → bottom (down)" }, { value: "up", label: "Bottom → top (up)" },
+                    { value: "right", label: "Left → right" }, { value: "left", label: "Right → left" }, { value: "diagonal", label: "Diagonal" },
+                  ]} />
                 </div>
                 <div>
                   <label>Speed — {Number(f.speed).toFixed(2)}× {Number(f.speed) >= 1.5 ? "(fast)" : Number(f.speed) <= 0.4 ? "(slow)" : ""}</label>

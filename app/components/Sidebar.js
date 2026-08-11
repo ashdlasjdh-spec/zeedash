@@ -58,13 +58,13 @@ const NAV = [
   { sec: "Moderation", needBan: true },
   { href: "/dashboard/bans", label: "Bans", needBan: true },
   { href: "/dashboard/lookup", label: "Lookup", needBan: true },
+  { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
 
   { sec: "Group", needGroupAny: true },
   { href: "/dashboard/group", label: "Group", needGroupAny: true },
 
   { sec: "Insights", needGroup: true },
   { href: "/dashboard/audit", label: "Audit Log", needGroup: true },
-  { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
   { href: "/dashboard/server", label: "Server", needGroup: true },
 
   { sec: "Manage", needManage: true },

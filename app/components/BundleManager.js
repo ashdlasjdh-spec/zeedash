@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Dropdown from "./Dropdown";
 import { CATALOG } from "@/lib/catalog";
 
 const CATS = ["power", "stand", "car", "tool", "gamepass", "shazam", "startbr"];
@@ -73,14 +74,11 @@ export default function BundleManager() {
         <div className="grid g3" style={{ marginTop: 12, alignItems: "end", gap: 10 }}>
           <div>
             <label>Category</label>
-            <select value={cat} onChange={(e) => { setCat(e.target.value); setKey(""); }}>{CATS.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+            <Dropdown value={cat} onChange={(e) => { setCat(e.target.value); setKey(""); }} options={CATS.map((c) => ({ value: c, label: c }))} />
           </div>
           <div>
             <label>Item</label>
-            <select value={key} onChange={(e) => setKey(e.target.value)}>
-              <option value="">Select…</option>
-              {(CATALOG[cat] || []).map((i) => <option key={i.key} value={i.key}>{i.name}</option>)}
-            </select>
+            <Dropdown value={key} onChange={(e) => setKey(e.target.value)} placeholder="Select…" options={(CATALOG[cat] || []).map((i) => ({ value: i.key, label: i.name }))} />
           </div>
           <button className="btn ghost" style={{ width: "auto" }} onClick={addItem}>Add item</button>
         </div>

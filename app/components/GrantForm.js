@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import Avatar from "./Avatar";
+import Dropdown from "./Dropdown";
 
 const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools", startbr: "startbr", stand: "stand", car: "car" };
 
@@ -134,14 +135,10 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
             <label>Duration</label>
             <div style={{ display: "flex", gap: 6 }}>
               <input value={durAmount} onChange={(e) => setDurAmount(e.target.value)} inputMode="numeric" style={{ width: 60 }} disabled={durUnit === "perm"} placeholder="1" />
-              <select value={durUnit} onChange={(e) => setDurUnit(e.target.value)}>
-                <option value="perm">Permanent</option>
-                <option value="s">Seconds</option>
-                <option value="m">Minutes</option>
-                <option value="h">Hours</option>
-                <option value="d">Days</option>
-                <option value="w">Weeks</option>
-              </select>
+              <Dropdown value={durUnit} onChange={(e) => setDurUnit(e.target.value)} minWidth={128} options={[
+                { value: "perm", label: "Permanent" }, { value: "s", label: "Seconds" }, { value: "m", label: "Minutes" },
+                { value: "h", label: "Hours" }, { value: "d", label: "Days" }, { value: "w", label: "Weeks" },
+              ]} />
             </div>
           </div>
           <button className="btn" disabled={busy} onClick={() => submit("grant")}>{busy ? "…" : verb}</button>

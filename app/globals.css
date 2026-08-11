@@ -256,6 +256,30 @@ input[type=checkbox]{width:auto;accent-color:var(--white)}
 textarea{resize:vertical;min-height:60px}
 .mono{font-family:var(--mono);font-size:13px}
 
+/* ============ custom dropdown (replaces native <select>) ============ */
+.dd{position:relative;display:inline-block;width:100%}
+.dd-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--text);border-radius:10px;
+  padding:11px 12px 11px 13px;font-size:14px;font-family:inherit;cursor:pointer;
+  transition:border-color .16s,box-shadow .16s,background .16s}
+.dd-btn:hover{border-color:#33333c}
+.dd-btn.open{border-color:rgba(255,255,255,.55);background:var(--surface);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.dd-dis .dd-btn{opacity:.5;cursor:default}
+.dd-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-ph{color:var(--faint)}
+.dd-caret{color:var(--muted);flex-shrink:0;transition:transform .18s ease}
+.dd-btn.open .dd-caret{transform:rotate(180deg)}
+.dd-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:80;max-height:300px;overflow-y:auto;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);
+  border-radius:12px;padding:6px;box-shadow:var(--shadow);animation:fade .14s ease}
+.dd-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;
+  padding:9px 11px;border:none;background:transparent;border-radius:8px;color:var(--text);font-size:13.5px;
+  font-family:inherit;cursor:pointer;transition:background .12s}
+.dd-opt.hi{background:var(--surface-3)}
+.dd-opt.sel{color:var(--white);font-weight:650}
+.dd-check{color:var(--white);flex-shrink:0}
+.dd-empty{padding:12px;text-align:center;color:var(--muted);font-size:13px}
+
 /* ============ item picker ============ */
 .item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
 .item{background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);border-radius:12px;

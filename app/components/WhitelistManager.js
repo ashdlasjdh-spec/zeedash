@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Dropdown from "./Dropdown";
 import { RANKS, pillClassForLevel } from "@/lib/permissions";
 
 export default function WhitelistManager({ myLevel }) {
@@ -25,9 +26,7 @@ export default function WhitelistManager({ myLevel }) {
       <div className="row">
         <div style={{ flex: 1 }}><label>Discord user id</label><input className="mono" value={f.discordId} onChange={(e) => setF((s) => ({ ...s, discordId: e.target.value }))} placeholder="1234567890" /></div>
         <div><label>Level</label>
-          <select value={f.level} onChange={(e) => setF((s) => ({ ...s, level: Number(e.target.value) }))}>
-            {assignable.map((r) => <option key={r.level} value={r.level}>{r.name} ({r.level})</option>)}
-          </select>
+          <Dropdown value={f.level} onChange={(e) => setF((s) => ({ ...s, level: Number(e.target.value) }))} options={assignable.map((r) => ({ value: r.level, label: `${r.name} (${r.level})` }))} />
         </div>
         <button className="btn" style={{ width: "auto" }} onClick={add}>Add / update</button>
       </div>

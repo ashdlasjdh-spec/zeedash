@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import Dropdown from "./Dropdown";
 
 const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist"];
 const CATEGORIES = ["", "power", "stand", "car", "tool", "gamepass", "shazam", "startbr", "tag", "emoji", "ban", "granter"];
@@ -61,15 +62,11 @@ export default function AuditLog() {
           <div><label>Staff (name or Discord ID)</label><input value={actor} onChange={(e) => setActor(e.target.value)} placeholder="e.g. someone or 1835…" /></div>
           <div>
             <label>Action</label>
-            <select value={action} onChange={(e) => setAction(e.target.value)}>
-              {ACTIONS.map((a) => <option key={a} value={a}>{a || "All actions"}</option>)}
-            </select>
+            <Dropdown value={action} onChange={(e) => setAction(e.target.value)} options={ACTIONS.map((a) => ({ value: a, label: a || "All actions" }))} />
           </div>
           <div>
             <label>Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c || "All categories"}</option>)}
-            </select>
+            <Dropdown value={category} onChange={(e) => setCategory(e.target.value)} options={CATEGORIES.map((c) => ({ value: c, label: c || "All categories" }))} />
           </div>
         </div>
         <div style={{ marginTop: 12 }}>

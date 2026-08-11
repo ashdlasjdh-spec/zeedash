@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Avatar from "./Avatar";
+import Dropdown from "./Dropdown";
 import { isScopedRankName } from "@/lib/permissions";
 
 export default function GroupPanel({ scoped = false }) {
@@ -128,10 +129,8 @@ export default function GroupPanel({ scoped = false }) {
             )}
             <div className="grid g2" style={{ marginTop: 14 }}>
               <div><label>Set rank</label>
-                <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
-                  <option value="">Choose a role…</option>
-                  {roles.filter((r) => !scoped || isScopedRankName(r.name)).map((r) => <option key={r.id} value={r.id}>{r.rank} — {r.name}</option>)}
-                </select>
+                <Dropdown value={roleId} onChange={(e) => setRoleId(e.target.value)} placeholder="Choose a role…"
+                  options={roles.filter((r) => !scoped || isScopedRankName(r.name)).map((r) => ({ value: r.id, label: `${r.rank} — ${r.name}` }))} />
               </div>
               <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
                 <button className="btn" style={{ width: "auto" }} disabled={busy || !roleId} onClick={() => act("rank")}>Change rank</button>
