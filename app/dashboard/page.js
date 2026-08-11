@@ -4,6 +4,8 @@ import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
 import StatusBadges from "../components/StatusBadges";
 import DiscordAvatar from "../components/DiscordAvatar";
+import LivePlayers from "../components/LivePlayers";
+import { getLivePlayers } from "@/lib/gamestats";
 
 export const dynamic = "force-dynamic";
 
@@ -60,8 +62,8 @@ export default async function Overview() {
 
   // --- stats (each independent + best-effort so one failure never blanks the page) ---
   const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };
-  const [perksCount, tempCount, auditTotal, auditToday] = await Promise.all([
-    one("select count(*)::int n from perks"),
+  const [livePlayers, tempCount, auditTotal, auditToday] = await Promise.all([
+    getLivePlayers().catch(() => null),
     one("select count(*)::int n from grant_expiry"),
     seesActivity ? one("select count(*)::int n from audit_log") : Promise.resolve(0),
     seesActivity ? one("select count(*)::int n from audit_log where created_at >= date_trunc('day', now())") : Promise.resolve(0),
@@ -95,7 +97,7 @@ export default async function Overview() {
   if (canPurge(user.id)) actions.push({ label: "Remove All", icon: "trash", href: "/dashboard/purge", sub: "Mass revoke" });
 
   const stats = [
-    { n: perksCount, l: "Players with perks", hint: "in the shared database", icon: "layers" },
+    { live: <LivePlayers initial={livePlayers} />, l: "Players in-game", hint: "live right now", icon: "users" },
     { n: tempCount, l: "Active temp grants", hint: tempCount ? "auto-expiring" : "none pending", icon: "clock" },
     ...(seesActivity ? [
       { n: auditToday, l: "Actions today", hint: "since midnight", icon: "activity" },
@@ -126,7 +128,7 @@ export default async function Overview() {
         {stats.map((s, i) => (
           <div className="ov-stat" key={i}>
             <div className="ov-stat-ico"><Icon name={s.icon} /></div>
-            <div className="ov-n">{s.n.toLocaleString()}</div>
+            <div className="ov-n">{s.live ? s.live : s.n.toLocaleString()}</div>
             <div className="ov-l">{s.l}</div>
             <div className="ov-hint">{s.hint}</div>
           </div>
