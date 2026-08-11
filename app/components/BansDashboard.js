@@ -199,7 +199,7 @@ export default function BansDashboard({ canBulk = false }) {
 
           <div className="card" style={{ marginTop: 12, padding: 14, display: "flex", alignItems: "center", gap: 14 }}>
             {resolved
-              ? <Avatar userId={resolved.userId} size={46} />
+              ? <a href={`https://www.roblox.com/users/${resolved.userId}/profile`} target="_blank" rel="noreferrer" title="Open Roblox profile" style={{ flexShrink: 0, display: "inline-flex" }}><Avatar userId={resolved.userId} size={46} /></a>
               : <div className="avatar" style={{ width: 46, height: 46 }}>{resolving ? "…" : "?"}</div>}
             <div style={{ minWidth: 0 }}>
               <div className="navsec" style={{ padding: 0 }}>Investigation target</div>
@@ -207,7 +207,7 @@ export default function BansDashboard({ canBulk = false }) {
                 <div style={{ fontWeight: 700 }}>Searching…</div>
               ) : resolved ? (
                 <>
-                  <div style={{ fontWeight: 800, fontSize: 15 }}>{resolved.displayName}</div>
+                  <a className="ban-name" href={`https://www.roblox.com/users/${resolved.userId}/profile`} target="_blank" rel="noreferrer" style={{ fontWeight: 800, fontSize: 15, color: "inherit", textDecoration: "none" }}>{resolved.displayName}</a>
                   <div className="muted" style={{ fontSize: 12.5 }}>
                     @{resolved.username} · ID {resolved.userId} · {resolved.active ? <span style={{ color: "var(--danger)" }}>Active ban</span> : "No active ban"} · {resolved.historyCount} past actions
                   </div>

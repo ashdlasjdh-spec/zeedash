@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { grantsFor, canGroup, canGroupScoped, canGroupAny, canWhitelist, canBan, canPurge, canManageGrants } from "@/lib/permissions";
+import { grantsFor, canGroup, canGroupScoped, canGroupAny, canConfig, canWhitelist, canBan, canPurge, canManageGrants } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -39,7 +39,8 @@ export default async function DashLayout({ children }) {
   const mod = [];
   if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
   if (groupAny) mod.push({ label: "Group", href: "/dashboard/group" });
-  if (canGroup(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" }, { label: "Server", href: "/dashboard/server" });
+  if (canGroup(lvl)) mod.push({ label: "Analytics", href: "/dashboard/analytics" }, { label: "Server", href: "/dashboard/server" });
+  if (canConfig(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
   if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Blacklist", href: "/dashboard/blacklist" }, { label: "Settings", href: "/dashboard/settings" });
@@ -56,7 +57,7 @@ export default async function DashLayout({ children }) {
       <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
       <CommandPalette items={cmdItems} />
       <div className="shell">
-        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
+        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} canConfig={canConfig(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
         <main className="main">{children}</main>
       </div>
     </>

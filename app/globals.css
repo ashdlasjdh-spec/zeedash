@@ -48,16 +48,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   -webkit-mask-composite:xor;mask-composite:exclude;
   opacity:0;transition:opacity .35s ease;pointer-events:none;z-index:1;
 }
-.card:hover::after,.item:hover::after,.item.sel::after,.btn.ghost:hover::after,
-.ov-stat:hover::after,.ov-action:hover::after,.tb-user:hover::after,.tb-search:hover::after{opacity:1;animation:sa-spin 2.6s linear infinite}
-/* Border beam — a light streak that travels the WHOLE perimeter at constant speed (any aspect
-   ratio, unlike the conic which pools on the sides of wide cards). GPU-cheap (offset-distance). */
-.card::before,.ov-hero::before,.ov-stat::before,.ov-action::before{
-  content:"";position:absolute;z-index:2;pointer-events:none;width:82px;height:2.5px;border-radius:3px;
-  offset-path:inset(0 round 15px);offset-distance:0%;offset-rotate:auto;
-  background:linear-gradient(90deg,transparent,#fff 50%,transparent);animation:beam 6s linear infinite}
-.card:hover::before,.ov-stat:hover::before,.ov-action:hover::before{animation-duration:2.8s}
-@keyframes beam{to{offset-distance:100%}}
+/* Animated border shine removed — elements use plain borders + subtle hover states only. */
 .item.sel::after{opacity:1}
 
 /* ============ login ============ */
@@ -93,17 +84,16 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .shell{display:grid;grid-template-columns:250px 1fr;min-height:100dvh}
 .side{
   background:linear-gradient(180deg,var(--surface),var(--bg));border-right:1px solid var(--line);
-  padding:18px 14px;display:flex;flex-direction:column;gap:2px;position:sticky;top:76px;height:calc(100dvh - 76px);
-  overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;
+  padding:12px 14px;display:flex;flex-direction:column;gap:1px;position:sticky;top:76px;height:calc(100dvh - 76px);
+  overflow:hidden;   /* static — never scrolls or moves */
 }
-.side::-webkit-scrollbar{display:none}   /* no visible scrollbar — sidebar reads as static */
 .side-brand{display:none}   /* brand lives in the full-width top pill */
 .side .brand{font-size:22px;padding:6px 10px 22px;font-weight:800;letter-spacing:-1px}
 /* content column holds the top bar + the page; min-width:0 stops wide children overflowing */
 .content{min-width:0;display:flex;flex-direction:column}
 .side .brand span{color:var(--muted)}
-.navsec{color:var(--faint);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;padding:16px 10px 7px}
-.navlink{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--muted);font-size:13.5px;font-weight:550;position:relative;
+.navsec{color:var(--faint);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;padding:10px 10px 4px}
+.navlink{display:flex;align-items:center;gap:11px;padding:7px 12px;border-radius:9px;color:var(--muted);font-size:13.5px;font-weight:550;position:relative;
   transition:color .18s,background .2s,padding .2s cubic-bezier(.34,1.4,.5,1)}
 .nav-ico{width:17px;height:17px;flex-shrink:0;opacity:.6;transition:opacity .18s,transform .2s cubic-bezier(.34,1.4,.5,1)}
 .navlink:hover{background:var(--surface-2);color:var(--text);padding-left:16px}

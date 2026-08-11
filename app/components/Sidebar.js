@@ -65,7 +65,7 @@ const NAV = [
   { href: "/dashboard/group", label: "Group", needGroupAny: true },
 
   { sec: "Insights", needGroup: true },
-  { href: "/dashboard/audit", label: "Audit Log", needGroup: true },
+  { href: "/dashboard/audit", label: "Audit Log", needConfig: true },
   { href: "/dashboard/server", label: "Server", needGroup: true },
 
   { sec: "Manage", needManage: true },
@@ -75,7 +75,7 @@ const NAV = [
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];
 
-export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, isCofounderPlus, canPurge }) {
+export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge }) {
   const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -113,6 +113,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
         if (n.needAnyGrant && !grants.length) return null;
         if (n.needPurge && !canPurge) return null;
         if (n.needGroupAny && !canGroupAny) return null;
+        if (n.needConfig && !canConfig) return null;
         if (n.needGroup && !canGroup) return null;
         if (n.needBan && !canBan) return null;
         if (n.perm && !grants.includes(n.perm)) return null;

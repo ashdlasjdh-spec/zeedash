@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canConfig } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // both the Overview snapshot (no params) and the full Audit Log page.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const sp = req.nextUrl.searchParams;
   const actor = (sp.get("actor") || "").trim();
