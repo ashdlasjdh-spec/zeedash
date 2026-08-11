@@ -1,8 +1,13 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Dropdown from "./Dropdown";
 
 const RANGES = [7, 14, 30, 90];
+const METRICS = [
+  { k: "messages", label: "Messages", acc: (s) => s.messages },
+  { k: "reactions", label: "Reactions", acc: (s) => s.reactions },
+  { k: "voice", label: "Voice hours", acc: (s) => Math.round((s.voiceMinutes / 60) * 10) / 10 },
+];
 const fmt = (n) => {
   n = Number(n) || 0;
   if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M";
@@ -40,9 +45,11 @@ function smooth(p) {
   return d;
 }
 
-function AreaChart({ series }) {
-  const W = 1000, H = 240, pad = { l: 46, r: 14, t: 16, b: 26 };
-  const vals = series.map((s) => s.messages);
+function AreaChart({ series, label = "messages", accessor = (s) => s.messages }) {
+  const [hi, setHi] = useState(null);
+  const wrapRef = useRef(null);
+  const W = 1000, H = 240, pad = { l: 48, r: 16, t: 18, b: 26 };
+  const vals = series.map(accessor);
   const { max, pts } = points(vals, W, H, pad);
   const line = smooth(pts);
   const base = H - pad.b;
@@ -55,29 +62,54 @@ function AreaChart({ series }) {
   for (let i = 0; i < n; i += step) xIdx.push(i);
   if (xIdx[xIdx.length - 1] !== n - 1) xIdx.push(n - 1);
 
+  function onMove(e) {
+    const el = wrapRef.current; if (!el || n < 1) return;
+    const r = el.getBoundingClientRect();
+    const fx = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    setHi(Math.round(fx * (n - 1)));
+  }
+  const hp = hi != null && pts[hi] ? pts[hi] : null;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }}>
-      <defs>
-        <linearGradient id="msgfill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {yTicks.map((v, i) => {
-        const y = pad.t + (i / (yTicks.length - 1)) * (H - pad.t - pad.b);
-        return (
-          <g key={i}>
-            <line x1={pad.l} x2={W - pad.r} y1={y} y2={y} stroke="var(--line-soft)" strokeWidth="1" />
-            <text x={pad.l - 8} y={y + 4} textAnchor="end" fontSize="12" fill="var(--faint)">{fmt(v)}</text>
-          </g>
-        );
-      })}
-      {area && <path d={area} fill="url(#msgfill)" />}
-      {line && <path d={line} fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
-      {xIdx.map((i) => (
-        <text key={i} x={pts[i].x} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--faint)">{series[i].label.split(" ")[1]}</text>
-      ))}
-    </svg>
+    <div ref={wrapRef} className="an-chart2" onMouseMove={onMove} onMouseLeave={() => setHi(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }}>
+        <defs>
+          <linearGradient id="msgfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.20" />
+            <stop offset="70%" stopColor="#fff" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+          </linearGradient>
+          <filter id="lineglow" x="-20%" y="-40%" width="140%" height="180%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#fff" floodOpacity="0.35" />
+          </filter>
+        </defs>
+        {yTicks.map((v, i) => {
+          const y = pad.t + (i / (yTicks.length - 1)) * (H - pad.t - pad.b);
+          return (
+            <g key={i}>
+              <line x1={pad.l} x2={W - pad.r} y1={y} y2={y} stroke="var(--line-soft)" strokeWidth="1" strokeDasharray={i === yTicks.length - 1 ? "0" : "3 5"} />
+              <text x={pad.l - 10} y={y + 4} textAnchor="end" fontSize="12" fill="var(--faint)">{fmt(v)}</text>
+            </g>
+          );
+        })}
+        {area && <path d={area} fill="url(#msgfill)" />}
+        {line && <path d={line} fill="none" stroke="#fff" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" filter="url(#lineglow)" />}
+        {pts.length > 0 && <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="3.5" fill="#fff" />}
+        {xIdx.map((i) => (
+          <text key={i} x={pts[i].x} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--faint)">{series[i].label.split(" ")[1]}</text>
+        ))}
+        {hp && <>
+          <line x1={hp.x} x2={hp.x} y1={pad.t} y2={base} stroke="rgba(255,255,255,.25)" strokeWidth="1" />
+          <circle cx={hp.x} cy={hp.y} r="4.5" fill="#fff" stroke="var(--bg)" strokeWidth="2" />
+        </>}
+      </svg>
+      {hp && (
+        <div className="an-tip" style={{ left: `${(hi / Math.max(1, n - 1)) * 100}%`, top: `${(hp.y / H) * 100}%` }}>
+          <div className="an-tip-v">{Number(vals[hi] || 0).toLocaleString()} <span>{label}</span></div>
+          <div className="an-tip-d">{series[hi].label}</div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -98,6 +130,7 @@ export default function ServerAnalytics() {
   const [data, setData] = useState(null);
   const [guild, setGuild] = useState("");
   const [days, setDays] = useState(30);
+  const [metric, setMetric] = useState("messages");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
@@ -165,11 +198,25 @@ export default function ServerAnalytics() {
         ))}
       </div>
 
-      <div className="card">
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>Message activity</div>
-        <div className="muted" style={{ fontSize: 12.5, marginBottom: 12 }}>Daily messages over the last {days} days.</div>
-        <AreaChart series={series} />
-      </div>
+      {(() => {
+        const m = METRICS.find((x) => x.k === metric) || METRICS[0];
+        return (
+          <div className="card">
+            <div className="between" style={{ marginBottom: 12, gap: 10 }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
+                <div className="muted" style={{ fontSize: 12.5 }}>Daily {m.label.toLowerCase()} over the last {days} days.</div>
+              </div>
+              <div className="row" style={{ gap: 6 }}>
+                {METRICS.map((x) => (
+                  <button key={x.k} className={`btn ${metric === x.k ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 11px", fontSize: 12.5 }} onClick={() => setMetric(x.k)}>{x.label}</button>
+                ))}
+              </div>
+            </div>
+            <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} />
+          </div>
+        );
+      })()}
 
       <div className="card" style={{ marginTop: 16 }}>
         <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top channels <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· {days}d</span></div>
