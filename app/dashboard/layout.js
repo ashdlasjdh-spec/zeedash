@@ -10,25 +10,43 @@ const GRANT_HREF = {
   power: "/dashboard/powers", stand: "/dashboard/stands", car: "/dashboard/car", tool: "/dashboard/tools",
   gamepass: "/dashboard/gamepasses", shazam: "/dashboard/shazam", startbr: "/dashboard/startbr", tag: "/dashboard/tags", emoji: "/dashboard/emojis",
 };
+const GRANT_LABEL = {
+  power: "Powers", stand: "Stands", car: "SVJ Car", tool: "Tools", gamepass: "Gamepasses",
+  shazam: "Shazam", startbr: "Start BR", tag: "Crew Tags", emoji: "Emojis",
+};
 
 export default async function DashLayout({ children }) {
   const user = await getSession();
   if (!user) redirect("/");
+  const lvl = user.level;
+  const grants = grantsFor(lvl);
 
-  const grants = grantsFor(user.level);
-  // Centered top-nav links — only what this rank can reach.
+  // Centered quick links — a short set of the most-used destinations for this rank.
   const links = [{ label: "Overview", href: "/dashboard" }];
   if (grants.length) links.push({ label: "Grants", href: GRANT_HREF[grants[0]] });
-  if (canBan(user.level)) links.push({ label: "Moderation", href: "/dashboard/bans" });
-  if (canGroup(user.level)) links.push({ label: "Group", href: "/dashboard/group" });
-  if (canManageGrants(user.level)) links.push({ label: "Audit", href: "/dashboard/audit" });
-  if (canWhitelist(user.level)) links.push({ label: "Settings", href: "/dashboard/settings" });
+  if (canBan(lvl)) links.push({ label: "Moderation", href: "/dashboard/bans" });
+  if (canGroup(lvl)) links.push({ label: "Group", href: "/dashboard/group" });
+  if (canManageGrants(lvl)) links.push({ label: "Audit", href: "/dashboard/audit" });
+
+  // "All" mega-menu — every page this rank can reach, grouped.
+  const grantItems = [{ label: "Overview", href: "/dashboard" }, ...grants.map((c) => ({ label: GRANT_LABEL[c], href: GRANT_HREF[c] }))];
+  if (canManageGrants(lvl)) grantItems.push({ label: "Bundles", href: "/dashboard/bundles" });
+  if (grants.length) grantItems.push({ label: "Temp Grants", href: "/dashboard/temp-grants" });
+  const allGroups = [{ sec: "Grant", items: grantItems }];
+  const mod = [];
+  if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
+  if (canGroup(lvl)) mod.push({ label: "Group", href: "/dashboard/group" }, { label: "Audit Log", href: "/dashboard/audit" });
+  if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
+  const manage = [];
+  if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Settings", href: "/dashboard/settings" });
+  if (canPurge(user.id)) manage.push({ label: "Remove All", href: "/dashboard/purge" });
+  if (manage.length) allGroups.push({ sec: "Manage", items: manage });
 
   return (
     <>
-      <Topbar user={user} links={links} />
+      <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
       <div className="shell">
-        <Sidebar user={user} grants={grants} canGroup={canGroup(user.level)} canBan={canBan(user.level)} isCofounderPlus={canWhitelist(user.level)} canPurge={canPurge(user.id)} />
+        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
         <main className="main">{children}</main>
       </div>
     </>
