@@ -27,10 +27,26 @@ function fillSeries(series, days) {
   return out;
 }
 
+// A "nice" y-axis: pick a round step (1/2/5 × 10ⁿ) and a top that's a whole multiple of it, so the
+// gridline labels are always distinct, evenly spaced, and sit exactly on their value. Fixes the old
+// [max, round(max/2), 0] which produced "1, 1, 0" (duplicate + misaligned) whenever max was small.
+function niceScale(rawMax, targetLines = 4) {
+  const max = Math.max(1, rawMax || 0);
+  const rawStep = max / targetLines;
+  const pow = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const f = rawStep / pow;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * pow;
+  const top = Math.ceil(max / step) * step;
+  const ticks = [];
+  for (let v = 0; v <= top + step * 1e-6; v += step) ticks.push(Math.round(v * 1e6) / 1e6);
+  return { top, ticks: ticks.reverse() }; // top → 0
+}
+
 // value points -> {x,y} in a viewBox. Values clamped >= 0 so the plot never leaves the box.
-function points(vals, w, h, pad) {
+// forcedMax scales the plot to the axis top so the line lines up with the gridlines.
+function points(vals, w, h, pad, forcedMax) {
   const n = vals.length;
-  const max = Math.max(1, ...vals.map((v) => Math.max(0, v)));
+  const max = forcedMax != null ? Math.max(1, forcedMax) : Math.max(1, ...vals.map((v) => Math.max(0, v)));
   const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
   return { max, pts: vals.map((v, i) => ({ x: pad.l + (n <= 1 ? pw / 2 : (i / (n - 1)) * pw), y: pad.t + ph - (Math.max(0, v) / max) * ph })) };
 }
@@ -65,11 +81,12 @@ function AreaChart({ series, label = "messages", accessor = (s) => s.messages, c
   const fillId = "af" + uid, glowId = "ag" + uid;
   const W = 1000, H = 240, pad = { l: 48, r: 16, t: 18, b: 26 };
   const vals = series.map(accessor);
-  const { max, pts } = points(vals, W, H, pad);
+  const rawMax = Math.max(0, ...vals.map((v) => Math.max(0, v)));
+  const { top, ticks: yTicks } = niceScale(rawMax, 4);
+  const { pts } = points(vals, W, H, pad, top);
   const line = smooth(pts);
   const base = H - pad.b;
   const area = pts.length ? `${line} L${pts[pts.length - 1].x},${base} L${pts[0].x},${base} Z` : "";
-  const yTicks = [max, Math.round(max / 2), 0];
   const n = series.length;
   const want = n <= 14 ? n : n <= 30 ? 8 : 7;
   const step = Math.max(1, Math.round((n - 1) / (want - 1)));
