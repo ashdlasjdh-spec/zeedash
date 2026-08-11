@@ -213,11 +213,10 @@ button.tb-kv:hover{background:var(--surface-3)}
 .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ============ main ============ */
-.main{padding:44px 52px;max-width:1000px;width:100%;animation:fade .4s ease;
+.main{padding:44px 52px;max-width:1600px;width:100%;animation:fade .4s ease;
 
   background-image:radial-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
-/* Pages that opt into full width (moderation dashboard, lookup) drop the reading-width cap. */
-.main:has(.fullbleed){max-width:1500px}
+.main:has(.fullbleed){max-width:1600px}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .page-h{position:relative;font-size:26px;font-weight:800;letter-spacing:-.6px;margin:0;color:var(--white);padding-left:15px}
 .page-h::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:4px;border-radius:3px;background:linear-gradient(180deg,#fff,var(--faint))}
@@ -431,6 +430,7 @@ td a:hover{border-color:var(--muted)}
 .an-htrack{flex:1;height:9px;border-radius:5px;background:var(--surface-3);overflow:hidden}
 .an-hbar{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--white),var(--muted))}
 .an-hval{width:42px;text-align:right;flex-shrink:0;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.an-chart-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 @media(max-width:960px){.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ov-grid{grid-template-columns:1fr}}
 @media(max-width:560px){
@@ -438,6 +438,22 @@ td a:hover{border-color:var(--muted)}
   .ov-clock-wrap{text-align:left}.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .ov-stat .ov-n{font-size:24px}
 }
+
+/* ============ mobile refinements for the newer sections ============ */
+@media(max-width:640px){
+  .an-chart{min-width:470px}          /* 14-day chart scrolls in .an-chart-wrap instead of squishing */
+  .an-hlabel{width:78px}
+  .ph-actions{width:100%}
+}
+@media(max-width:560px){
+  .ov-hero::after{display:none}       /* drop the animated ring on tiny screens */
+  .cmdk-backdrop{padding:9vh 12px 12px}
+  .cmdk-input{font-size:16px}         /* keep >=16px so iOS doesn't zoom the field */
+  .ov-grid{gap:12px}
+  .an-hval{width:34px}
+}
+/* Never let a stray wide child scroll the whole page sideways; wide content scrolls itself. */
+.shell{max-width:100%;overflow-x:hidden}
 
 @media(prefers-reduced-motion:reduce){
   .card::after,.item::after,.btn.ghost::after,.ov-hero::after{animation:none!important}

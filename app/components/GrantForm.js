@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Avatar from "./Avatar";
 
 const FIELD = { power: "powers", gamepass: "gamepasses", shazam: "shazam", tool: "tools", startbr: "startbr", stand: "stand", car: "car" };
@@ -13,8 +13,15 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
   const [loadingList, setLoadingList] = useState(false);
   const [durAmount, setDurAmount] = useState("1");
   const [durUnit, setDurUnit] = useState("perm"); // perm | s | m | h | d | w
+  const [stats, setStats] = useState(null); // { players, total } — how many of this category are handed out
 
   const UNIT = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
+
+  // How much of this category is currently given out (single cheap COUNT, refreshed after actions).
+  const loadStats = useCallback(async () => {
+    try { const r = await fetch(`/api/perks/count?category=${category}`); const d = await r.json(); if (r.ok && !d.error) setStats(d); } catch {}
+  }, [category]);
+  useEffect(() => { loadStats(); }, [loadStats]);
 
   async function submit(action) {
     if (!sel || !username) { setToast({ bad: true, msg: "Pick an item and enter a username." }); return; }
@@ -29,6 +36,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
       if (!res.ok) throw new Error(data.error || "Failed");
       const temp = data.expiresIn ? ` (auto-revokes in ${data.expiresIn})` : "";
       setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}${temp}.` + (data.warn ? " ⚠ " + data.warn : "") });
+      loadStats();
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(false);
@@ -63,6 +71,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
         if (!res.ok) throw new Error(d.error || "Failed");
       }
       setToast({ ok: true, msg: `Removed ${rowItems.length} ${category}(s) from ${userId}.` });
+      loadStats();
       loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(false);
@@ -75,7 +84,10 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
       <div className="card">
         <div className="between" style={{ marginBottom: 2 }}>
           <label style={{ margin: 0 }}>Choose {category}</label>
-          <span className="pill">{items.length} available</span>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span className="pill">{items.length} available</span>
+            {stats && <span className="pill" title="Across all players in the shared database">{stats.total.toLocaleString()} given out · {stats.players.toLocaleString()} player{stats.players === 1 ? "" : "s"}</span>}
+          </div>
         </div>
         <div className="item-grid">
           {items.map((it) => (
@@ -83,7 +95,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
           ))}
         </div>
         <div className="row" style={{ marginTop: 18 }}>
-          <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ flex: 1, minWidth: 200, maxWidth: 520 }}>
             <label>Roblox username or ID</label>
             <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman or 156" />
           </div>

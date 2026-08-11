@@ -6,25 +6,27 @@ import PageHeader from "../../components/PageHeader";
 
 export const dynamic = "force-dynamic";
 
-const rows = async (sql, params) => { try { return await query(sql, params); } catch { return []; } };
+const rows = async (sql) => { try { return await query(sql); } catch { return []; } };
 const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };
+
+// Moderation-only: bans / unbans / kicks / warns. Grants, config, etc. are excluded.
+const MOD = "action in ('ban','unban','kick','warn')";
 
 export default async function Page() {
   const u = await getSession();
   if (!u) return null;
-  if (!canGroup(u.level)) redirect("/dashboard"); // oversight data — management+
+  if (!canGroup(u.level)) redirect("/dashboard");
 
-  const [total, last7, last24h, daily, byAction, byCategory, actors] = await Promise.all([
-    one("select count(*)::int n from audit_log"),
-    one("select count(*)::int n from audit_log where created_at >= now() - interval '7 days'"),
-    one("select count(*)::int n from audit_log where created_at >= now() - interval '24 hours'"),
-    rows("select to_char(date_trunc('day', created_at),'YYYY-MM-DD') d, count(*)::int n from audit_log where created_at >= now() - interval '13 days' group by d order by d"),
-    rows("select action, count(*)::int n from audit_log where created_at >= now() - interval '30 days' group by action order by n desc limit 8"),
-    rows("select category, count(*)::int n from audit_log where category is not null and created_at >= now() - interval '30 days' group by category order by n desc limit 8"),
-    rows("select actor_name, count(*)::int n from audit_log where created_at >= now() - interval '30 days' group by actor_name order by n desc limit 8"),
+  const [ban7, kick7, warn7, mod30, byAction, daily, topMods] = await Promise.all([
+    one("select count(*)::int n from audit_log where action='ban' and created_at >= now() - interval '7 days'"),
+    one("select count(*)::int n from audit_log where action='kick' and created_at >= now() - interval '7 days'"),
+    one("select count(*)::int n from audit_log where action='warn' and created_at >= now() - interval '7 days'"),
+    one(`select count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days'`),
+    rows(`select action, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days' group by action order by n desc`),
+    rows(`select to_char(date_trunc('day', created_at),'YYYY-MM-DD') d, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '13 days' group by d order by d`),
+    rows(`select actor_name, count(*)::int n from audit_log where ${MOD} and created_at >= now() - interval '30 days' group by actor_name order by n desc limit 8`),
   ]);
 
-  // Fill the 14-day series so missing days render as gaps, not skips.
   const dayMap = new Map(daily.map((r) => [r.d, r.n]));
   const series = [];
   for (let i = 13; i >= 0; i--) {
@@ -34,14 +36,13 @@ export default async function Page() {
   }
   const dayMax = Math.max(1, ...series.map((s) => s.n));
   const actMax = Math.max(1, ...byAction.map((r) => r.n));
-  const catMax = Math.max(1, ...byCategory.map((r) => r.n));
-  const actorMax = Math.max(1, ...actors.map((r) => r.n));
+  const modMax = Math.max(1, ...topMods.map((r) => r.n));
 
   const stats = [
-    { n: last24h, l: "Actions · 24h" },
-    { n: last7, l: "Actions · 7 days" },
-    { n: total, l: "Actions · all time" },
-    { n: actors.length, l: "Active staff · 30d" },
+    { n: ban7, l: "Bans · 7 days" },
+    { n: kick7, l: "Kicks · 7 days" },
+    { n: warn7, l: "Warns · 7 days" },
+    { n: mod30, l: "Mod actions · 30d" },
   ];
 
   const Bars = ({ data, max, empty }) => (
@@ -60,7 +61,7 @@ export default async function Page() {
 
   return (
     <div className="fullbleed">
-      <PageHeader icon="list" title="Analytics" subtitle="Activity across the dashboard over time — volume, action mix, busiest categories, and top staff. Management+." />
+      <PageHeader icon="ban" title="Moderation analytics" subtitle="Bans, kicks, warns, and unbans over time — volume by day, the action mix, and who's actioning most. Management+." />
 
       <div className="ov-stats">
         {stats.map((s, i) => (
@@ -69,32 +70,29 @@ export default async function Page() {
       </div>
 
       <div className="card">
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>Actions per day</div>
-        <div className="muted" style={{ fontSize: 12.5, marginBottom: 16 }}>Last 14 days.</div>
-        <div className="an-chart">
-          {series.map((s) => (
-            <div className="an-col" key={s.key} title={`${s.label}: ${s.n}`}>
-              <div className="an-col-bar" style={{ height: `${Math.round((s.n / dayMax) * 100)}%` }}><span className="an-col-n">{s.n || ""}</span></div>
-              <div className="an-col-l">{s.label.split(" ")[1]}</div>
-            </div>
-          ))}
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>Moderation actions per day</div>
+        <div className="muted" style={{ fontSize: 12.5, marginBottom: 16 }}>Bans · unbans · kicks · warns — last 14 days.</div>
+        <div className="an-chart-wrap">
+          <div className="an-chart">
+            {series.map((s) => (
+              <div className="an-col" key={s.key} title={`${s.label}: ${s.n}`}>
+                <div className="an-col-bar" style={{ height: `${Math.round((s.n / dayMax) * 100)}%` }}><span className="an-col-n">{s.n || ""}</span></div>
+                <div className="an-col-l">{s.label.split(" ")[1]}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="ov-grid" style={{ marginTop: 16 }}>
         <div className="card">
           <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>By action <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· 30d</span></div>
-          <Bars data={byAction.map((r) => ({ label: r.action, n: r.n }))} max={actMax} empty="No actions yet." />
+          <Bars data={byAction.map((r) => ({ label: r.action, n: r.n }))} max={actMax} empty="No moderation actions yet." />
         </div>
         <div className="card">
-          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>By category <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· 30d</span></div>
-          <Bars data={byCategory.map((r) => ({ label: r.category, n: r.n }))} max={catMax} empty="No categorized actions yet." />
+          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top moderators <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· 30d</span></div>
+          <Bars data={topMods.map((r) => ({ label: r.actor_name || "—", n: r.n }))} max={modMax} empty="No moderation activity this month." />
         </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top staff <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· 30d</span></div>
-        <Bars data={actors.map((r) => ({ label: r.actor_name || "—", n: r.n }))} max={actorMax} empty="No activity this month." />
       </div>
     </div>
   );

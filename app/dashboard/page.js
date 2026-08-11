@@ -3,6 +3,7 @@ import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, l
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
 import StatusBadges from "../components/StatusBadges";
+import Avatar from "../components/Avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -162,9 +163,11 @@ export default async function Overview() {
             </div>
             <div className="ov-feed">
               {log.length === 0 && <div className="muted" style={{ padding: "14px 0" }}>Nothing yet. Grants and group actions show up here.</div>}
-              {log.map((r, i) => (
+              {log.map((r, i) => {
+                const tuid = (String(r.target || "").match(/\((\d+)\)/) || [])[1];
+                return (
                 <div className="ov-feed-row" key={i}>
-                  <div className="ov-av">{initials(r.actor_name)}</div>
+                  {tuid ? <Avatar userId={tuid} size={32} /> : <div className="ov-av">{initials(r.actor_name)}</div>}
                   <div className="ov-feed-main">
                     <b>{r.actor_name}</b> {actionBadge(r.action)}{" "}
                     {r.item_key ? <b>{r.item_key}</b> : (r.category && r.category !== r.action ? <span className="muted">{r.category}</span> : null)}
@@ -173,7 +176,8 @@ export default async function Overview() {
                   </div>
                   <div className="ov-feed-time">{new Date(r.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

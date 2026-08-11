@@ -11,6 +11,8 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
   const [menu, setMenu] = useState(false);   // account menu
   const [all, setAll] = useState(false);      // mega menu
   const [copied, setCopied] = useState(false);
+  const [shortcut, setShortcut] = useState("Ctrl K"); // platform-aware; avoids the ugly ⌘ box on Windows
+  useEffect(() => { if (typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)) setShortcut("⌘K"); }, []);
   const accRef = useRef(null);
   const allRef = useRef(null);
 
@@ -65,7 +67,7 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
         <button className="tb-search" onClick={() => window.dispatchEvent(new Event("cmdk:open"))} title="Search (Ctrl/Cmd K)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-3.5-3.5" /></svg>
           <span className="tb-search-t">Search</span>
-          <kbd className="tb-kbd">⌘K</kbd>
+          <kbd className="tb-kbd">{shortcut}</kbd>
         </button>
 
         <div className="tb-user-wrap" ref={accRef}>
