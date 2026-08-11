@@ -113,15 +113,20 @@ function AreaChart({ series, label = "messages", accessor = (s) => s.messages })
   );
 }
 
-function Spark({ vals }) {
-  const W = 130, H = 34, pad = { l: 2, r: 2, t: 7, b: 3 };
+function Spark({ vals, color = "#5b8cff" }) {
+  const W = 220, H = 44, pad = { l: 1, r: 1, t: 9, b: 2 };
   const { pts } = points(vals, W, H, pad);
   const line = smooth(pts);
   const area = pts.length ? `${line} L${pts[pts.length - 1].x},${H} L${pts[0].x},${H} Z` : "";
+  const id = "sp-" + color.replace(/[^a-z0-9]/gi, "");
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="34" preserveAspectRatio="none" style={{ display: "block", marginTop: 10 }}>
-      {area && <path d={area} fill="rgba(255,255,255,.1)" />}
-      {line && <path d={line} fill="none" stroke="rgba(255,255,255,.75)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="44" preserveAspectRatio="none" style={{ display: "block", marginTop: 12 }}>
+      <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+        <stop offset="100%" stopColor={color} stopOpacity="0" />
+      </linearGradient></defs>
+      {area && <path d={area} fill={`url(#${id})`} />}
+      {line && <path d={line} fill="none" stroke={color} strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
     </svg>
   );
 }
@@ -170,10 +175,10 @@ export default function ServerAnalytics() {
   const chMax = Math.max(1, ...channels.map((c) => c.messages));
 
   const cards = [
-    { n: t.messages || 0, l: "Messages", spark: series.map((s) => s.messages) },
-    { n: t.reactions || 0, l: "Reactions", spark: series.map((s) => s.reactions) },
-    { n: Math.round((t.voiceMinutes || 0) / 60), l: "Voice hours", spark: series.map((s) => s.voiceMinutes / 60) },
-    { n: t.members ?? "—", l: "Members", raw: t.members == null },
+    { n: t.messages || 0, l: "Messages", spark: series.map((s) => s.messages), color: "#5b8cff" },
+    { n: t.reactions || 0, l: "Reactions", spark: series.map((s) => s.reactions), color: "#a78bfa" },
+    { n: Math.round((t.voiceMinutes || 0) / 60), l: "Voice hours", spark: series.map((s) => s.voiceMinutes / 60), color: "#34d399" },
+    { n: t.members, l: "Members", members: true },
   ];
 
   return (
@@ -191,9 +196,9 @@ export default function ServerAnalytics() {
       <div className="ov-stats" style={{ opacity: loading ? 0.6 : 1 }}>
         {cards.map((c, i) => (
           <div className="ov-stat" key={i}>
-            <div className="ov-n">{c.raw ? c.n : fmt(c.n)}</div>
+            <div className="ov-n">{c.members ? (c.n == null ? "—" : fmt(c.n)) : fmt(c.n)}</div>
             <div className="ov-l">{c.l}</div>
-            {c.spark && c.spark.some((v) => v > 0) && <Spark vals={c.spark} />}
+            {c.spark && <Spark vals={c.spark} color={c.color} />}
           </div>
         ))}
       </div>
