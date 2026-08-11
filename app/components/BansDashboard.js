@@ -4,7 +4,7 @@ import Avatar from "./Avatar";
 
 const SCOPE = "Zee Hood Game";
 
-export default function BansDashboard() {
+export default function BansDashboard({ canBulk = false }) {
   const [action, setAction] = useState("ban"); // ban | warn | kick | unban
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
@@ -174,7 +174,7 @@ export default function BansDashboard() {
             <button className={`btn ${action === "warn" ? "" : "ghost"}`} onClick={() => setAction("warn")}>Warn</button>
             <button className={`btn ${action === "kick" ? "" : "ghost"}`} onClick={() => setAction("kick")}>Kick</button>
             <button className={`btn ${action === "unban" ? "" : "ghost"}`} onClick={() => setAction("unban")}>Unban</button>
-            <button className={`btn ${action === "bulk" ? "danger" : "ghost"}`} onClick={() => setAction("bulk")}>Bulk</button>
+            {canBulk && <button className={`btn ${action === "bulk" ? "danger" : "ghost"}`} onClick={() => setAction("bulk")}>Bulk</button>}
           </div>
 
           {action === "bulk" ? (

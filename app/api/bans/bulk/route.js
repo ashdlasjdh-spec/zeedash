@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canBan } from "@/lib/permissions";
+import { canBulkBan } from "@/lib/permissions";
 import { resolveUsername } from "@/lib/roblox";
 import { getConfig } from "@/lib/config";
 import { logAudit } from "@/lib/db";
@@ -31,7 +31,7 @@ async function setRestriction(url, key, gameJoinRestriction) {
 // entry (not one per user) and posts no per-user webhooks to avoid flooding the ban channel.
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canBulkBan(s.level)) return NextResponse.json({ error: "Bulk ban/unban is co owners+ only." }, { status: 403 });
 
   const { users, action = "ban", reason } = await req.json();
   const isBan = action === "ban";
