@@ -125,29 +125,38 @@ export async function GET(req) {
   // poll), and means each poll only resolves NEW ids instead of re-resolving all ~170 every 12s.
   const idStrs = active.map((a) => a.userId).filter(Boolean);
   const missing = [...new Set(idStrs.filter((id) => !nameCache.has(id)).map(Number).filter(Boolean))];
-  for (let i = 0; i < missing.length; i += 100) {
-    const chunk = missing.slice(i, i + 100);
-    // Retry each batch on rate-limit / transient failure with jittered backoff — otherwise a
-    // throttled batch silently leaves ~100 users showing as raw ids until a later scan.
-    for (let attempt = 1; attempt <= 4; attempt++) {
-      try {
-        const r = await fetch("https://users.roblox.com/v1/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userIds: chunk, excludeBannedUsers: false }),
-        });
-        if (r.ok) {
-          const d = await r.json();
-          for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName });
-          break;
+  // Resolve missing usernames in PARALLEL batches with a hard time budget. With ~1,450 bans the
+  // old sequential loop (15 batches × up to 4 retries) could take 30–60s and block the whole
+  // response. Now a pool of workers drains the batches, and once the budget elapses we return
+  // what we have — anything still a raw id gets filled by the next 12s poll (nameCache persists).
+  const chunks = [];
+  for (let i = 0; i < missing.length; i += 100) chunks.push(missing.slice(i, i + 100));
+  const deadline = Date.now() + 12_000;
+  let ci = 0;
+  async function worker() {
+    while (ci < chunks.length && Date.now() < deadline) {
+      const chunk = chunks[ci++];
+      for (let attempt = 1; attempt <= 3 && Date.now() < deadline; attempt++) {
+        try {
+          const r = await fetch("https://users.roblox.com/v1/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userIds: chunk, excludeBannedUsers: false }),
+          });
+          if (r.ok) {
+            const d = await r.json();
+            for (const u of d.data || []) nameCache.set(String(u.id), { username: u.name, displayName: u.displayName });
+            break;
+          }
+          if (r.status === 429 || r.status >= 500) { await new Promise((res) => setTimeout(res, 250 * attempt + Math.random() * 300)); continue; }
+          break; // non-retryable
+        } catch {
+          await new Promise((res) => setTimeout(res, 250 * attempt));
         }
-        if (r.status === 429 || r.status >= 500) { await new Promise((res) => setTimeout(res, 300 * attempt + Math.random() * 400)); continue; }
-        break; // non-retryable
-      } catch {
-        await new Promise((res) => setTimeout(res, 300 * attempt));
       }
     }
   }
+  await Promise.all(Array.from({ length: Math.min(8, chunks.length) }, worker));
   const bans = active.map((a) => {
     const n = nameCache.get(a.userId);
     return { ...a, username: n?.username || a.userId, displayName: n?.displayName || n?.username || a.userId };
