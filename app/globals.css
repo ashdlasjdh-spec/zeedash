@@ -334,21 +334,25 @@ td a:hover{border-color:var(--muted)}
   .shell{grid-template-columns:1fr}
   .mtopbar{display:flex}
   .side-brand{display:none}                 /* brand lives in the top bar now */
-  /* off-canvas slide-in drawer */
-  .side{position:fixed;left:0;top:0;height:100dvh;width:min(84vw,300px);z-index:50;
-    flex-direction:column;gap:2px;overflow-y:auto;transform:translateX(-100%);
+  /* off-canvas slide-in drawer — bigger touch targets than the compact desktop rail */
+  .side{position:fixed;left:0;top:0;height:100dvh;width:min(85vw,310px);z-index:50;
+    padding:16px 12px;gap:2px;overflow-y:auto;transform:translateX(-100%);
     transition:transform .26s cubic-bezier(.4,0,.2,1)}
   .side.open{transform:translateX(0);box-shadow:0 0 60px rgba(0,0,0,.7)}
+  .side .navlink{padding:11px 12px}
+  .side .navsec{padding:14px 10px 6px}
   .side-backdrop{display:block}
-  .main{padding:22px 18px}
-  .g2,.g3{grid-template-columns:1fr}
+  .main{padding:22px 16px}
+  .g2,.g3,.ov-grid{grid-template-columns:1fr}
+  .ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   /* wide tables scroll horizontally instead of breaking the page */
+  .table-wrap,table{max-width:100%}
   table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
   thead,tbody,tr{width:100%}
 }
 @media(max-width:560px){
   .main{padding:16px 13px}
-  .card{padding:17px;overflow-wrap:anywhere}
+  .card{padding:16px;overflow-wrap:anywhere}
   .card + .card{margin-top:12px}
   .page-h{font-size:22px}
   .page-sub{font-size:13px;margin-bottom:22px}
@@ -358,6 +362,11 @@ td a:hover{border-color:var(--muted)}
   .between{gap:8px}
   .login-card{padding:36px 22px}
   .brand{font-size:26px}
+  .ov-actions{grid-template-columns:1fr}
+  .ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dd-btn{padding:12px 13px}                 /* easier-tap dropdowns */
+  .dd-opt{padding:12px}
+  .ph-actions{width:100%}
 }
 /* ============================================================
    OVERVIEW  (dashboard landing)
@@ -439,8 +448,8 @@ td a:hover{border-color:var(--muted)}
 .ab{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
   padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);vertical-align:1px}
 .ab-grant,.ab-accept,.ab-rank,.ab-promote,.ab-acceptall{background:rgba(63,185,80,.16);color:#4ade80;border-color:rgba(63,185,80,.4)}
-.ab-revoke,.ab-ban,.ab-kick,.ab-exile,.ab-decline,.ab-declineall,.ab-wipe{background:var(--danger-soft);color:var(--danger);border-color:rgba(255,107,107,.3)}
-.ab-unban,.ab-warn,.ab-demote{background:var(--surface-3);color:var(--text)}
+.ab-revoke,.ab-ban,.ab-kick,.ab-exile,.ab-decline,.ab-declineall,.ab-wipe,.ab-warn{background:var(--danger-soft);color:var(--danger);border-color:rgba(255,107,107,.3)}
+.ab-unban,.ab-demote{background:var(--surface-3);color:var(--text)}
 
 /* top movers */
 .ov-mover{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
