@@ -1,6 +1,6 @@
-"use client";
-
 // Shared profile links — click any user id/name to open where it originates.
+// NOT a client module: these are pure <a> tags (no hooks/handlers) and robloxIdFrom is a plain
+// helper, so this must stay server-usable (the Overview page calls robloxIdFrom during SSR).
 const linkStyle = { color: "inherit", textDecoration: "none", borderBottom: "1px dotted var(--faint)" };
 
 // A Discord user id → their Discord profile.
