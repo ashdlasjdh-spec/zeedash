@@ -3,7 +3,7 @@ import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, l
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
 import StatusBadges from "../components/StatusBadges";
-import Avatar from "../components/Avatar";
+import DiscordAvatar from "../components/DiscordAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +69,7 @@ export default async function Overview() {
 
   let log = [], movers = [];
   if (seesActivity) {
-    try { log = await query("select actor_name, action, category, item_key, target, detail, created_at from audit_log order by id desc limit 60"); } catch {}
+    try { log = await query("select actor_id, actor_name, action, category, item_key, target, detail, created_at from audit_log order by id desc limit 60"); } catch {}
     try { movers = await query("select actor_name, count(*)::int n from audit_log where created_at >= now() - interval '7 days' group by actor_name order by n desc limit 5"); } catch {}
   }
   const moverMax = movers.reduce((m, r) => Math.max(m, Number(r.n) || 0), 0) || 1;
@@ -164,10 +164,9 @@ export default async function Overview() {
             <div className="ov-feed">
               {log.length === 0 && <div className="muted" style={{ padding: "14px 0" }}>Nothing yet. Grants and group actions show up here.</div>}
               {log.map((r, i) => {
-                const tuid = (String(r.target || "").match(/\((\d+)\)/) || [])[1];
                 return (
                 <div className="ov-feed-row" key={i}>
-                  {tuid ? <Avatar userId={tuid} size={32} /> : <div className="ov-av">{initials(r.actor_name)}</div>}
+                  <DiscordAvatar actorId={r.actor_id} name={r.actor_name} size={32} />
                   <div className="ov-feed-main">
                     <b>{r.actor_name}</b> {actionBadge(r.action)}{" "}
                     {r.item_key ? <b>{r.item_key}</b> : (r.category && r.category !== r.action ? <span className="muted">{r.category}</span> : null)}

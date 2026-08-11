@@ -37,7 +37,7 @@ function Icon({ label }) {
 }
 
 const NAV = [
-  { sec: "Grant" },
+  { sec: "Grant", needAnyGrant: true },
   { href: "/dashboard/powers", label: "Powers", perm: "power" },
   { href: "/dashboard/stands", label: "Stands", perm: "stand" },
   { href: "/dashboard/shazam", label: "Shazam", perm: "shazam" },
@@ -86,6 +86,7 @@ export default function Sidebar({ user, grants, canGroup, canBan, isCofounderPlu
       {link("/dashboard", "Overview")}
       {NAV.map((n, i) => {
         if (n.sec) {
+          if (n.needAnyGrant && !grants.length) return null;
           if (n.need === "cofounder" && !isCofounderPlus) return null;
           if (n.needManage && !isCofounderPlus && !canPurge) return null;
           if (n.needGroup && !canGroup) return null;
