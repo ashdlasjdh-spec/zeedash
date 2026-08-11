@@ -38,9 +38,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
    A white light-arc traces the border. On hover for cards/items/buttons;
    always-on (slow) for focused inputs. Degrades gracefully. */
 @keyframes sa-spin{ to{ --sa:360deg } }
-.card,.item,.btn.ghost,input,select,textarea,.login-card{position:relative}
+.card,.item,.btn.ghost,input,select,textarea,.login-card,.ov-stat,.ov-action,.tb-user,.tb-search,.cmdk-item{position:relative}
 .card::after,.item::after,.btn.ghost::after,input::after{content:none}
-.strokeable::after,.card::after,.item::after,.btn.ghost::after{
+.strokeable::after,.card::after,.item::after,.btn.ghost::after,.ov-stat::after,.ov-action::after,.tb-user::after,.tb-search::after{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
   background:conic-gradient(from var(--sa),transparent 0 60%,rgba(255,255,255,.85) 76%,rgba(255,255,255,.2) 86%,transparent 94% 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -48,7 +48,8 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   -webkit-mask-composite:xor;mask-composite:exclude;
   opacity:0;transition:opacity .35s ease;pointer-events:none;z-index:1;
 }
-.card:hover::after,.item:hover::after,.item.sel::after,.btn.ghost:hover::after{opacity:1;animation:sa-spin 2.6s linear infinite}
+.card:hover::after,.item:hover::after,.item.sel::after,.btn.ghost:hover::after,
+.ov-stat:hover::after,.ov-action:hover::after,.tb-user:hover::after,.tb-search:hover::after{opacity:1;animation:sa-spin 2.6s linear infinite}
 .item.sel::after{opacity:1}
 
 /* ============ login ============ */
