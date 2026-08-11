@@ -52,13 +52,13 @@ export default async function DashLayout({ children }) {
   for (const g of allGroups) for (const it of g.items) { if (seen.has(it.href)) continue; seen.add(it.href); cmdItems.push({ ...it, group: g.sec }); }
 
   return (
-    <div className="shell">
-      <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
-      <div className="content">
-        <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
-        <CommandPalette items={cmdItems} />
+    <>
+      <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
+      <CommandPalette items={cmdItems} />
+      <div className="shell">
+        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
         <main className="main">{children}</main>
       </div>
-    </div>
+    </>
   );
 }

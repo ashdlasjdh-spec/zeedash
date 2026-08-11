@@ -38,6 +38,7 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
   return (
     <div className="topbar">
       <div className="tb-pill">
+        <a className="tb-brand" href="/dashboard">zhd<span>.lol</span></a>
         <nav className="tb-links">
           {links.map((l) => (
             <a key={l.href} className={`tb-link ${isActive(l.href) ? "active" : ""}`} href={l.href}>{l.label}</a>
