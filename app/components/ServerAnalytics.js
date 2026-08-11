@@ -171,7 +171,7 @@ export default function ServerAnalytics() {
   // the tab becomes visible again). No loading flash — numbers/chart just update in place.
   useEffect(() => {
     const poll = () => { if (document.visibilityState === "visible") load(guild, days, true); };
-    const iv = setInterval(poll, 12000);
+    const iv = setInterval(poll, 4000);
     document.addEventListener("visibilitychange", poll);
     return () => { clearInterval(iv); document.removeEventListener("visibilitychange", poll); };
   }, [load, guild, days]);
