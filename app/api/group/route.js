@@ -31,8 +31,8 @@ export async function POST(req) {
   // Scoped users (e.g. Leaderboard HR): only lookup / rank / kick, and only for the
   // crew-leader & leaderboard-staff group ranks. Everything else is management-only.
   const scoped = s.scopedGroup && !canGroup(s.level);
-  if (scoped && !["lookup", "rank", "kick"].includes(action)) {
-    return NextResponse.json({ error: "Your role can only rank or kick Crew Leader / Leaderboard Staff." }, { status: 403 });
+  if (scoped && !["lookup", "rank", "kick", "accept"].includes(action)) {
+    return NextResponse.json({ error: "Your role can only rank/kick Crew Leader / Leaderboard Staff, or accept a pending join request." }, { status: 403 });
   }
 
   try {
@@ -54,7 +54,10 @@ export async function POST(req) {
     if (!user) return NextResponse.json({ error: `No Roblox user "${username}"` }, { status: 404 });
     if (action === "lookup") {
       const m = await findMembership(groupId, user.userId);
-      return NextResponse.json({ target: user, inGroup: !!m, roleId: m?.roleId || null });
+      // If they're not a member, surface whether they have a pending join request (so it can be accepted).
+      let pending = false;
+      if (!m) { try { const reqs = await listJoinRequests(groupId); pending = (reqs || []).some((r) => String(r.userId) === String(user.userId)); } catch {} }
+      return NextResponse.json({ target: user, inGroup: !!m, roleId: m?.roleId || null, pending });
     }
     if (action === "rank") {
       if (scoped) {

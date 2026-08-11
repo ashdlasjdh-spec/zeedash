@@ -32,6 +32,15 @@ export default function GroupPanel({ scoped = false }) {
     } catch (e) { setT({ bad: true, msg: e.message }); }
     setB(false);
   }
+  async function acceptTarget() {
+    setB(true); setT(null);
+    try {
+      await post({ action: "accept", userId: status.target.userId });
+      setT({ ok: true, msg: `Accepted ${status.target.username} into the group.` });
+      setStatus((s) => ({ ...s, pending: false, inGroup: true }));
+    } catch (e) { setT({ bad: true, msg: e.message }); }
+    setB(false);
+  }
   async function loadReqs() {
     setLR(true);
     try { const d = await post({ action: "requests" }); setReqs(d.requests); }
@@ -108,9 +117,15 @@ export default function GroupPanel({ scoped = false }) {
               <div>
                 <a href={`https://www.roblox.com/users/${status.target.userId}/profile`} target="_blank" rel="noreferrer" style={{ fontWeight: 700, textDecoration: "none" }}>{status.target.username}</a>
                 <span className="muted mono" style={{ marginLeft: 8, fontSize: 12 }}>({status.target.userId})</span>
-                <div className="muted" style={{ fontSize: 12 }}>{status.inGroup ? "In the group" : "Not in the group"}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{status.inGroup ? "In the group" : status.pending ? "Pending join request" : "Not in the group"}</div>
               </div>
             </div>
+            {status.pending && (
+              <div className="row" style={{ marginTop: 12, gap: 10 }}>
+                <button className="btn" style={{ width: "auto" }} disabled={busy} onClick={acceptTarget}>Accept join request</button>
+                <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>This player is waiting to join — accept to add them.</span>
+              </div>
+            )}
             <div className="grid g2" style={{ marginTop: 14 }}>
               <div><label>Set rank</label>
                 <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
