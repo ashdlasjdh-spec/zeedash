@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup, canGroupMass, canPurge, scopeMatches, scopeLabel } from "@/lib/permissions";
+import { canGroup, canGroupMass, canPurge, scopeMatches, scopeLabel, isKickOnlyScope } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { resolveUsername } from "@/lib/roblox";
 import { listGroupRoles, setRank, shiftRank, kickFromGroup, findMembership,
@@ -31,8 +31,10 @@ export async function POST(req) {
   // Scoped users (e.g. Leaderboard HR): only lookup / rank / kick, and only for the
   // crew-leader & leaderboard-staff group ranks. Everything else is management-only.
   const scoped = s.scopedGroup && !canGroup(s.level);
-  if (scoped && !["lookup", "rank", "kick", "accept"].includes(action)) {
-    return NextResponse.json({ error: "Your role can only rank/kick Crew Leader / Leaderboard Staff, or accept a pending join request." }, { status: 403 });
+  const kickOnly = scoped && isKickOnlyScope(s.scope); // e.g. Leaderboard HR: kick within its ranks, nothing else
+  const allowedScopedActions = kickOnly ? ["lookup", "kick"] : ["lookup", "rank", "kick", "accept"];
+  if (scoped && !allowedScopedActions.includes(action)) {
+    return NextResponse.json({ error: kickOnly ? `You can only kick ${scopeLabel(s.scope)} members.` : "Your role can only rank/kick Crew Leader / Leaderboard Staff, or accept a pending join request." }, { status: 403 });
   }
   // Rank protection: a full group manager (but not the named owners) can never assign, promote to, or
   // act on any group rank at or above their OWN level — so e.g. Head Management can't promote anyone to
