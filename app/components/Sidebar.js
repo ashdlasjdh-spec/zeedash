@@ -38,25 +38,35 @@ function Icon({ label }) {
 }
 
 const NAV = [
-  { sec: "Grant", needAnyGrant: true },
+  { sec: "Perks", needAnyGrant: true },
   { href: "/dashboard/powers", label: "Powers", perm: "power" },
   { href: "/dashboard/stands", label: "Stands", perm: "stand" },
-  { href: "/dashboard/shazam", label: "Shazam", perm: "shazam" },
   { href: "/dashboard/car", label: "SVJ Car", perm: "car" },
   { href: "/dashboard/tools", label: "Tools", perm: "tool" },
   { href: "/dashboard/gamepasses", label: "Gamepasses", perm: "gamepass" },
+  { href: "/dashboard/shazam", label: "Shazam", perm: "shazam" },
   { href: "/dashboard/startbr", label: "Start BR", perm: "startbr" },
+
+  { sec: "Cosmetics", needCosmetic: true },
   { href: "/dashboard/tags", label: "Crew Tags", perm: "tag" },
   { href: "/dashboard/emojis", label: "Emojis", perm: "emoji" },
+
+  { sec: "Grant Tools", needAnyGrant: true },
   { href: "/dashboard/bundles", label: "Bundles", need: "cofounder" },
   { href: "/dashboard/temp-grants", label: "Temp Grants", needAnyGrant: true },
-  { sec: "Moderation", needMod: true },
+
+  { sec: "Moderation", needBan: true },
   { href: "/dashboard/bans", label: "Bans", needBan: true },
   { href: "/dashboard/lookup", label: "Lookup", needBan: true },
+
+  { sec: "Group", needGroupAny: true },
   { href: "/dashboard/group", label: "Group", needGroupAny: true },
+
+  { sec: "Insights", needGroup: true },
   { href: "/dashboard/audit", label: "Audit Log", needGroup: true },
   { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
   { href: "/dashboard/server", label: "Server", needGroup: true },
+
   { sec: "Manage", needManage: true },
   { href: "/dashboard/whitelist", label: "Whitelist", need: "cofounder" },
   { href: "/dashboard/settings", label: "Settings", need: "cofounder" },
@@ -90,10 +100,11 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       {NAV.map((n, i) => {
         if (n.sec) {
           if (n.needAnyGrant && !grants.length) return null;
-          if (n.need === "cofounder" && !isCofounderPlus) return null;
-          if (n.needManage && !isCofounderPlus && !canPurge) return null;
+          if (n.needCosmetic && !grants.includes("tag") && !grants.includes("emoji")) return null;
+          if (n.needBan && !canBan) return null;
+          if (n.needGroupAny && !canGroupAny) return null;
           if (n.needGroup && !canGroup) return null;
-          if (n.needMod && !canGroupAny && !canBan) return null;
+          if (n.needManage && !isCofounderPlus && !canPurge) return null;
           return <div key={i} className="navsec">{n.sec}</div>;
         }
         if (n.need === "cofounder" && !isCofounderPlus) return null;
