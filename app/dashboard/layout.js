@@ -21,12 +21,14 @@ export default async function DashLayout({ children }) {
   if (!user) redirect("/");
   const lvl = user.level;
   const grants = grantsFor(lvl);
+  const scopedGroup = !!user.scopedGroup;         // limited group access (e.g. Leaderboard HR)
+  const groupAny = canGroup(lvl) || scopedGroup;  // any group access at all
 
   // Centered quick links — a short set of the most-used destinations for this rank.
   const links = [{ label: "Overview", href: "/dashboard" }];
   if (grants.length) links.push({ label: "Grants", href: GRANT_HREF[grants[0]] });
   if (canBan(lvl)) links.push({ label: "Moderation", href: "/dashboard/bans" });
-  if (canGroupAny(lvl)) links.push({ label: "Group", href: "/dashboard/group" });
+  if (groupAny) links.push({ label: "Group", href: "/dashboard/group" });
   if (canManageGrants(lvl)) links.push({ label: "Audit", href: "/dashboard/audit" });
 
   // "All" mega-menu — every page this rank can reach, grouped.
@@ -36,7 +38,7 @@ export default async function DashLayout({ children }) {
   const allGroups = [{ sec: "Grant", items: grantItems }];
   const mod = [];
   if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
-  if (canGroupAny(lvl)) mod.push({ label: "Group", href: "/dashboard/group" });
+  if (groupAny) mod.push({ label: "Group", href: "/dashboard/group" });
   if (canGroup(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
@@ -51,7 +53,7 @@ export default async function DashLayout({ children }) {
 
   return (
     <div className="shell">
-      <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={canGroupScoped(lvl)} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
+      <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
       <div className="content">
         <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
         <CommandPalette items={cmdItems} />
