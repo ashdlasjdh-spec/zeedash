@@ -52,7 +52,7 @@ const NAV = [
   { sec: "Moderation", needMod: true },
   { href: "/dashboard/bans", label: "Bans", needBan: true },
   { href: "/dashboard/lookup", label: "Lookup", needBan: true },
-  { href: "/dashboard/group", label: "Group", needGroup: true },
+  { href: "/dashboard/group", label: "Group", needGroupAny: true },
   { href: "/dashboard/audit", label: "Audit Log", needGroup: true },
   { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
   { sec: "Manage", needManage: true },
@@ -61,7 +61,8 @@ const NAV = [
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];
 
-export default function Sidebar({ user, grants, canGroup, canBan, isCofounderPlus, canPurge }) {
+export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, isCofounderPlus, canPurge }) {
+  const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
   const [open, setOpen] = useState(false);
   // Close the mobile drawer whenever the route changes.
@@ -90,12 +91,13 @@ export default function Sidebar({ user, grants, canGroup, canBan, isCofounderPlu
           if (n.need === "cofounder" && !isCofounderPlus) return null;
           if (n.needManage && !isCofounderPlus && !canPurge) return null;
           if (n.needGroup && !canGroup) return null;
-          if (n.needMod && !canGroup && !canBan) return null;
+          if (n.needMod && !canGroupAny && !canBan) return null;
           return <div key={i} className="navsec">{n.sec}</div>;
         }
         if (n.need === "cofounder" && !isCofounderPlus) return null;
         if (n.needAnyGrant && !grants.length) return null;
         if (n.needPurge && !canPurge) return null;
+        if (n.needGroupAny && !canGroupAny) return null;
         if (n.needGroup && !canGroup) return null;
         if (n.needBan && !canBan) return null;
         if (n.perm && !grants.includes(n.perm)) return null;

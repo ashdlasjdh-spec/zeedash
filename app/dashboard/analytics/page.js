@@ -8,6 +8,14 @@ export const dynamic = "force-dynamic";
 
 const rows = async (sql) => { try { return await query(sql); } catch { return []; } };
 const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };
+function agoStr(iso) {
+  const t = Date.parse(iso); if (!Number.isFinite(t)) return "live from Roblox";
+  const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+  if (s < 60) return `scanned ${s}s ago`;
+  if (s < 3600) return `scanned ${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `scanned ${Math.round(s / 3600)}h ago`;
+  return `scanned ${Math.round(s / 86400)}d ago`;
+}
 
 // Moderation-only: bans / unbans / kicks / warns. Grants, config, etc. are excluded.
 const MOD = "action in ('ban','unban','kick','warn')";
@@ -38,11 +46,15 @@ export default async function Page() {
   const actMax = Math.max(1, ...byAction.map((r) => r.n));
   const modMax = Math.max(1, ...topMods.map((r) => r.n));
 
+  // Live active-ban total straight from Roblox (recorded by the ban scan). Headline stat.
+  const cfg = Object.fromEntries((await rows("select key, value from config where key in ('bans_count','bans_scanned_at')")).map((r) => [r.key, r.value]));
+  const bansLive = Number(cfg.bans_count) || 0;
+
   const stats = [
-    { n: ban7, l: "Bans · 7 days" },
-    { n: kick7, l: "Kicks · 7 days" },
-    { n: warn7, l: "Warns · 7 days" },
-    { n: mod30, l: "Mod actions · 30d" },
+    { n: bansLive, l: "Active game bans", hint: cfg.bans_scanned_at ? agoStr(cfg.bans_scanned_at) : "live from Roblox" },
+    { n: ban7, l: "New bans · 7d" },
+    { n: kick7, l: "Kicks · 7d" },
+    { n: warn7, l: "Warns · 7d" },
   ];
 
   const Bars = ({ data, max, empty }) => (
@@ -61,11 +73,15 @@ export default async function Page() {
 
   return (
     <div className="fullbleed">
-      <PageHeader icon="ban" title="Moderation analytics" subtitle="Bans, kicks, warns, and unbans over time — volume by day, the action mix, and who's actioning most. Management+." />
+      <PageHeader icon="ban" title="Moderation analytics" subtitle="Live active game bans straight from Roblox, plus moderation activity over time — bans, kicks, warns, and unbans. Management+." />
 
       <div className="ov-stats">
         {stats.map((s, i) => (
-          <div className="ov-stat" key={i}><div className="ov-n">{s.n.toLocaleString()}</div><div className="ov-l">{s.l}</div></div>
+          <div className="ov-stat" key={i}>
+            <div className="ov-n">{s.n.toLocaleString()}</div>
+            <div className="ov-l">{s.l}</div>
+            {s.hint && <div className="ov-hint">{s.hint}</div>}
+          </div>
         ))}
       </div>
 

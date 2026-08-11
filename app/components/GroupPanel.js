@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Avatar from "./Avatar";
+import { isScopedRankName } from "@/lib/permissions";
 
-export default function GroupPanel() {
+export default function GroupPanel({ scoped = false }) {
   const [roles, setRoles] = useState([]); const [groupId, setGid] = useState("");
   const [username, setU] = useState(""); const [status, setStatus] = useState(null);
   const [roleId, setRoleId] = useState(""); const [busy, setB] = useState(false);
@@ -58,6 +59,7 @@ export default function GroupPanel() {
   if (err) return <div className="card"><div className="toast bad">{err}</div></div>;
   return (
     <div className="stack" style={{ gap: 16 }}>
+      {!scoped && (<>
       {/* Join requests */}
       <div className="card">
         <div className="between">
@@ -88,6 +90,8 @@ export default function GroupPanel() {
         ))}
       </div>
 
+      </>)}
+
       {/* Member rank / kick */}
       <div className="card">
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Member rank &amp; removal</div>
@@ -111,7 +115,7 @@ export default function GroupPanel() {
               <div><label>Set rank</label>
                 <select value={roleId} onChange={(e) => setRoleId(e.target.value)}>
                   <option value="">Choose a role…</option>
-                  {roles.map((r) => <option key={r.id} value={r.id}>{r.rank} — {r.name}</option>)}
+                  {roles.filter((r) => !scoped || isScopedRankName(r.name)).map((r) => <option key={r.id} value={r.id}>{r.rank} — {r.name}</option>)}
                 </select>
               </div>
               <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
@@ -119,15 +123,18 @@ export default function GroupPanel() {
                 <button className="btn danger" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("kick")}>Kick</button>
               </div>
             </div>
+            {!scoped && (
             <div className="row" style={{ marginTop: 12, gap: 10 }}>
               <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("demote")}>◄ Demote</button>
               <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("promote")}>Promote ►</button>
               <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>One step down / up the rank ladder.</span>
             </div>
+            )}
           </>
         )}
       </div>
 
+      {!scoped && (<>
       {/* Group shout */}
       <div className="card">
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Group shout</div>
@@ -135,6 +142,7 @@ export default function GroupPanel() {
         <textarea rows={2} maxLength={255} value={shoutMsg} onChange={(e) => setShoutMsg(e.target.value)} placeholder="Big update dropping this weekend…" />
         <div className="row" style={{ marginTop: 12 }}><button className="btn" style={{ width: "auto" }} disabled={busy} onClick={doShout}>Post shout</button></div>
       </div>
+      </>)}
 
       {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       <p className="muted" style={{ fontSize: 12 }}>Group <span className="mono">{groupId}</span>. All actions are logged. Requires <span className="mono">ROBLOX_GROUP_COOKIE</span> + a bot account with Manage-members rank.</p>

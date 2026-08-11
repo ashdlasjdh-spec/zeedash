@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { grantsFor, canGroup, canWhitelist, canBan, canPurge, canManageGrants } from "@/lib/permissions";
+import { grantsFor, canGroup, canGroupScoped, canGroupAny, canWhitelist, canBan, canPurge, canManageGrants } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -26,7 +26,7 @@ export default async function DashLayout({ children }) {
   const links = [{ label: "Overview", href: "/dashboard" }];
   if (grants.length) links.push({ label: "Grants", href: GRANT_HREF[grants[0]] });
   if (canBan(lvl)) links.push({ label: "Moderation", href: "/dashboard/bans" });
-  if (canGroup(lvl)) links.push({ label: "Group", href: "/dashboard/group" });
+  if (canGroupAny(lvl)) links.push({ label: "Group", href: "/dashboard/group" });
   if (canManageGrants(lvl)) links.push({ label: "Audit", href: "/dashboard/audit" });
 
   // "All" mega-menu — every page this rank can reach, grouped.
@@ -36,7 +36,8 @@ export default async function DashLayout({ children }) {
   const allGroups = [{ sec: "Grant", items: grantItems }];
   const mod = [];
   if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
-  if (canGroup(lvl)) mod.push({ label: "Group", href: "/dashboard/group" }, { label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" });
+  if (canGroupAny(lvl)) mod.push({ label: "Group", href: "/dashboard/group" });
+  if (canGroup(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" }, { label: "Analytics", href: "/dashboard/analytics" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
   if (canWhitelist(lvl)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Settings", href: "/dashboard/settings" });
@@ -50,7 +51,7 @@ export default async function DashLayout({ children }) {
 
   return (
     <div className="shell">
-      <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
+      <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={canGroupScoped(lvl)} canBan={canBan(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
       <div className="content">
         <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
         <CommandPalette items={cmdItems} />
