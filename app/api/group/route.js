@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup, canGroupMass, scopeMatches, scopeLabel } from "@/lib/permissions";
+import { canGroup, canGroupMass, canPurge, scopeMatches, scopeLabel } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { resolveUsername } from "@/lib/roblox";
 import { listGroupRoles, setRank, shiftRank, kickFromGroup, findMembership,
@@ -34,6 +34,10 @@ export async function POST(req) {
   if (scoped && !["lookup", "rank", "kick", "accept"].includes(action)) {
     return NextResponse.json({ error: "Your role can only rank/kick Crew Leader / Leaderboard Staff, or accept a pending join request." }, { status: 403 });
   }
+  // Rank protection: a full group manager (but not the named owners) can never assign, promote to, or
+  // act on any group rank at or above their OWN level — so e.g. Head Management can't promote anyone to
+  // Head Management or higher. (Roblox group ranks mirror the Discord level ladder.)
+  const cap = canGroup(s.level) && !canPurge(s.id);
 
   try {
     // ---- join requests + shout (no username needed) ----
@@ -60,27 +64,42 @@ export async function POST(req) {
       return NextResponse.json({ target: user, inGroup: !!m, roleId: m?.roleId || null, pending });
     }
     if (action === "rank") {
-      if (scoped) {
-        const roles = await listGroupRoles(groupId);
-        const role = roles.find((r) => String(r.id) === String(roleId));
-        if (!role || !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only assign the ${scopeLabel(s.scope)} rank(s).` }, { status: 403 });
+      const roles = await listGroupRoles(groupId);
+      const role = roles.find((r) => String(r.id) === String(roleId));
+      if (!role) return NextResponse.json({ error: "Unknown rank." }, { status: 400 });
+      if (scoped && !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only assign the ${scopeLabel(s.scope)} rank(s).` }, { status: 403 });
+      if (cap) {
+        if (Number(role.rank) >= s.level) return NextResponse.json({ error: "You can only assign ranks below your own." }, { status: 403 });
+        const cur = await findMembership(groupId, user.userId);
+        const curRole = cur && roles.find((r) => String(r.id) === String(cur.roleId));
+        if (curRole && Number(curRole.rank) >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
       }
       await setRank(groupId, user.userId, roleId);
       await log(s, "rank", user, `role ${roleId}`);
       return NextResponse.json({ ok: true, target: user });
     }
     if (action === "promote" || action === "demote") {
+      if (cap) {
+        const roles = await listGroupRoles(groupId);
+        const cur = await findMembership(groupId, user.userId);
+        const curRole = cur && roles.find((r) => String(r.id) === String(cur.roleId));
+        const curRank = Number(curRole?.rank) || 0;
+        if (curRank >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
+        if (action === "promote") {
+          const next = roles.filter((r) => Number(r.rank) > curRank).sort((a, b) => a.rank - b.rank)[0];
+          if (next && Number(next.rank) >= s.level) return NextResponse.json({ error: "That would promote them to your rank or above." }, { status: 403 });
+        }
+      }
       const r = await shiftRank(groupId, user.userId, action === "promote" ? 1 : -1);
       await log(s, action, user, `${r.from} → ${r.to}`);
       return NextResponse.json({ ok: true, target: user, ...r });
     }
     if (action === "kick") {
-      if (scoped) {
-        const m = await findMembership(groupId, user.userId);
-        const roles = await listGroupRoles(groupId);
-        const role = roles.find((r) => String(r.id) === String(m?.roleId));
-        if (!role || !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only kick ${scopeLabel(s.scope)} members.` }, { status: 403 });
-      }
+      const roles = await listGroupRoles(groupId);
+      const m = await findMembership(groupId, user.userId);
+      const role = m && roles.find((r) => String(r.id) === String(m.roleId));
+      if (scoped && (!role || !scopeMatches(s.scope, role.name))) return NextResponse.json({ error: `You can only kick ${scopeLabel(s.scope)} members.` }, { status: 403 });
+      if (cap && role && Number(role.rank) >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
       await kickFromGroup(groupId, user.userId);
       await log(s, "kick", user, "removed from group");
       return NextResponse.json({ ok: true, target: user });
