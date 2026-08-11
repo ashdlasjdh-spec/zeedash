@@ -25,6 +25,8 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
     try { const r = await fetch(`/api/perks/count?category=${category}`); const d = await r.json(); if (r.ok && !d.error) setStats(d); } catch {}
   }, [category]);
   useEffect(() => { loadStats(); }, [loadStats]);
+  // Deep-link: /dashboard/<cat>?mode=bulk opens straight into bulk mode (from the Overview shortcut).
+  useEffect(() => { if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "bulk") setMode("bulk"); }, []);
 
   async function submit(action) {
     if (!sel || !username) { setToast({ bad: true, msg: "Pick an item and enter a username." }); return; }

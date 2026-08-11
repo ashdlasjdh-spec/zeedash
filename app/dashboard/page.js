@@ -78,6 +78,7 @@ export default async function Overview() {
   const cats = grantsFor(lvl);
   const actions = [];
   for (const c of cats) { const m = GRANT_META[c]; if (m) actions.push({ label: m[0], icon: m[1], href: m[2], sub: m[3] }); }
+  if (cats.length) actions.push({ label: "Bulk Grant", icon: "layers", href: `${GRANT_META[cats[0]][2]}?mode=bulk`, sub: "Grant many at once" });
   if (canBan(lvl)) {
     actions.push({ label: "Moderation", icon: "ban", href: "/dashboard/bans", sub: "Ban / unban / warn" });
     actions.push({ label: "Lookup", icon: "search", href: "/dashboard/lookup", sub: "Investigate a player" });
