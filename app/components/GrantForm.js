@@ -14,6 +14,9 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
   const [durAmount, setDurAmount] = useState("1");
   const [durUnit, setDurUnit] = useState("perm"); // perm | s | m | h | d | w
   const [stats, setStats] = useState(null); // { players, total } — how many of this category are handed out
+  const [mode, setMode] = useState("single"); // single | bulk
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const UNIT = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
 
@@ -40,6 +43,26 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(false);
+  }
+
+  async function submitBulk(action) {
+    if (!sel) { setToast({ bad: true, msg: "Pick an item first." }); return; }
+    const users = bulkText.split(/[\s,]+/).map((u) => u.trim()).filter(Boolean);
+    if (!users.length) { setToast({ bad: true, msg: "Paste some usernames or IDs." }); return; }
+    if (typeof window !== "undefined" && !window.confirm(`${action === "grant" ? "Grant" : "Revoke"} ${sel} ${action === "grant" ? "to" : "from"} ${users.length} player(s)?`)) return;
+    setBulkBusy(true); setToast(null);
+    try {
+      const res = await fetch("/api/grant/bulk", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, key: sel, users, action }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Failed");
+      setToast({ ok: !d.failed, msg: `${action === "grant" ? "Granted" : "Revoked"} ${sel} ${action === "grant" ? "to" : "from"} ${d.done}/${d.total}.` + (d.failed ? ` ⚠ ${d.failed} failed: ${d.errors.join("; ")}` : "") });
+      loadStats();
+      if (list) loadGranted();
+    } catch (e) { setToast({ bad: true, msg: e.message }); }
+    setBulkBusy(false);
   }
 
   async function loadGranted() {
@@ -94,7 +117,13 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
             <button key={it.key} className={`item ${sel === it.key ? "sel" : ""}`} onClick={() => setSel(it.key)}>{it.name}</button>
           ))}
         </div>
-        <div className="row" style={{ marginTop: 18 }}>
+        <div className="row" style={{ marginTop: 14, gap: 8 }}>
+          <button className={`btn ${mode === "single" ? "" : "ghost"}`} style={{ width: "auto", minWidth: 0 }} onClick={() => setMode("single")}>Single</button>
+          <button className={`btn ${mode === "bulk" ? "" : "ghost"}`} style={{ width: "auto", minWidth: 0 }} onClick={() => setMode("bulk")}>Bulk</button>
+        </div>
+
+        {mode === "single" && (
+        <div className="row" style={{ marginTop: 14 }}>
           <div style={{ flex: 1, minWidth: 200, maxWidth: 520 }}>
             <label>Roblox username or ID</label>
             <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. Builderman or 156" />
@@ -116,6 +145,19 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
           <button className="btn" disabled={busy} onClick={() => submit("grant")}>{busy ? "…" : verb}</button>
           <button className="btn ghost" disabled={busy} onClick={() => submit("revoke")}>Revoke</button>
         </div>
+        )}
+
+        {mode === "bulk" && (
+        <div style={{ marginTop: 14 }}>
+          <label>Players — one per line or comma-separated (username or ID)</label>
+          <textarea value={bulkText} onChange={(e) => setBulkText(e.target.value)} rows={6} placeholder={"156\nBuilderman\n5011259316"} style={{ resize: "vertical" }} />
+          <div className="row" style={{ marginTop: 12, gap: 8 }}>
+            <button className="btn" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => submitBulk("grant")}>{bulkBusy ? "Working…" : `${verb} all`}</button>
+            <button className="btn ghost" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => submitBulk("revoke")}>Revoke all</button>
+          </div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Up to 500 at once · permanent (no timer) · one audit entry logged.</p>
+        </div>
+        )}
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
 
