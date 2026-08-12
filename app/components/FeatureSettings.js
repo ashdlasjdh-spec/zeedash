@@ -15,7 +15,9 @@ function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) 
         {rows.map((row, i) => (
           <div key={i} className="fl-row">
             {cols.map((c) => (
-              c.type === "roles"
+              c.type === "select"
+                ? <Dropdown key={c.key} value={row[c.key] ?? c.options?.[0]?.value ?? c.options?.[0] ?? ""} onChange={(e) => set(i, c.key, e.target.value)} options={(c.options || []).map((o) => ({ value: o.value ?? o, label: o.label ?? o }))} style={{ flex: c.flex || 1, minWidth: 0 }} />
+                : c.type === "roles"
                 ? <MetaMultiSelect key={c.key} meta={meta} value={row[c.key]} onChange={(v) => set(i, c.key, v)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 : isMetaType(c.type)
                 ? <MetaSelect key={c.key} meta={meta} type={c.type} value={row[c.key]} onChange={(v) => set(i, c.key, v)} placeholder={c.placeholder || c.label} mono={c.mono} style={{ flex: c.flex || 1, minWidth: 0 }} />
@@ -60,17 +62,19 @@ export default function FeatureSettings({ feature, title, description, fields = 
   }, [guild, feature]);
 
   const setField = (k, v) => setConfig((c) => ({ ...c, [k]: v }));
-  const save = async () => {
+  const persist = async (en, cfg) => {
     if (!guild) return;
     setSaving(true); setToast(null);
     try {
-      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled: en, config: cfg }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
+      setToast({ ok: true, msg: en ? "Saved — feature is ON." : "Saved — feature is OFF." });
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setSaving(false);
   };
+  const save = () => persist(enabled, config);
+  const toggle = (checked) => { setEnabled(checked); persist(checked, config); }; // the on/off switch saves instantly
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
 
@@ -82,7 +86,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
           {description && <div className="muted" style={{ fontSize: 13, marginTop: 3 }}>{description}</div>}
         </div>
         <label className="switch" title={enabled ? "Enabled" : "Disabled"}>
-          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+          <input type="checkbox" checked={enabled} onChange={(e) => toggle(e.target.checked)} />
           <span className="switch-track"><span className="switch-thumb" /></span>
         </label>
       </div>

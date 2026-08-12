@@ -6,15 +6,21 @@ import FeatureSettings from "../../../components/FeatureSettings";
 
 export const dynamic = "force-dynamic";
 
+const ACTIONS = [
+  { value: "ban", label: "Bans" },
+  { value: "kick", label: "Kicks" },
+  { value: "channel", label: "Channel create / delete" },
+  { value: "role", label: "Role create / delete" },
+  { value: "webhook", label: "Webhook creation" },
+  { value: "emoji", label: "Emoji deletion" },
+  { value: "botadd", label: "Bot additions" },
+];
+
 const FIELDS = [
-  { key: "modBan", label: "Watch bans", type: "bool" },
-  { key: "modKick", label: "Watch kicks", type: "bool" },
-  { key: "modChannel", label: "Watch channel create / delete", type: "bool" },
-  { key: "modRole", label: "Watch role create / delete", type: "bool" },
-  { key: "modWebhook", label: "Watch webhook creation", type: "bool" },
-  { key: "modEmoji", label: "Watch emoji deletion", type: "bool" },
-  { key: "modBotadd", label: "Watch bot additions", type: "bool" },
-  { key: "threshold", label: "Actions allowed before punishing (1–6)", numeric: true, placeholder: "3" },
+  { key: "actions", label: "Watched actions — set the limit for each", type: "list", addLabel: "Watch an action", cols: [
+    { key: "action", label: "Action", type: "select", options: ACTIONS, flex: 1.5 },
+    { key: "threshold", label: "Max allowed (1–6)", placeholder: "3", flex: 0.8 },
+  ] },
   { key: "window", label: "Time window (seconds)", numeric: true, placeholder: "30" },
   { key: "punishment", label: "Punishment", type: "select", options: ["strip", "jail", "kick", "ban"], hint: "strip = remove all their roles (never bans) · jail = strip + 24h timeout · kick · ban" },
   { key: "whitelist", label: "Whitelisted user IDs (never actioned)", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222", hint: "In-server, the owner manages this with /antinuke whitelist @user (owner-only)." },

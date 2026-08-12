@@ -35,17 +35,19 @@ export default function FeatureList({ feature, title, description, columns, addL
   const remove = (i) => setItems((x) => x.filter((_, idx) => idx !== i));
   const setCell = (i, k, v) => setItems((x) => x.map((row, idx) => (idx === i ? { ...row, [k]: v } : row)));
 
-  const save = async () => {
+  const persist = async (en, its) => {
     if (!guild) return;
     setSaving(true); setToast(null);
     try {
-      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config: { items } }) });
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled: en, config: { items: its } }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
+      setToast({ ok: true, msg: en ? "Saved — feature is ON." : "Saved — feature is OFF." });
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setSaving(false);
   };
+  const save = () => persist(enabled, items);
+  const toggle = (checked) => { setEnabled(checked); persist(checked, items); }; // on/off switch saves instantly
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet.</p></div>;
 
@@ -56,7 +58,7 @@ export default function FeatureList({ feature, title, description, columns, addL
           <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
           {description && <div className="muted" style={{ fontSize: 13, marginTop: 3 }}>{description}</div>}
         </div>
-        <label className="switch"><input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label>
+        <label className="switch"><input type="checkbox" checked={enabled} onChange={(e) => toggle(e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label>
       </div>
 
       <div style={{ marginTop: 16, opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? "auto" : "none" }}>
