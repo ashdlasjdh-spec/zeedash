@@ -19,10 +19,8 @@ const TITLES = {
 
 // Honest per-feature notes for the ones that aren't standard toggle features.
 const NOTES = {
-  customize: "A shared bot has one global profile, so its avatar/banner/bio can't be changed per server — this isn't possible for this bot.",
-  autopfp: "Per-server bot avatars aren't possible for a shared bot (Discord uses one global avatar), so AutoPFP can't be offered here.",
-  restrict: "Restricts the bot's own commands to certain channels. This bot only runs a few admin commands in your servers (embeds, panels, tickets) — tell me if you want those channel-restrictable and I'll wire it.",
-  disable: "Disables specific bot commands per server. Same note as Restrict — say which commands and I'll add per-guild disabling.",
+  customize: "A shared bot has one global profile, so its avatar/banner/bio can't be changed per server. The only per-server option Discord allows is the bot's nickname + role colour — say the word and I'll add those.",
+  autopfp: "AutoPFP rotates the bot's avatar, but a shared bot has ONE global avatar for every server — Discord doesn't allow a per-server avatar, so this can't be offered here.",
   tracking: "Username / vanity tracking — on the roadmap.",
   aliases: "Command aliases map to moderation commands the bot doesn't run generically in community servers, so this needs a design pass before it's useful here.",
 };
