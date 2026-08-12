@@ -89,6 +89,7 @@ export default function TagForm() {
   const [f, setF] = useState(EMPTY);
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [list, setList] = useState(null); const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState("");
   const [uploading, setUploading] = useState(false);
   const up = (k, v) => setF((s) => ({ ...s, [k]: v }));
 
@@ -222,9 +223,15 @@ export default function TagForm() {
           <div><div style={{ fontWeight: 700, fontSize: 15 }}>Existing crew tags</div><div className="muted" style={{ fontSize: 13 }}>Every tag in the shared database. Edit reloads it into the form above.</div></div>
           <button className="btn ghost" style={{ width: "auto" }} disabled={loading} onClick={load}>{loading ? "Loading…" : list ? "Refresh" : "Load"}</button>
         </div>
-        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No tags yet.</p> : (
-          <div className="stack" style={{ marginTop: 14 }}>
-            {list.map((t) => (
+        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No tags yet.</p> : (() => {
+          const s = q.trim().toLowerCase();
+          const shown = s ? list.filter((t) => (t.name || "").toLowerCase().includes(s) || String(t.group).toLowerCase().includes(s) || (t.rank != null && String(t.rank) === s)) : list;
+          return (
+          <>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${list.length} tags — name, group ID, or rank…`} style={{ marginTop: 14 }} />
+          {shown.length === 0 ? <p className="muted" style={{ marginTop: 12 }}>No tags match “{q}”.</p> : (
+          <div className="stack" style={{ marginTop: 12 }}>
+            {shown.map((t) => (
               <div key={t.group + ":" + t.rank} className="between" style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 13px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <span style={{ fontWeight: 800, fontStyle: "italic", backgroundImage: `linear-gradient(180deg, ${t.colors.map(toHex).join(", ")})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>{t.name || "(no text)"}</span>
@@ -240,7 +247,10 @@ export default function TagForm() {
               </div>
             ))}
           </div>
-        ))}
+          )}
+          </>
+          );
+        })())}
       </div>
     </>
   );
