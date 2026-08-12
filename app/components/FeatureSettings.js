@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
+import AutoSaveStatus from "./AutoSaveStatus";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
 function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
@@ -48,28 +49,43 @@ export default function FeatureSettings({ feature, title, description, fields = 
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta(fields));
 
+  const savedSig = useRef(null);
+  const [status, setStatus] = useState("idle");
+
   useEffect(() => {
     if (!guild) return;
     setLoading(true);
     fetch(`/api/guild-settings?guild=${guild}`)
       .then((r) => r.json())
-      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); })
+      .then((j) => {
+        const s = j.settings?.[feature] || {};
+        setEnabled(!!s.enabled); setConfig(s.config || {});
+        savedSig.current = JSON.stringify({ enabled: !!s.enabled, config: s.config || {} }); // baseline: don't auto-save the freshly-loaded state
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guild, feature]);
 
   const setField = (k, v) => setConfig((c) => ({ ...c, [k]: v }));
-  const save = async () => {
-    if (!guild) return;
-    setSaving(true); setToast(null);
-    try {
-      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
-    } catch (e) { setToast({ ok: false, msg: e.message }); }
-    setSaving(false);
-  };
+
+  // Debounced auto-save: writes whenever enabled/config changes (skips the initial load via savedSig).
+  useEffect(() => {
+    if (!guild || loading) return;
+    const sig = JSON.stringify({ enabled, config });
+    if (sig === savedSig.current) return;
+    const t = setTimeout(async () => {
+      setStatus("saving"); setToast(null);
+      try {
+        const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Failed");
+        savedSig.current = sig;
+        setStatus("saved");
+        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
+      } catch (e) { setStatus("error"); setToast({ ok: false, msg: e.message }); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [enabled, config, guild, feature, loading]);
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
 
@@ -113,9 +129,8 @@ export default function FeatureSettings({ feature, title, description, fields = 
       </div>
 
       <div className="row" style={{ marginTop: 18 }}>
-        <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
+        <AutoSaveStatus status={status} error={toast?.msg} />
       </div>
-      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect, OptionMultiSelect } from "./metaFields";
+import AutoSaveStatus from "./AutoSaveStatus";
 
 // Feature config for list-style features (autoresponder, autoreact, reaction roles). Enable toggle +
 // an editable list of rows, persisted to /api/guild-settings as config.items. OFF by default.
@@ -19,12 +20,20 @@ export default function FeatureList({ feature, title, description, columns, addL
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta([{ cols: columns }]));
 
+  const savedSig = useRef(null);
+  const [status, setStatus] = useState("idle");
+
   useEffect(() => {
     if (!guild) return;
     setLoading(true);
     fetch(`/api/guild-settings?guild=${guild}`)
       .then((r) => r.json())
-      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setItems(Array.isArray(s.config?.items) ? s.config.items : []); })
+      .then((j) => {
+        const s = j.settings?.[feature] || {};
+        const its = Array.isArray(s.config?.items) ? s.config.items : [];
+        setEnabled(!!s.enabled); setItems(its);
+        savedSig.current = JSON.stringify({ enabled: !!s.enabled, items: its });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guild, feature]);
@@ -34,17 +43,24 @@ export default function FeatureList({ feature, title, description, columns, addL
   const remove = (i) => setItems((x) => x.filter((_, idx) => idx !== i));
   const setCell = (i, k, v) => setItems((x) => x.map((row, idx) => (idx === i ? { ...row, [k]: v } : row)));
 
-  const save = async () => {
-    if (!guild) return;
-    setSaving(true); setToast(null);
-    try {
-      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config: { items } }) });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
-    } catch (e) { setToast({ ok: false, msg: e.message }); }
-    setSaving(false);
-  };
+  // Debounced auto-save.
+  useEffect(() => {
+    if (!guild || loading) return;
+    const sig = JSON.stringify({ enabled, items });
+    if (sig === savedSig.current) return;
+    const t = setTimeout(async () => {
+      setStatus("saving"); setToast(null);
+      try {
+        const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config: { items } }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Failed");
+        savedSig.current = sig;
+        setStatus("saved");
+        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
+      } catch (e) { setStatus("error"); setToast({ ok: false, msg: e.message }); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [enabled, items, guild, feature, loading]);
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet.</p></div>;
 
@@ -96,9 +112,8 @@ export default function FeatureList({ feature, title, description, columns, addL
       </div>
 
       <div className="row" style={{ marginTop: 18 }}>
-        <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
+        <AutoSaveStatus status={status} error={toast?.msg} />
       </div>
-      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
     </div>
   );
 }
