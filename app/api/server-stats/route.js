@@ -16,7 +16,7 @@ export async function GET(req) {
   try {
     // Every guild we have data for (most recently active first) — drives the server switcher.
     const guilds = await query(
-      "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats group by guild_id order by max(updated_at) desc",
+      "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats group by guild_id having max(updated_at) > now() - interval '20 minutes' order by max(updated_at) desc",
     );
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });

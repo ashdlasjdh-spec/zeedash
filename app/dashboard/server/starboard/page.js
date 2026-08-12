@@ -10,6 +10,7 @@ const FIELDS = [
   { key: "channel", label: "Starboard channel ID", mono: true, placeholder: "123456789012345678" },
   { key: "emoji", label: "Emoji", placeholder: "⭐", hint: "The reaction to count. Default ⭐. Custom emoji: paste it or its ID." },
   { key: "threshold", label: "Required reactions", numeric: true, placeholder: "3" },
+  { key: "selfstar", label: "Allow self-starring", type: "bool" },
 ];
 
 export default async function Page() {

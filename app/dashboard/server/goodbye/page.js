@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const FIELDS = [
   { key: "channel", label: "Channel ID", mono: true, placeholder: "123456789012345678", hint: "Enable Developer Mode → right-click the channel → Copy ID." },
-  { key: "message", label: "Message", type: "textarea", rows: 3, placeholder: "{user.name} left {server}. We're now {member.count} members.", hint: "Variables: {user.name} · {user.tag} · {server} · {member.count}" },
+  { key: "message", label: "Message", type: "textarea", rows: 3, placeholder: "{user.name} left {guild.name}. We're now {guild.count} members.", hint: "Variables: {user.name} · {user.display_name} · {user.tag} · {guild.name} · {guild.count}" },
   { key: "embed", label: "Send as an embed", type: "bool" },
 ];
 

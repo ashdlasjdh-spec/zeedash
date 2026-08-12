@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const FIELDS = [
   { key: "channel", label: "Level-up channel ID (blank = same channel)", mono: true, placeholder: "123456789012345678" },
-  { key: "message", label: "Level-up message", type: "textarea", rows: 2, placeholder: "🎉 {user.mention} reached level {level}!", hint: "Variables: {user.mention} · {user.name} · {level} · {server}" },
+  { key: "message", label: "Level-up message", type: "textarea", rows: 2, placeholder: "🎉 {user.mention} reached level {level.new_rank}!", hint: "Variables: {user.mention} · {user.name} · {level.new_rank} · {guild.name}" },
   { key: "min", label: "Min XP per message", numeric: true, placeholder: "15" },
   { key: "max", label: "Max XP per message", numeric: true, placeholder: "25" },
   { key: "rewards", label: "Role rewards", type: "list", addLabel: "Add reward", cols: [
