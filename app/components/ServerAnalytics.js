@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Dropdown from "./Dropdown";
 import { fmt, AreaChart, Spark } from "./chart";
+import MemberLeaderboard from "./MemberLeaderboard";
 
 const RANGES = [7, 14, 30, 90];
 const METRICS = [
@@ -94,38 +95,44 @@ export default function ServerAnalytics() {
         ))}
       </div>
 
-      {(() => {
-        const m = METRICS.find((x) => x.k === metric) || METRICS[0];
-        return (
-          <div className="card">
-            <div className="between" style={{ marginBottom: 12, gap: 10 }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
+      <div className="sa-grid">
+        <div className="sa-main">
+          {(() => {
+            const m = METRICS.find((x) => x.k === metric) || METRICS[0];
+            return (
+              <div className="card">
+                <div className="between" style={{ marginBottom: 12, gap: 10 }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
+                  </div>
+                  <div className="row" style={{ gap: 6 }}>
+                    {METRICS.map((x) => (
+                      <button key={x.k} className={`btn ${metric === x.k ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 11px", fontSize: 12.5 }} onClick={() => setMetric(x.k)}>{x.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} />
               </div>
-              <div className="row" style={{ gap: 6 }}>
-                {METRICS.map((x) => (
-                  <button key={x.k} className={`btn ${metric === x.k ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 11px", fontSize: 12.5 }} onClick={() => setMetric(x.k)}>{x.label}</button>
+            );
+          })()}
+
+          <div className="card" style={{ marginTop: 16 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top channels <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· {days}d</span></div>
+            {channels.length === 0 ? <p className="muted">No channel data yet.</p> : (
+              <div className="an-hbars">
+                {channels.map((c) => (
+                  <div className="an-hrow" key={c.id}>
+                    <span className="an-hlabel" style={{ width: 160 }}>#{c.name}</span>
+                    <span className="an-htrack"><span className="an-hbar" style={{ width: `${Math.max(4, Math.round((c.messages / chMax) * 100))}%` }} /></span>
+                    <span className="an-hval" style={{ width: 56 }}>{c.messages.toLocaleString()}</span>
+                  </div>
                 ))}
               </div>
-            </div>
-            <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} />
+            )}
           </div>
-        );
-      })()}
+        </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top channels <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· {days}d</span></div>
-        {channels.length === 0 ? <p className="muted">No channel data yet.</p> : (
-          <div className="an-hbars">
-            {channels.map((c) => (
-              <div className="an-hrow" key={c.id}>
-                <span className="an-hlabel" style={{ width: 160 }}>#{c.name}</span>
-                <span className="an-htrack"><span className="an-hbar" style={{ width: `${Math.max(4, Math.round((c.messages / chMax) * 100))}%` }} /></span>
-                <span className="an-hval" style={{ width: 56 }}>{c.messages.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <MemberLeaderboard guild={guild} days={days} />
       </div>
     </>
   );

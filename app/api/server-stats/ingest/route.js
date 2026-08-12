@@ -10,7 +10,7 @@ export async function POST(req) {
   if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad JSON" }, { status: 400 }); }
-  const { guildId, guildName, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [] } = body || {};
+  const { guildId, guildName, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [], users = [] } = body || {};
   if (!guildId) return NextResponse.json({ error: "guildId required" }, { status: 400 });
 
   try {
@@ -36,6 +36,21 @@ export async function POST(req) {
            messages = channel_stats.messages + excluded.messages,
            channel_name = coalesce(excluded.channel_name, channel_stats.channel_name)`,
         [String(guildId), String(ch.id), ch.name || null, Math.round(ch.messages) || 0],
+      );
+    }
+    for (const u of Array.isArray(users) ? users.slice(0, 500) : []) {
+      if (!u?.id || !/^\d{5,}$/.test(String(u.id))) continue;
+      const m = Math.round(u.messages) || 0, rx = Math.round(u.reactions) || 0, vm = Math.round(u.voiceMinutes) || 0;
+      if (!m && !rx && !vm) continue;
+      await query(
+        `insert into member_stats (guild_id, user_id, day, username, messages, reactions, voice_minutes)
+         values ($1, $2, current_date, $3, $4, $5, $6)
+         on conflict (guild_id, user_id, day) do update set
+           messages = member_stats.messages + excluded.messages,
+           reactions = member_stats.reactions + excluded.reactions,
+           voice_minutes = member_stats.voice_minutes + excluded.voice_minutes,
+           username = coalesce(excluded.username, member_stats.username)`,
+        [String(guildId), String(u.id), u.name || null, m, rx, vm],
       );
     }
     return NextResponse.json({ ok: true });
