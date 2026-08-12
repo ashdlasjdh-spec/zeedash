@@ -1,11 +1,11 @@
 import { getSession } from "@/lib/session";
-import { canAccessServerSection, canManageGuild, staffCanManageServers } from "@/lib/permissions";
+import { canAccessServerSection, canManageGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Server analytics for the dashboard "Server" page. Roblox staff, or a Discord admin of the guild.
+// Server analytics for the dashboard "Server" page. STRICTLY a Discord admin/owner of the guild.
 export async function GET(req) {
   const s = await getSession();
   if (!s || !canAccessServerSection(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -14,22 +14,12 @@ export async function GET(req) {
   let guild = req.nextUrl.searchParams.get("guild") || "";
 
   try {
-    // Server switcher list: staff see every guild they share with the bot; a Discord admin sees only
-    // the guilds they hold admin/owner in.
-    const staff = staffCanManageServers(s.level);
-    let ids;
-    if (staff) {
-      const mine = await query("select guild_ids from user_guilds where discord_id=$1", [s.id]).catch(() => []);
-      ids = Array.isArray(mine?.[0]?.guild_ids) ? mine[0].guild_ids : null;
-    } else {
-      ids = s.serverGuildIds || [];
-      if (!ids.length) return NextResponse.json({ guilds: [], guild: null, days });
-    }
+    // Server switcher list: strictly the guilds where the user holds Discord admin/owner.
+    const ids = s.serverGuildIds || [];
+    if (!ids.length) return NextResponse.json({ guilds: [], guild: null, days });
     const gBase = "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats";
     const gTail = "group by guild_id having max(updated_at) > now() - interval '20 minutes' order by max(updated_at) desc";
-    const guilds = ids && ids.length
-      ? await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [ids])
-      : await query(`${gBase} ${gTail}`);
+    const guilds = await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [ids]);
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });
     if (!canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

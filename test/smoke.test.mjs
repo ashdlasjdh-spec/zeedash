@@ -28,10 +28,17 @@ test("canManageGuild: Discord admin of a guild, but not of others", () => {
   assert.ok(canAccessServerSection(admin), "has server section access");
 });
 
-test("canManageGuild: Roblox staff (canGroup) manage every guild; a plain member manages none", () => {
-  const staff = { level: 242, serverPerms: {}, serverGuildIds: [] };   // head of staff
-  assert.ok(canManageGuild(staff, "999"), "staff override manages any guild");
-  assert.ok(canAccessServerSection(staff));
+test("Roblox rank grants NO server access without Discord perms in that guild", () => {
+  // A director (high Roblox staff) with no Discord admin anywhere must not reach the Server section
+  // or any guild's config — access is purely per-Discord-server.
+  const director = { level: 249, serverPerms: {}, serverGuildIds: [] };
+  assert.ok(!canManageGuild(director, "999"), "no Discord perms → no manage, regardless of rank");
+  assert.ok(!canAccessServerSection(director), "no Discord perms → no Server section");
+
+  // Same director, but a Discord admin of guild 111 only: sees 111, not 222.
+  const director2 = { level: 249, serverPerms: { "111": { a: true, o: false } }, serverGuildIds: ["111"] };
+  assert.ok(canManageGuild(director2, "111"));
+  assert.ok(!canManageGuild(director2, "222"));
 
   const nobody = { level: 0, serverPerms: {}, serverGuildIds: [] };
   assert.ok(!canManageGuild(nobody, "111"));
