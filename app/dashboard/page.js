@@ -73,7 +73,7 @@ export default async function Overview() {
   let log = [], movers = [];
   if (seesActivity) {
     try { log = await query("select actor_id, actor_name, action, category, item_key, target, detail, created_at from audit_log order by id desc limit 60"); } catch {}
-    try { movers = await query("select actor_name, count(*)::int n from audit_log where created_at >= now() - interval '7 days' group by actor_name order by n desc limit 5"); } catch {}
+    try { movers = await query("select actor_name, max(actor_id) as actor_id, count(*)::int n from audit_log where created_at >= now() - interval '7 days' group by actor_name order by n desc limit 5"); } catch {}
   }
   const moverMax = movers.reduce((m, r) => Math.max(m, Number(r.n) || 0), 0) || 1;
 
@@ -191,7 +191,7 @@ export default async function Overview() {
             {movers.map((m, i) => (
               <div className="ov-mover" key={i}>
                 <span className="ov-rank">{i + 1}</span>
-                <span className="ov-mname">{m.actor_name || "—"}</span>
+                <span className="ov-mname"><DiscordLink id={m.actor_id}>{m.actor_name || "—"}</DiscordLink></span>
                 <span className="ov-mbar" style={{ width: `${Math.max(8, Math.round((Number(m.n) / moverMax) * 96))}px` }} />
                 <span className="ov-mcount">{m.n}</span>
               </div>
