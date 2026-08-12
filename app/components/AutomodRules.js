@@ -1,8 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import AutoSaveStatus from "./AutoSaveStatus";
 
 const PRESETS = [[1, "Profanity"], [2, "Sexual content"], [3, "Slurs"]];
+const ruleSig = (r) => JSON.stringify({ e: r.enabled, w: r.wordsText, x: r.regexText, a: r.allowText, p: r.presetSel, m: r.mention });
 
 // Reads and edits the server's LIVE Discord AutoMod rules (via the bot token): keyword lists, regex,
 // allow-lists, preset categories, mention limits, and enabled state — writing straight back to Discord.
@@ -12,8 +14,9 @@ export default function AutomodRules() {
   const [guilds, setGuilds] = useState([]);
   const [rules, setRules] = useState(null);
   const [err, setErr] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [saveErr, setSaveErr] = useState(null);
+  const [status, setStatus] = useState("idle");
+  const savedSigs = useRef({});
 
   useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
@@ -22,7 +25,13 @@ export default function AutomodRules() {
     if (!guild) return;
     setRules(null); setErr(null);
     fetch(`/api/automod?guild=${guild}`)
-      .then(async (r) => { const j = await r.json(); if (!r.ok) throw new Error(j.error || "Failed"); setRules(j.rules.map(hydrate)); })
+      .then(async (r) => {
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || "Failed");
+        const hy = j.rules.map(hydrate);
+        savedSigs.current = Object.fromEntries(hy.map((x) => [x.id, ruleSig(x)])); // baseline per rule
+        setRules(hy);
+      })
       .catch((e) => setErr(e.message));
   }, [guild]);
 
@@ -39,23 +48,35 @@ export default function AutomodRules() {
   const set = (id, k, v) => setRules((rs) => rs.map((r) => (r.id === id ? { ...r, [k]: v } : r)));
   const togglePreset = (id, n) => setRules((rs) => rs.map((r) => (r.id === id ? { ...r, presetSel: r.presetSel.includes(n) ? r.presetSel.filter((x) => x !== n) : [...r.presetSel, n] } : r)));
 
-  const saveAll = async () => {
-    setSaving(true); setToast(null);
-    try {
-      for (const r of rules) {
-        const payload = { guild, ruleId: r.id, enabled: r.enabled };
-        if (r.words != null) payload.words = r.wordsText.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
-        if (r.regex != null) payload.regex = r.regexText.split(/\n+/).map((s) => s.trim()).filter(Boolean);
-        if (r.allow != null) payload.allow = r.allowText.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
-        if (r.presets != null) payload.presets = r.presetSel;
-        if (r.mentionLimit != null) payload.mentionLimit = Number(r.mention) || 1;
-        const res = await fetch("/api/automod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(`${r.name}: ${j.error || "failed"}`); }
-      }
-      setToast({ ok: true, msg: "Saved back to Discord." });
-    } catch (e) { setToast({ ok: false, msg: e.message }); }
-    setSaving(false);
+  const payloadOf = (r) => {
+    const p = { guild, ruleId: r.id, enabled: r.enabled };
+    if (r.words != null) p.words = r.wordsText.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    if (r.regex != null) p.regex = r.regexText.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    if (r.allow != null) p.allow = r.allowText.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    if (r.presets != null) p.presets = r.presetSel;
+    if (r.mentionLimit != null) p.mentionLimit = Number(r.mention) || 1;
+    return p;
   };
+
+  // Debounced auto-save — writes only the rules that changed straight back to Discord.
+  useEffect(() => {
+    if (!rules || !guild) return;
+    const changed = rules.filter((r) => ruleSig(r) !== savedSigs.current[r.id]);
+    if (!changed.length) return;
+    const t = setTimeout(async () => {
+      setStatus("saving"); setSaveErr(null);
+      try {
+        for (const r of changed) {
+          const res = await fetch("/api/automod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadOf(r)) });
+          if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(`${r.name}: ${j.error || "failed"}`); }
+          savedSigs.current[r.id] = ruleSig(r);
+        }
+        setStatus("saved");
+        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
+      } catch (e) { setStatus("error"); setSaveErr(e.message); }
+    }, 900);
+    return () => clearTimeout(t);
+  }, [rules, guild]);
 
   if (err) return <div className="card"><div className="toast bad">{err}</div></div>;
   if (!guild && guilds.length === 0) return <div className="card"><p className="muted">No server available yet.</p></div>;
@@ -65,7 +86,7 @@ export default function AutomodRules() {
   return (
     <div className="card">
       <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>Discord AutoMod rules</div>
-      <div className="muted" style={{ fontSize: 13, marginBottom: 16 }}>The server&apos;s live rules — edit and Save; it writes straight back to Discord.</div>
+      <div className="muted" style={{ fontSize: 13, marginBottom: 16 }}>The server&apos;s live rules — edits write straight back to Discord automatically.</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {rules.map((r) => (
           <div key={r.id} style={{ borderTop: "1px solid var(--line)", paddingTop: 14 }}>
@@ -92,8 +113,7 @@ export default function AutomodRules() {
           </div>
         ))}
       </div>
-      <div className="row" style={{ marginTop: 18 }}><button className="btn" style={{ width: "auto" }} disabled={saving} onClick={saveAll}>{saving ? "Saving…" : "Save all"}</button></div>
-      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+      <div className="row" style={{ marginTop: 18 }}><AutoSaveStatus status={status} error={saveErr} /></div>
     </div>
   );
 }
