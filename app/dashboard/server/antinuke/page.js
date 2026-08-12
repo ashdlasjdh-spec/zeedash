@@ -16,7 +16,7 @@ const FIELDS = [
   { key: "modBotadd", label: "Watch bot additions", type: "bool" },
   { key: "threshold", label: "Actions allowed before punishing (1–6)", numeric: true, placeholder: "3" },
   { key: "window", label: "Time window (seconds)", numeric: true, placeholder: "30" },
-  { key: "punishment", label: "Punishment (strip / kick / ban)", placeholder: "strip" },
+  { key: "punishment", label: "Punishment (strip / jail / kick / ban)", placeholder: "strip", hint: "strip = remove all their roles (default, never bans) · jail = strip + 24h timeout · kick · ban" },
   { key: "whitelist", label: "Trusted user IDs (bypass)", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222" },
 ];
 
