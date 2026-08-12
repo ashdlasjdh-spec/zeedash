@@ -11,23 +11,34 @@ export function fieldsNeedMeta(fields = []) {
   return fields.some((f) => isMetaType(f.type) || (f.cols || []).some((c) => isMetaType(c.type)));
 }
 
-// Client-side cache so channel/role dropdowns load instantly when navigating between feature pages
-// (fetched once per guild per session instead of on every page). undefined = loading, null = failed.
-const metaCache = new Map();
+// Client-side cache (15s) so channel/role dropdowns load instantly on navigation, but stay fresh:
+// shows cached data immediately, refetches in the background when stale, AND refetches whenever you
+// return to the tab — so a channel/role you just created in Discord shows up when you switch back.
+const metaCache = new Map(); // guild -> { at, data }
+const META_TTL = 15000;
 export function useGuildMeta(guild, active) {
-  const [meta, setMeta] = useState(() => (guild && metaCache.has(guild) ? metaCache.get(guild) : undefined));
+  const [meta, setMeta] = useState(() => (guild && metaCache.get(guild)?.data) || undefined);
   useEffect(() => {
     if (!guild || !active) return;
-    if (metaCache.has(guild)) { setMeta(metaCache.get(guild)); return; }
-    setMeta(undefined);
-    fetch(`/api/guild-meta?guild=${guild}`)
-      .then(async (r) => {
+    let alive = true;
+    const load = async (force) => {
+      const c = metaCache.get(guild);
+      if (c) setMeta(c.data); // show cached immediately, no loading flash
+      if (!force && c && Date.now() - c.at < META_TTL) return;
+      try {
+        const r = await fetch(`/api/guild-meta?guild=${guild}${force ? "&fresh=1" : ""}`); // force bypasses server cache
         const j = await r.json().catch(() => null);
         const val = r.ok && j && !j.error ? j : null;
-        if (val) metaCache.set(guild, val); // cache successes; let failures retry next time
-        setMeta(val);
-      })
-      .catch(() => setMeta(null));
+        if (val) metaCache.set(guild, { at: Date.now(), data: val });
+        if (alive) setMeta(val ?? (c ? c.data : null));
+      } catch { if (alive && !c) setMeta(null); }
+    };
+    load(false);
+    const onFocus = () => load(true); // returning to the tab → pull the very latest channels/roles
+    const onVis = () => { if (document.visibilityState === "visible") load(true); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => { alive = false; window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVis); };
   }, [guild, active]);
   return meta;
 }
