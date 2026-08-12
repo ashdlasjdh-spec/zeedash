@@ -644,6 +644,10 @@ td a:hover{border-color:var(--muted)}
   .main{animation:none}
 }
 
+/* Feature-overview rows (Server → Overview): quiet cards that lift on hover. */
+.fo-row{transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.fo-row:hover{border-color:var(--line-soft);background:var(--surface-2);transform:translateY(-1px)}
+
 /* Loading skeletons — a soft shimmer used while analytics/leaderboards resolve. */
 .skeleton-row{height:44px;border-radius:10px;border:1px solid var(--line-soft);
   background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-3) 37%,var(--surface-2) 63%);
