@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect } from "./metaFields";
+import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
 function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
@@ -14,7 +14,9 @@ function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) 
         {rows.map((row, i) => (
           <div key={i} className="fl-row">
             {cols.map((c) => (
-              isMetaType(c.type)
+              c.type === "roles"
+                ? <MetaMultiSelect key={c.key} meta={meta} value={row[c.key]} onChange={(v) => set(i, c.key, v)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
+                : isMetaType(c.type)
                 ? <MetaSelect key={c.key} meta={meta} type={c.type} value={row[c.key]} onChange={(v) => set(i, c.key, v)} placeholder={c.placeholder || c.label} mono={c.mono} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 : <input key={c.key} className={c.mono ? "mono" : ""} value={row[c.key] || ""} onChange={(e) => set(i, c.key, e.target.value)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
             ))}
@@ -88,7 +90,9 @@ export default function FeatureSettings({ feature, title, description, fields = 
         {fields.map((f) => (
           <div key={f.key}>
             <label>{f.label}</label>
-            {isMetaType(f.type) ? (
+            {f.type === "roles" ? (
+              <MetaMultiSelect meta={meta} value={config[f.key]} onChange={(v) => setField(f.key, v)} placeholder={f.placeholder} />
+            ) : isMetaType(f.type) ? (
               <MetaSelect meta={meta} type={f.type} value={config[f.key]} onChange={(v) => setField(f.key, v)} placeholder={f.placeholder} mono={f.mono} />
             ) : f.type === "select" ? (
               <select value={config[f.key] ?? f.options?.[0]?.value ?? f.options?.[0] ?? ""} onChange={(e) => setField(f.key, e.target.value)}>

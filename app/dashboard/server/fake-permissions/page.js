@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "roles", label: "Role IDs", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222", hint: "These roles may use the bot's admin commands (/makeembed, /editembed, /buttonpanel, /sendembed, /ticketpanel) without needing Discord's Administrator permission." },
+  { key: "roles", label: "Roles", type: "roles", hint: "These roles may use the bot's admin commands (/makeembed, /editembed, /buttonpanel, /sendembed, /ticketpanel) without needing Discord's Administrator permission." },
 ];
 
 export default async function Page() {

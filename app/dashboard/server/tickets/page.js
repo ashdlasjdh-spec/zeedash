@@ -17,7 +17,7 @@ const FIELDS = [
     { key: "panel", label: "Panel", placeholder: "main", flex: 0.6 },
     { key: "label", label: "Button", placeholder: "Support", flex: 0.9 },
     { key: "category", label: "Category", type: "category", flex: 1.1 },
-    { key: "roles", label: "Support role IDs", placeholder: "111, 222", mono: true, flex: 1.1 },
+    { key: "roles", label: "Support roles", type: "roles", flex: 1.3 },
     { key: "emoji", label: "Emoji", placeholder: "🎫", flex: 0.4 },
   ] },
   { key: "openMessage", label: "Opening message", type: "textarea", rows: 2, placeholder: "Thanks for opening a ticket — a staff member will be with you shortly." },

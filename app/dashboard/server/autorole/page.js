@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "roles", label: "Role IDs", mono: true, placeholder: "1111111111  2222222222", hint: "Comma or space separated role IDs to give every member on join. Bot needs Manage Roles, and its top role above these." },
+  { key: "roles", label: "Roles", type: "roles", hint: "Given to every member on join. Bot needs Manage Roles, with its top role above these." },
 ];
 
 export default async function Page() {
