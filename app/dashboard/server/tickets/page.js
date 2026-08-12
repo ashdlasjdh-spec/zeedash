@@ -19,6 +19,7 @@ const FIELDS = [
     { key: "roles", label: "Support roles", type: "roles", flex: 1.3 },
     { key: "emoji", label: "Emoji", placeholder: "🎫", flex: 0.4 },
   ] },
+  { key: "supportRoles", label: "Support roles (pinged + given access on every ticket)", type: "roles", hint: "These are added on top of any per-button roles above." },
   { key: "openMessage", label: "Opening message", type: "textarea", rows: 2, placeholder: "Thanks for opening a ticket — a staff member will be with you shortly." },
 ];
 
