@@ -34,12 +34,11 @@ export function useGuildMeta(guild, active) {
       } catch { if (alive && !c) setMeta(null); }
     };
     load(false);
-    const onFocus = () => load(true); // returning to the tab → pull the very latest channels/roles
-    const onVis = () => { if (document.visibilityState === "visible") load(true); };
-    const iv = setInterval(() => { if (document.visibilityState === "visible") load(true); }, 20000); // keep it fresh while open
+    // Refetch when you return to the tab (e.g. after making a channel in Discord) — covers the common
+    // case without polling. Cheap: only fires on focus, and the fresh=1 pull bypasses the caches.
+    const onFocus = () => load(true);
     window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVis);
-    return () => { alive = false; clearInterval(iv); window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVis); };
+    return () => { alive = false; window.removeEventListener("focus", onFocus); };
   }, [guild, active]);
   return meta;
 }
