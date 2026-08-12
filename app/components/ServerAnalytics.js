@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { fmt, AreaChart, Spark } from "./chart";
-import MemberLeaderboard from "./MemberLeaderboard";
+import { fmt, AreaChart } from "./chart";
+import { Spark } from "./chart";
 
 const RANGES = [7, 14, 30, 90];
 const METRICS = [
@@ -10,6 +10,21 @@ const METRICS = [
   { k: "reactions", label: "Reactions", acc: (s) => s.reactions, color: "#a78bfa" },
   { k: "voice", label: "Voice hours", acc: (s) => Math.round((s.voiceMinutes / 60) * 10) / 10, color: "#34d399" },
 ];
+
+const ICO = {
+  msg: <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-4a8.4 8.4 0 1 1 16.9-5.5z" />,
+  react: <><circle cx="12" cy="12" r="9" /><path d="M8.5 14a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01" /></>,
+  voice: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></>,
+};
+function StatIco({ name }) {
+  return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{ICO[name]}</svg>;
+}
+function Delta({ cur, prev }) {
+  if (!prev || prev <= 0) return null;
+  const p = Math.round(((cur - prev) / prev) * 100);
+  if (!Number.isFinite(p) || p === 0) return null;
+  return <span className={`sa-delta ${p > 0 ? "up" : "down"}`}>{p > 0 ? "+" : ""}{p}%</span>;
+}
 
 function fillSeries(series, days) {
   const map = new Map(series.map((r) => [r.d, r]));
@@ -23,9 +38,16 @@ function fillSeries(series, days) {
   return out;
 }
 
-export default function ServerAnalytics() {
+function ServerIcon({ guild, name, size = 40 }) {
+  const url = guild?.icon ? `https://cdn.discordapp.com/icons/${guild.guildId}/${guild.icon}.png?size=64` : null;
+  const box = { width: size, height: size, borderRadius: 11, flex: "0 0 auto" };
+  if (url) return <img src={url} alt="" width={size} height={size} referrerPolicy="no-referrer" style={{ ...box, objectFit: "cover" }} />;
+  return <span className="svp-fallback" style={{ ...box, fontSize: 16 }}>{(name || "?").trim()[0]?.toUpperCase() || "?"}</span>;
+}
+
+export default function ServerAnalytics({ userName }) {
   const sp = useSearchParams();
-  const guild = sp.get("guild") || ""; // driven by the sidebar server picker (empty = API picks first)
+  const guild = sp.get("guild") || "";
   const [data, setData] = useState(null);
   const [days, setDays] = useState(30);
   const [metric, setMetric] = useState("messages");
@@ -44,8 +66,6 @@ export default function ServerAnalytics() {
     if (!silent) setLoading(false);
   }, []);
   useEffect(() => { load(guild, days); }, [load, guild, days]);
-  // Live: the bot pushes fresh stats ~every 60s, so silently re-fetch every 30s (and the moment
-  // the tab becomes visible again). No loading flash — numbers/chart just update in place.
   useEffect(() => {
     const poll = () => { if (document.visibilityState === "visible") load(guild, days, true); };
     const iv = setInterval(poll, 4000);
@@ -61,78 +81,85 @@ export default function ServerAnalytics() {
     return <div className="card"><p className="muted">No server activity recorded yet. Once the bot is collecting (message/reaction/voice events), analytics appear here within a few minutes and build up over time.</p></div>;
   }
 
+  const cur = guilds.find((g) => g.guildId === data.guild) || guilds[0];
+  const serverName = cur?.guildName || "your server";
   const t = data.totals || {};
+  const p = data.prev || {};
   const series = fillSeries(data.series || [], days);
   const channels = data.channels || [];
-  const chMax = Math.max(1, ...channels.map((c) => c.messages));
+  const m = METRICS.find((x) => x.k === metric) || METRICS[0];
 
   const cards = [
-    { n: t.messages || 0, l: "Messages", spark: series.map((s) => s.messages), color: "#5b8cff" },
-    { n: t.reactions || 0, l: "Reactions", spark: series.map((s) => s.reactions), color: "#a78bfa" },
-    { n: Math.round((t.voiceMinutes || 0) / 60), l: "Voice hours", spark: series.map((s) => s.voiceMinutes / 60), color: "#34d399" },
-    { n: t.members, l: "Members", members: true },
+    { l: "Messages", n: t.messages || 0, prev: p.messages, spark: series.map((s) => s.messages), color: "#5b8cff", ico: "msg" },
+    { l: "Reactions", n: t.reactions || 0, prev: p.reactions, spark: series.map((s) => s.reactions), color: "#a78bfa", ico: "react" },
+    { l: "Voice hours", n: Math.round((t.voiceMinutes || 0) / 60), prev: Math.round((p.voiceMinutes || 0) / 60), spark: series.map((s) => s.voiceMinutes / 60), color: "#34d399", ico: "voice" },
   ];
 
   return (
-    <>
-      <div className="row" style={{ marginBottom: 16, gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
-        <div className="row" style={{ gap: 6, alignItems: "center" }}>
-          <span className="pill" title="Auto-updates every 30s"><span className="livedot" /> Live</span>
+    <div style={{ opacity: loading ? 0.7 : 1 }}>
+      {/* Greeting */}
+      <div className="sa-hello">
+        <ServerIcon guild={cur} name={serverName} />
+        <div>
+          <h1 className="sa-hello-h">Hello {userName || "there"},</h1>
+          <p className="sa-hello-sub">Here&apos;s a quick overview of the engagement in <b>{serverName}</b>{t.members != null ? ` · ${fmt(t.members)} members` : ""}.</p>
+        </div>
+      </div>
+
+      {/* Section head + ranges */}
+      <div className="sa-eyebrow-row">
+        <div className="sa-eyebrow"><span className="livedot" /> Server analytics</div>
+        <div className="row" style={{ gap: 6 }}>
           {RANGES.map((d) => (
-            <button key={d} className={`btn ${days === d ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 13px" }} onClick={() => setDays(d)}>{d}d</button>
+            <button key={d} className={`btn ${days === d ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 12px", fontSize: 12.5 }} onClick={() => setDays(d)}>{d}d</button>
           ))}
         </div>
       </div>
 
-      <div className="ov-stats" style={{ opacity: loading ? 0.6 : 1 }}>
+      {/* Stat cards with deltas */}
+      <div className="sa-stats">
         {cards.map((c, i) => (
-          <div className="ov-stat" key={i}>
-            <div className="ov-n">{c.members ? (c.n == null ? "—" : fmt(c.n)) : fmt(c.n)}</div>
-            <div className="ov-l">{c.l}</div>
-            {c.spark && <Spark vals={c.spark} color={c.color} />}
+          <div className="sa-stat" key={i}>
+            <div className="sa-stat-top"><span className="sa-stat-l">{c.l}</span><span className="sa-stat-ico"><StatIco name={c.ico} /></span></div>
+            <div className="sa-stat-n">{fmt(c.n)}<Delta cur={c.n} prev={c.prev} /></div>
+            <Spark vals={c.spark} color={c.color} />
           </div>
         ))}
       </div>
 
-      <div className="sa-grid">
-        <div className="sa-main">
-          {(() => {
-            const m = METRICS.find((x) => x.k === metric) || METRICS[0];
-            return (
-              <div className="card">
-                <div className="between" style={{ marginBottom: 12, gap: 10 }}>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
-                  </div>
-                  <div className="row" style={{ gap: 6 }}>
-                    {METRICS.map((x) => (
-                      <button key={x.k} className={`btn ${metric === x.k ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 11px", fontSize: 12.5 }} onClick={() => setMetric(x.k)}>{x.label}</button>
-                    ))}
-                  </div>
-                </div>
-                <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} />
-              </div>
-            );
-          })()}
-
-          <div className="card" style={{ marginTop: 16 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 14 }}>Top channels <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>· {days}d</span></div>
-            {channels.length === 0 ? <p className="muted">No channel data yet.</p> : (
-              <div className="an-hbars">
-                {channels.map((c) => (
-                  <div className="an-hrow" key={c.id}>
-                    <span className="an-hlabel" style={{ width: 160 }}>#{c.name}</span>
-                    <span className="an-htrack"><span className="an-hbar" style={{ width: `${Math.max(4, Math.round((c.messages / chMax) * 100))}%` }} /></span>
-                    <span className="an-hval" style={{ width: 56 }}>{c.messages.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* Activity chart */}
+      <div className="card">
+        <div className="between" style={{ marginBottom: 14, gap: 10, alignItems: "flex-start" }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
+            <div className="muted" style={{ fontSize: 12.5 }}>Daily {m.label.toLowerCase()} over the last {days} days</div>
+          </div>
+          <div className="row" style={{ gap: 6 }}>
+            {METRICS.map((x) => (
+              <button key={x.k} className={`btn ${metric === x.k ? "" : "ghost"}`} style={{ width: "auto", padding: "6px 11px", fontSize: 12.5 }} onClick={() => setMetric(x.k)}>{x.label}</button>
+            ))}
           </div>
         </div>
-
-        <MemberLeaderboard guild={data.guild || guild} days={days} />
+        <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} />
       </div>
-    </>
+
+      {/* Top channels */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Top channels</div>
+        {channels.length === 0 ? <p className="muted">No channel data yet.</p> : (
+          <>
+            <div className="sa-chan-head"><span>#</span><span>Channel</span><span style={{ textAlign: "right" }}>Messages</span></div>
+            {channels.map((c, i) => (
+              <div className="sa-chan-row" key={c.id}>
+                <span className="sa-chan-rank">{i + 1}</span>
+                <span className="sa-chan-pill">#{c.name}</span>
+                <span className="sa-chan-val">{c.messages.toLocaleString()}</span>
+              </div>
+            ))}
+            <div className="sa-chan-foot">{channels.length} channel{channels.length === 1 ? "" : "s"}</div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
