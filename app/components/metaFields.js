@@ -10,14 +10,22 @@ export function fieldsNeedMeta(fields = []) {
   return fields.some((f) => isMetaType(f.type) || (f.cols || []).some((c) => isMetaType(c.type)));
 }
 
-// undefined = loading, null = failed (fall back to text), object = loaded.
+// Client-side cache so channel/role dropdowns load instantly when navigating between feature pages
+// (fetched once per guild per session instead of on every page). undefined = loading, null = failed.
+const metaCache = new Map();
 export function useGuildMeta(guild, active) {
-  const [meta, setMeta] = useState(undefined);
+  const [meta, setMeta] = useState(() => (guild && metaCache.has(guild) ? metaCache.get(guild) : undefined));
   useEffect(() => {
     if (!guild || !active) return;
+    if (metaCache.has(guild)) { setMeta(metaCache.get(guild)); return; }
     setMeta(undefined);
     fetch(`/api/guild-meta?guild=${guild}`)
-      .then(async (r) => { const j = await r.json().catch(() => null); setMeta(r.ok && j && !j.error ? j : null); })
+      .then(async (r) => {
+        const j = await r.json().catch(() => null);
+        const val = r.ok && j && !j.error ? j : null;
+        if (val) metaCache.set(guild, val); // cache successes; let failures retry next time
+        setMeta(val);
+      })
       .catch(() => setMeta(null));
   }, [guild, active]);
   return meta;
@@ -69,6 +77,29 @@ export function MetaMultiSelect({ meta, value, onChange, placeholder, style }) {
       <select value="" onChange={(e) => { add(e.target.value); e.target.value = ""; }}>
         <option value="">{meta === undefined ? "Loading…" : "+ Add role…"}</option>
         {available.map((r) => <option key={r.id} value={r.id}>@ {r.name}</option>)}
+      </select>
+    </div>
+  );
+}
+
+// Multi-select of a FIXED option list (chips). Stored as a comma-separated string of values.
+export function OptionMultiSelect({ options = [], value, onChange, placeholder, style }) {
+  const ids = String(value || "").split(/[\s,]+/).filter(Boolean);
+  const opts = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+  const labelOf = (v) => opts.find((o) => o.value === v)?.label || v;
+  const add = (v) => { if (v && !ids.includes(v)) onChange([...ids, v].join(",")); };
+  const remove = (v) => onChange(ids.filter((x) => x !== v).join(","));
+  const available = opts.filter((o) => !ids.includes(o.value));
+  return (
+    <div className="chips-field" style={style}>
+      {ids.length > 0 && (
+        <div className="chips">
+          {ids.map((v) => <span key={v} className="chip">{labelOf(v)}<button type="button" onClick={() => remove(v)} aria-label="Remove">×</button></span>)}
+        </div>
+      )}
+      <select value="" onChange={(e) => { add(e.target.value); e.target.value = ""; }}>
+        <option value="">{placeholder || "+ Add…"}</option>
+        {available.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   );

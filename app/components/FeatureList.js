@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
+import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect, OptionMultiSelect } from "./metaFields";
 
 // Feature config for list-style features (autoresponder, autoreact, reaction roles). Enable toggle +
 // an editable list of rows, persisted to /api/guild-settings as config.items. OFF by default.
@@ -68,7 +68,9 @@ export default function FeatureList({ feature, title, description, columns, addL
           {items.map((row, i) => (
             <div key={i} className="fl-row">
               {columns.map((c) => (
-                c.type === "roles" ? (
+                c.type === "multi" ? (
+                  <OptionMultiSelect key={c.key} options={c.options} value={row[c.key]} onChange={(v) => setCell(i, c.key, v)} placeholder={c.placeholder} style={{ flex: c.flex || 1, minWidth: 0 }} />
+                ) : c.type === "roles" ? (
                   <MetaMultiSelect key={c.key} meta={meta} value={row[c.key]} onChange={(v) => setCell(i, c.key, v)} placeholder={c.placeholder} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 ) : isMetaType(c.type) ? (
                   <MetaSelect key={c.key} meta={meta} type={c.type} value={row[c.key]} onChange={(v) => setCell(i, c.key, v)} placeholder={c.placeholder} mono={c.mono} style={{ flex: c.flex || 1, minWidth: 0 }} />
