@@ -2,6 +2,28 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
+// Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
+function ListField({ value = [], cols = [], addLabel = "Add", onChange }) {
+  const rows = Array.isArray(value) ? value : [];
+  const blank = () => Object.fromEntries(cols.map((c) => [c.key, ""]));
+  const set = (i, k, v) => onChange(rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  return (
+    <div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {rows.map((row, i) => (
+          <div key={i} className="fl-row">
+            {cols.map((c) => (
+              <input key={c.key} className={c.mono ? "mono" : ""} value={row[c.key] || ""} onChange={(e) => set(i, c.key, e.target.value)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
+            ))}
+            <button className="btn ghost" style={{ width: 34, padding: "6px 0", color: "var(--danger)", flexShrink: 0 }} onClick={() => onChange(rows.filter((_, idx) => idx !== i))} title="Remove">✕</button>
+          </div>
+        ))}
+      </div>
+      <button className="btn ghost" style={{ width: "auto", marginTop: 10 }} onClick={() => onChange([...rows, blank()])}>+ {addLabel}</button>
+    </div>
+  );
+}
+
 // Reusable feature config card for the Server Management portal. Renders an Enable toggle (OFF by
 // default) + the feature's fields, and persists to /api/guild-settings for the selected server
 // (?guild=). The bot reads the same store and does nothing while the feature is disabled.
@@ -62,7 +84,9 @@ export default function FeatureSettings({ feature, title, description, fields = 
         {fields.map((f) => (
           <div key={f.key}>
             <label>{f.label}</label>
-            {f.type === "textarea" ? (
+            {f.type === "list" ? (
+              <ListField value={config[f.key]} cols={f.cols} addLabel={f.addLabel} onChange={(v) => setField(f.key, v)} />
+            ) : f.type === "textarea" ? (
               <textarea rows={f.rows || 3} value={config[f.key] || ""} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} />
             ) : f.type === "bool" ? (
               <div><label className="switch sm"><input type="checkbox" checked={!!config[f.key]} onChange={(e) => setField(f.key, e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label></div>
