@@ -101,7 +101,6 @@ export default function ServerAnalytics() {
             <div className="between" style={{ marginBottom: 12, gap: 10 }}>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 15 }}>{m.label} activity</div>
-                <div className="muted" style={{ fontSize: 12.5 }}>Daily {m.label.toLowerCase()} over the last {days} days.</div>
               </div>
               <div className="row" style={{ gap: 6 }}>
                 {METRICS.map((x) => (

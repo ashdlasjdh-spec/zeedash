@@ -35,10 +35,7 @@ export default function BanTrendChart({ initial = [], liveInitial = false, minTo
     <div className="card">
       <div className="between" style={{ alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>Game bans per day</div>
-          <div className="muted" style={{ fontSize: 12.5, marginBottom: 16 }}>
-            Every ban on the Roblox game — last 14 days{total ? ` · ${total.toLocaleString()} total` : ""}.
-          </div>
+          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>Game bans per day{total ? <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}> · {total.toLocaleString()}</span> : ""}</div>
         </div>
         <span className="livedot" title={live ? "Live from Roblox" : "Waiting on Roblox…"} style={{ marginTop: 4 }} />
       </div>

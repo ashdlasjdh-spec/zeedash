@@ -427,7 +427,7 @@ td a:hover{border-color:var(--muted)}
 .ov-action .ov-a-ico{width:38px;height:38px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;
   background:var(--bg-2);border:1px solid var(--line);color:var(--text)}
 .ov-action .ov-a-ico svg{width:18px;height:18px}
-.ov-action:hover .ov-a-ico{background:var(--white);color:#000;border-color:var(--white)}
+.ov-action:hover .ov-a-ico{background:var(--surface-3);color:var(--text);border-color:var(--line)}
 .ov-action .ov-a-t{font-weight:750;font-size:14px;color:var(--text)}
 .ov-action .ov-a-s{color:var(--muted);font-size:11.5px;margin-top:2px}
 .ov-action .ov-a-arrow{margin-left:auto;color:var(--faint);opacity:0;transform:translateX(-4px);transition:opacity .18s,transform .18s}
@@ -447,7 +447,7 @@ td a:hover{border-color:var(--muted)}
 .ov-feed-time{color:var(--faint);font-size:11.5px;white-space:nowrap;flex-shrink:0}
 .ab{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
   padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);vertical-align:1px}
-.ab-grant,.ab-accept,.ab-rank,.ab-promote,.ab-acceptall,.ab-unban,.ab-whitelist,.ab-unblacklist,.ab-sync{background:rgba(63,185,80,.16);color:#4ade80;border-color:rgba(63,185,80,.4)}
+.ab-grant,.ab-accept,.ab-rank,.ab-promote,.ab-acceptall,.ab-unban,.ab-whitelist,.ab-unblacklist,.ab-sync,.ab-config{background:rgba(63,185,80,.16);color:#4ade80;border-color:rgba(63,185,80,.4)}
 .ab-revoke,.ab-ban,.ab-kick,.ab-exile,.ab-decline,.ab-declineall,.ab-wipe,.ab-warn{background:var(--danger-soft);color:var(--danger);border-color:rgba(255,107,107,.3)}
 .ab-demote{background:var(--surface-3);color:var(--text)}
 

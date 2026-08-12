@@ -189,7 +189,6 @@ export default function BansDashboard({ canBulk = false }) {
                 <button className="btn danger" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => applyBulk("ban")}>{bulkBusy ? "Working…" : "Ban all"}</button>
                 <button className="btn" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => applyBulk("unban")}>{bulkBusy ? "Working…" : "Unban all"}</button>
               </div>
-              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Up to 500 at once. No per-player webhook is posted (one audit entry is logged).</p>
               {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
             </>
           ) : (
@@ -247,14 +246,12 @@ export default function BansDashboard({ canBulk = false }) {
             <div style={{ marginTop: 14 }}>
               <label>Reason (optional)</label>
               <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason shown to the player" />
-              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Kick only affects a player currently in-game. Needs the in-game <span className="mono">ModKick</span> listener installed.</p>
             </div>
           )}
           {action === "warn" && (
             <div style={{ marginTop: 14 }}>
               <div><label>Reason</label><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why they're being warned" /></div>
               <div style={{ marginTop: 12 }}><label>Evidence link (optional)</label><input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Clip / proof URL" /></div>
-              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Recorded to their history and logged. Also shows in-game if they're online (needs the <span className="mono">ModWarn</span> listener).</p>
             </div>
           )}
 

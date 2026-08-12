@@ -154,7 +154,6 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
             <button className="btn" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => submitBulk("grant")}>{bulkBusy ? "Working…" : `${verb} all`}</button>
             <button className="btn ghost" style={{ width: "auto" }} disabled={bulkBusy} onClick={() => submitBulk("revoke")}>Revoke all</button>
           </div>
-          <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Up to 500 at once · permanent (no timer) · one audit entry logged.</p>
         </div>
         )}
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}

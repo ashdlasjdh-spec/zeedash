@@ -7,6 +7,7 @@ import DiscordAvatar from "../components/DiscordAvatar";
 import LivePlayers from "../components/LivePlayers";
 import { getLivePlayers } from "@/lib/gamestats";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "../components/ProfileLinks";
+import LocalTime from "../components/LocalTime";
 
 export const dynamic = "force-dynamic";
 
@@ -79,23 +80,16 @@ export default async function Overview() {
 
   // --- role-aware quick actions ---
   const cats = grantsFor(lvl);
+  // Fixed quick-action set: Tags, Powers, Tools, Gamepasses, Moderation, Audit Log —
+  // each still shown only if the viewer's rank can use it.
   const actions = [];
-  for (const c of cats) { const m = GRANT_META[c]; if (m) actions.push({ label: m[0], icon: m[1], href: m[2], sub: m[3] }); }
-  if (cats.length) actions.push({ label: "Bulk Grant", icon: "layers", href: `${GRANT_META[cats[0]][2]}?mode=bulk`, sub: "Grant many at once" });
-  if (canBan(lvl)) {
-    actions.push({ label: "Moderation", icon: "ban", href: "/dashboard/bans", sub: "Ban / unban / warn" });
-    actions.push({ label: "Lookup", icon: "search", href: "/dashboard/lookup", sub: "Investigate a player" });
-  }
-  if (canGroup(lvl)) actions.push({ label: "Group", icon: "users", href: "/dashboard/group", sub: "Ranks & requests" });
-  if (canManageGrants(lvl)) {
-    actions.push({ label: "Bundles", icon: "box", href: "/dashboard/bundles", sub: "Preset grant packs" });
-    actions.push({ label: "Audit Log", icon: "list", href: "/dashboard/audit", sub: "Full action history" });
-  }
-  if (canWhitelist(lvl)) {
-    actions.push({ label: "Whitelist", icon: "shield", href: "/dashboard/whitelist", sub: "Dashboard access" });
-    actions.push({ label: "Settings", icon: "gear", href: "/dashboard/settings", sub: "Keys & config" });
-  }
-  if (canPurge(user.id)) actions.push({ label: "Remove All", icon: "trash", href: "/dashboard/purge", sub: "Mass revoke" });
+  const has = (c) => cats.includes(c);
+  if (has("tag")) actions.push({ label: "Crew Tags", icon: "tag", href: "/dashboard/tags", sub: "Custom name tags" });
+  if (has("power")) actions.push({ label: "Powers", icon: "bolt", href: "/dashboard/powers", sub: "Grant abilities" });
+  if (has("tool")) actions.push({ label: "Tools", icon: "wrench", href: "/dashboard/tools", sub: "Grant tools" });
+  if (has("gamepass")) actions.push({ label: "Gamepasses", icon: "ticket", href: "/dashboard/gamepasses", sub: "Grant passes" });
+  if (canBan(lvl)) actions.push({ label: "Moderation", icon: "ban", href: "/dashboard/bans", sub: "Ban / unban / warn" });
+  if (canGroup(lvl) || canManageGrants(lvl)) actions.push({ label: "Audit Log", icon: "list", href: "/dashboard/audit", sub: "Full action history" });
 
   const stats = [
     { live: <LivePlayers initial={livePlayers} />, l: "Players in-game", hint: "live right now", icon: "users" },
@@ -177,7 +171,7 @@ export default async function Overview() {
                     {r.target ? <> <span className="muted">→</span> {robloxIdFrom(r.target) ? <RobloxLink id={robloxIdFrom(r.target)}><b>{r.target}</b></RobloxLink> : <b>{r.target}</b>}</> : ""}
                     {r.detail ? <span className="muted"> · {r.detail}</span> : ""}
                   </div>
-                  <div className="ov-feed-time">{new Date(r.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                  <div className="ov-feed-time"><LocalTime value={new Date(r.created_at).getTime()} /></div>
                 </div>
                 );
               })}
@@ -185,8 +179,7 @@ export default async function Overview() {
           </div>
 
           <div className="card">
-            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>Top movers</div>
-            <div className="muted" style={{ fontSize: 12.5, marginBottom: 12 }}>Most actions in the last 7 days.</div>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Top movers</div>
             {movers.length === 0 && <div className="muted" style={{ padding: "8px 0" }}>No activity this week.</div>}
             {movers.map((m, i) => (
               <div className="ov-mover" key={i}>

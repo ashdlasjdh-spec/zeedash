@@ -124,7 +124,6 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
             {status.pending && (
               <div className="row" style={{ marginTop: 12, gap: 10 }}>
                 <button className="btn" style={{ width: "auto" }} disabled={busy} onClick={acceptTarget}>Accept join request</button>
-                <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>This player is waiting to join — accept to add them.</span>
               </div>
             )}
             <div className="grid g2" style={{ marginTop: 14 }}>
@@ -141,7 +140,6 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
             <div className="row" style={{ marginTop: 12, gap: 10 }}>
               <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("demote")}>◄ Demote</button>
               <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("promote")}>Promote ►</button>
-              <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>One step down / up the rank ladder.</span>
             </div>
             )}
           </>
@@ -151,15 +149,13 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
       {!scoped && (<>
       {/* Group shout */}
       <div className="card">
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Group shout</div>
-        <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>Posts to the group wall shout (max 255 chars). Leave blank to clear.</div>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>Group shout</div>
         <textarea rows={2} maxLength={255} value={shoutMsg} onChange={(e) => setShoutMsg(e.target.value)} placeholder="Big update dropping this weekend…" />
         <div className="row" style={{ marginTop: 12 }}><button className="btn" style={{ width: "auto" }} disabled={busy} onClick={doShout}>Post shout</button></div>
       </div>
       </>)}
 
       {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
-      <p className="muted" style={{ fontSize: 12 }}>Group <span className="mono">{groupId}</span>. All actions are logged. Requires <span className="mono">ROBLOX_GROUP_COOKIE</span> + a bot account with Manage-members rank.</p>
     </div>
   );
 }

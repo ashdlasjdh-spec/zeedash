@@ -42,7 +42,6 @@ export default function WhitelistManager({ myLevel }) {
           </tr>
         ))}</tbody>
       </table>
-      <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>A DB level here overrides the person's Discord-role level only if it's higher. Remove it to fall back to their Discord roles.</p>
     </div>
   );
 }
