@@ -17,19 +17,29 @@ const TITLES = {
   tickets: "Tickets",
 };
 
+// Honest per-feature notes for the ones that aren't standard toggle features.
+const NOTES = {
+  customize: "A shared bot has one global profile, so its avatar/banner/bio can't be changed per server — this isn't possible for this bot.",
+  autopfp: "Per-server bot avatars aren't possible for a shared bot (Discord uses one global avatar), so AutoPFP can't be offered here.",
+  restrict: "Restricts the bot's own commands to certain channels. This bot only runs a few admin commands in your servers (embeds, panels, tickets) — tell me if you want those channel-restrictable and I'll wire it.",
+  disable: "Disables specific bot commands per server. Same note as Restrict — say which commands and I'll add per-guild disabling.",
+  tracking: "Username / vanity tracking — on the roadmap.",
+  aliases: "Command aliases map to moderation commands the bot doesn't run generically in community servers, so this needs a design pass before it's useful here.",
+};
+
 export default async function Page({ params }) {
   const u = await getSession();
   if (!u) return null;
   if (!canGroup(u.level)) redirect("/dashboard");
   const slug = params.feature;
   const title = TITLES[slug] || slug;
+  const note = NOTES[slug];
   return (
     <div className="fullbleed">
-      <PageHeader icon="gear" title={title} subtitle="Being built — off by default." />
+      <PageHeader icon="gear" title={title} subtitle={note ? "Not a standard toggle — see below." : "Being built — off by default."} />
       <div className="card" style={{ maxWidth: 720 }}>
         <p className="muted" style={{ margin: 0 }}>
-          <b>{title}</b> is on the roadmap. When it ships it&apos;ll appear here as a toggle that&apos;s <b>off by default</b> —
-          the bot does nothing for this feature until you turn it on for a specific server and save its settings.
+          {note || <><b>{title}</b> is on the roadmap. When it ships it&apos;ll appear here as a toggle that&apos;s <b>off by default</b> — the bot does nothing for this feature until you turn it on for a specific server and save.</>}
         </p>
       </div>
     </div>
