@@ -17,7 +17,8 @@ const FIELDS = [
   { key: "threshold", label: "Actions allowed before punishing (1–6)", numeric: true, placeholder: "3" },
   { key: "window", label: "Time window (seconds)", numeric: true, placeholder: "30" },
   { key: "punishment", label: "Punishment", type: "select", options: ["strip", "jail", "kick", "ban"], hint: "strip = remove all their roles (never bans) · jail = strip + 24h timeout · kick · ban" },
-  { key: "whitelist", label: "Trusted user IDs (bypass)", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222" },
+  { key: "whitelist", label: "Whitelisted user IDs (never actioned)", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222", hint: "In-server, the owner manages this with /antinuke whitelist @user (owner-only)." },
+  { key: "admins", label: "Antinuke admin IDs (exempt + trusted)", type: "textarea", rows: 2, mono: true, placeholder: "111111111111111111  222222222222222222", hint: "Or /antinuke admin @user in the server (owner-only)." },
 ];
 
 export default async function Page() {
