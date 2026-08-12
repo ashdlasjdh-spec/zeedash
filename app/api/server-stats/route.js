@@ -15,9 +15,15 @@ export async function GET(req) {
 
   try {
     // Every guild we have data for (most recently active first) — drives the server switcher.
-    const guilds = await query(
-      "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats group by guild_id having max(updated_at) > now() - interval '20 minutes' order by max(updated_at) desc",
-    );
+    // Only servers the bot is currently in AND the user shares (guilds OAuth scope); fall back to all
+    // active bot guilds when we don't have the user's guild list yet.
+    const mine = await query("select guild_ids from user_guilds where discord_id=$1", [s.id]).catch(() => []);
+    const myIds = Array.isArray(mine?.[0]?.guild_ids) ? mine[0].guild_ids : null;
+    const gBase = "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats";
+    const gTail = "group by guild_id having max(updated_at) > now() - interval '20 minutes' order by max(updated_at) desc";
+    const guilds = myIds && myIds.length
+      ? await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [myIds])
+      : await query(`${gBase} ${gTail}`);
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });
 
