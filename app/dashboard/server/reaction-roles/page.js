@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const COLS = [
   { key: "message", label: "Message ID", mono: true, placeholder: "123456789012345678", flex: 1 },
   { key: "emoji", label: "Emoji", placeholder: "⭐", flex: 1 },
-  { key: "role", label: "Role ID", mono: true, placeholder: "123456789012345678", flex: 1 },
+  { key: "role", label: "Role", type: "role", flex: 1 },
 ];
 
 export default async function Page() {

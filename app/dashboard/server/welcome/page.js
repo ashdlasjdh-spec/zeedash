@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "channel", label: "Channel ID", mono: true, placeholder: "123456789012345678", hint: "Enable Developer Mode → right-click the channel → Copy ID." },
+  { key: "channel", label: "Channel", type: "channel" },
   { key: "message", label: "Message", type: "textarea", rows: 3, placeholder: "Welcome {user.mention} to {guild.name}! You're member #{guild.count}.", hint: "Variables: {user.mention} · {user.name} · {user.display_name} · {user.tag} · {guild.name} · {guild.count}" },
   { key: "embed", label: "Send as an embed", type: "bool" },
 ];

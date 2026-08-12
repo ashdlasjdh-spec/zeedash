@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect } from "./metaFields";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
-function ListField({ value = [], cols = [], addLabel = "Add", onChange }) {
+function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
   const rows = Array.isArray(value) ? value : [];
   const blank = () => Object.fromEntries(cols.map((c) => [c.key, ""]));
   const set = (i, k, v) => onChange(rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
@@ -13,7 +14,9 @@ function ListField({ value = [], cols = [], addLabel = "Add", onChange }) {
         {rows.map((row, i) => (
           <div key={i} className="fl-row">
             {cols.map((c) => (
-              <input key={c.key} className={c.mono ? "mono" : ""} value={row[c.key] || ""} onChange={(e) => set(i, c.key, e.target.value)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
+              isMetaType(c.type)
+                ? <MetaSelect key={c.key} meta={meta} type={c.type} value={row[c.key]} onChange={(v) => set(i, c.key, v)} placeholder={c.placeholder || c.label} mono={c.mono} style={{ flex: c.flex || 1, minWidth: 0 }} />
+                : <input key={c.key} className={c.mono ? "mono" : ""} value={row[c.key] || ""} onChange={(e) => set(i, c.key, e.target.value)} placeholder={c.placeholder || c.label} style={{ flex: c.flex || 1, minWidth: 0 }} />
             ))}
             <button className="btn ghost" style={{ width: 34, padding: "6px 0", color: "var(--danger)", flexShrink: 0 }} onClick={() => onChange(rows.filter((_, idx) => idx !== i))} title="Remove">✕</button>
           </div>
@@ -41,6 +44,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
     fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
   }, []);
   const guild = guildParam || guilds[0]?.id || "";
+  const meta = useGuildMeta(guild, fieldsNeedMeta(fields));
 
   useEffect(() => {
     if (!guild) return;
@@ -84,12 +88,14 @@ export default function FeatureSettings({ feature, title, description, fields = 
         {fields.map((f) => (
           <div key={f.key}>
             <label>{f.label}</label>
-            {f.type === "select" ? (
+            {isMetaType(f.type) ? (
+              <MetaSelect meta={meta} type={f.type} value={config[f.key]} onChange={(v) => setField(f.key, v)} placeholder={f.placeholder} mono={f.mono} />
+            ) : f.type === "select" ? (
               <select value={config[f.key] ?? f.options?.[0]?.value ?? f.options?.[0] ?? ""} onChange={(e) => setField(f.key, e.target.value)}>
                 {(f.options || []).map((o) => { const v = o.value ?? o; const l = o.label ?? o; return <option key={v} value={v}>{l}</option>; })}
               </select>
             ) : f.type === "list" ? (
-              <ListField value={config[f.key]} cols={f.cols} addLabel={f.addLabel} onChange={(v) => setField(f.key, v)} />
+              <ListField value={config[f.key]} cols={f.cols} addLabel={f.addLabel} meta={meta} onChange={(v) => setField(f.key, v)} />
             ) : f.type === "textarea" ? (
               <textarea rows={f.rows || 3} value={config[f.key] || ""} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} />
             ) : f.type === "bool" ? (

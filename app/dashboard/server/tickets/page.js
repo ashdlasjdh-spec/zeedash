@@ -9,15 +9,15 @@ export const dynamic = "force-dynamic";
 const FIELDS = [
   { key: "panels", label: "Panels (one per channel)", type: "list", addLabel: "Add panel", cols: [
     { key: "name", label: "Panel name", placeholder: "main", flex: 0.8 },
-    { key: "channel", label: "Channel ID", placeholder: "123…", mono: true, flex: 1.1 },
+    { key: "channel", label: "Channel", type: "channel", flex: 1.1 },
     { key: "title", label: "Title", placeholder: "Support", flex: 1 },
     { key: "description", label: "Description", placeholder: "Pick an option below…", flex: 1.4 },
   ] },
   { key: "buttons", label: "Buttons (assign each to a panel by name)", type: "list", addLabel: "Add ticket type", cols: [
     { key: "panel", label: "Panel", placeholder: "main", flex: 0.6 },
     { key: "label", label: "Button", placeholder: "Support", flex: 0.9 },
-    { key: "category", label: "Category ID", placeholder: "123…", mono: true, flex: 1.1 },
-    { key: "roles", label: "Support roles", placeholder: "111, 222", mono: true, flex: 1.1 },
+    { key: "category", label: "Category", type: "category", flex: 1.1 },
+    { key: "roles", label: "Support role IDs", placeholder: "111, 222", mono: true, flex: 1.1 },
     { key: "emoji", label: "Emoji", placeholder: "🎫", flex: 0.4 },
   ] },
   { key: "openMessage", label: "Opening message", type: "textarea", rows: 2, placeholder: "Thanks for opening a ticket — a staff member will be with you shortly." },

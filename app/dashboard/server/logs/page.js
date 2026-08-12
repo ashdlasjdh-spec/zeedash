@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "channel", label: "Log channel ID", mono: true, placeholder: "123456789012345678" },
+  { key: "channel", label: "Log channel", type: "channel" },
   { key: "joins", label: "Log member joins", type: "bool" },
   { key: "leaves", label: "Log member leaves", type: "bool" },
   { key: "deletes", label: "Log deleted messages", type: "bool" },

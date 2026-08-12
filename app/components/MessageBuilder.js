@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useGuildMeta, MetaSelect } from "./metaFields";
 
 // Compose an embed/message on the web, save it, then post it with /sendembed in the server.
 // (The bot has no inbound endpoint, so publishing goes through a Discord admin command.)
@@ -14,6 +15,7 @@ export default function MessageBuilder() {
 
   useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
+  const meta = useGuildMeta(guild, true);
 
   useEffect(() => {
     if (!guild) return;
@@ -41,7 +43,7 @@ export default function MessageBuilder() {
   return (
     <div className="grid g2" style={{ gap: 16, alignItems: "start" }}>
       <div className="card">
-        <div><label>Channel ID</label><input className="mono" value={f.channel} onChange={(e) => up("channel", e.target.value)} placeholder="123456789012345678" /></div>
+        <div><label>Channel</label><MetaSelect meta={meta} type="channel" value={f.channel} onChange={(v) => up("channel", v)} placeholder="123…" mono /></div>
         <div style={{ marginTop: 12 }}><label>Message text (optional, sent above the embed)</label><textarea rows={2} value={f.content} onChange={(e) => up("content", e.target.value)} placeholder="Hey @everyone!" /></div>
         <div style={{ marginTop: 12 }}><label>Embed title</label><input value={f.title} onChange={(e) => up("title", e.target.value)} placeholder="Announcement" /></div>
         <div style={{ marginTop: 12 }}><label>Embed description</label><textarea rows={4} value={f.description} onChange={(e) => up("description", e.target.value)} placeholder="Write the body…" /></div>

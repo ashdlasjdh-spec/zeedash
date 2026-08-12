@@ -12,7 +12,7 @@ const FIELDS = [
   { key: "description", label: "Panel description", type: "textarea", rows: 2, placeholder: "Click a button to toggle a role." },
   { key: "buttons", label: "Buttons", type: "list", addLabel: "Add button", cols: [
     { key: "label", label: "Label", placeholder: "Verify", flex: 1 },
-    { key: "role", label: "Role ID", placeholder: "123456789012345678", mono: true, flex: 1.3 },
+    { key: "role", label: "Role", type: "role", flex: 1.3 },
     { key: "style", label: "Style", placeholder: "green / blurple / gray / red", flex: 1 },
     { key: "emoji", label: "Emoji", placeholder: "✅", flex: 0.5 },
   ] },

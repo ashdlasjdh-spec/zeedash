@@ -7,8 +7,8 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "j2c", label: "Join-to-Create channel ID", mono: true, placeholder: "123456789012345678", hint: "When someone joins this voice channel, the bot makes them a personal temp channel and moves them in." },
-  { key: "category", label: "Category ID (optional)", mono: true, placeholder: "123456789012345678" },
+  { key: "j2c", label: "Join-to-Create channel", type: "voice", hint: "When someone joins this voice channel, the bot makes them a personal temp channel and moves them in." },
+  { key: "category", label: "Category (optional)", type: "category" },
   { key: "name", label: "Channel name", placeholder: "{user.name}'s channel", hint: "Variables: {user.name} · {user.display_name}" },
   { key: "limit", label: "User limit (0 = unlimited)", numeric: true, placeholder: "0" },
   { key: "bitrate", label: "Bitrate kbps (8–384)", numeric: true, placeholder: "64" },

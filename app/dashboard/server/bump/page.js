@@ -7,8 +7,8 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "channel", label: "Reminder channel ID (blank = where it was bumped)", mono: true, placeholder: "123456789012345678" },
-  { key: "role", label: "Role to ping (optional)", mono: true, placeholder: "123456789012345678", hint: "The bot watches for Disboard's /bump success, then reminds here 2 hours later." },
+  { key: "channel", label: "Reminder channel (blank = where it was bumped)", type: "channel" },
+  { key: "role", label: "Role to ping (optional)", type: "role", hint: "The bot watches for Disboard's /bump success, then reminds here 2 hours later." },
 ];
 
 export default async function Page() {

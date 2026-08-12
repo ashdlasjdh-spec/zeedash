@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "channel", label: "Starboard channel ID", mono: true, placeholder: "123456789012345678" },
+  { key: "channel", label: "Starboard channel", type: "channel" },
   { key: "emoji", label: "Emoji", placeholder: "⭐", hint: "The reaction to count. Default ⭐. Custom emoji: paste it or its ID." },
   { key: "threshold", label: "Required reactions", numeric: true, placeholder: "3" },
   { key: "selfstar", label: "Allow self-starring", type: "bool" },

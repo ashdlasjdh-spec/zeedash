@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "channel", label: "Channel ID", mono: true, placeholder: "123456789012345678" },
+  { key: "channel", label: "Channel", type: "channel" },
   { key: "message", label: "Message (optional)", type: "textarea", rows: 2, placeholder: "{user.mention} welcome — grab roles in #roles!", hint: "Blank = just ping them. Variables: {user.mention} · {user.name} · {guild.name} · {guild.count}" },
   { key: "delete", label: "Delete the ping after a few seconds", type: "bool" },
 ];

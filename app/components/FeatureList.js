@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect } from "./metaFields";
 
 // Feature config for list-style features (autoresponder, autoreact, reaction roles). Enable toggle +
 // an editable list of rows, persisted to /api/guild-settings as config.items. OFF by default.
@@ -16,6 +17,7 @@ export default function FeatureList({ feature, title, description, columns, addL
 
   useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
+  const meta = useGuildMeta(guild, fieldsNeedMeta([{ cols: columns }]));
 
   useEffect(() => {
     if (!guild) return;
@@ -66,7 +68,9 @@ export default function FeatureList({ feature, title, description, columns, addL
           {items.map((row, i) => (
             <div key={i} className="fl-row">
               {columns.map((c) => (
-                c.type === "bool" ? (
+                isMetaType(c.type) ? (
+                  <MetaSelect key={c.key} meta={meta} type={c.type} value={row[c.key]} onChange={(v) => setCell(i, c.key, v)} placeholder={c.placeholder} mono={c.mono} style={{ flex: c.flex || 1, minWidth: 0 }} />
+                ) : c.type === "bool" ? (
                   <span key={c.key} style={{ flex: c.flex || 1, display: "flex", alignItems: "center" }}>
                     <label className="switch sm"><input type="checkbox" checked={!!row[c.key]} onChange={(e) => setCell(i, c.key, e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label>
                   </span>

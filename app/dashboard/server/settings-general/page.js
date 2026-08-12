@@ -7,7 +7,7 @@ import FeatureSettings from "../../../components/FeatureSettings";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "modlog", label: "Mod-log channel ID", mono: true, placeholder: "123456789012345678", hint: "Antinuke, Automod, Antiraid and Honeypot post what they did to this channel." },
+  { key: "modlog", label: "Mod-log channel", type: "channel", hint: "Antinuke, Automod, Antiraid and Honeypot post what they did to this channel." },
 ];
 
 export default async function Page() {
