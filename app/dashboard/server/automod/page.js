@@ -13,6 +13,8 @@ const FIELDS = [
   { key: "links", label: "Block all links", type: "bool" },
   { key: "maxMentions", label: "Max mentions per message (0 = off)", numeric: true, placeholder: "5" },
   { key: "action", label: "Action", type: "select", options: ["delete", "timeout", "kick", "ban"] },
+  { key: "filterStaff", label: "Also filter staff (people with Manage Messages)", type: "bool", hint: "Off = staff/admins are exempt (default). Turn on to filter everyone — useful for testing." },
+  { key: "exemptRoles", label: "Exempt roles (never filtered)", type: "roles" },
 ];
 
 export default async function Page() {
