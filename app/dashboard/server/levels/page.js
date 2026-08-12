@@ -1,8 +1,9 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import PageHeader from "../../../components/PageHeader";
 import FeatureSettings from "../../../components/FeatureSettings";
+import XpLeaderboard from "../../../components/XpLeaderboard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +21,12 @@ const FIELDS = [
 export default async function Page() {
   const u = await getSession();
   if (!u) return null;
-  if (!canGroup(u.level)) redirect("/dashboard");
+  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="star" title="Levels" subtitle="Reward chat activity with XP, levels and role rewards. Off until enabled." />
       <FeatureSettings feature="levels" title="Levels" description="Members earn XP as they chat (once per minute). Optional level-up message and role rewards. Needs the Message Content intent; role rewards need Manage Roles." fields={FIELDS} />
+      <XpLeaderboard />
     </div>
   );
 }

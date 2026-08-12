@@ -15,20 +15,37 @@ export async function GET(req) {
     const token = await exchangeCode(code);
     const du = await getUser(token.access_token);
     const level = await resolveLevel(du.id);
-    if (!level) return NextResponse.redirect(new URL("/?error=denied", req.url));
-    // Store the servers this user is in (guilds scope) so the Server picker can show only the ones
-    // shared with the bot. Best-effort — never blocks login.
+
+    // Capture the user's servers + their Discord permissions in each. The Game section stays gated by
+    // the Roblox staff ladder (level); the Server section is gated by these per-guild perms.
+    let guilds = [];
+    try { guilds = await getUserGuilds(token.access_token); } catch { /* non-fatal */ }
+    const ids = guilds.map((g) => g.id);
+    const perms = {};
+    for (const g of guilds) if (g.admin || g.owner) perms[g.id] = { a: !!g.admin, o: !!g.owner };
     try {
-      const guilds = await getUserGuilds(token.access_token);
       await ensureSchema();
       await query(
-        `insert into user_guilds (discord_id, guild_ids, updated_at) values ($1, $2::jsonb, now())
-         on conflict (discord_id) do update set guild_ids = $2::jsonb, updated_at = now()`,
-        [du.id, JSON.stringify(guilds)],
+        `insert into user_guilds (discord_id, guild_ids, guild_perms, updated_at) values ($1, $2::jsonb, $3::jsonb, now())
+         on conflict (discord_id) do update set guild_ids = $2::jsonb, guild_perms = $3::jsonb, updated_at = now()`,
+        [du.id, JSON.stringify(ids), JSON.stringify(perms)],
       );
     } catch { /* non-fatal */ }
+
+    // Access requires EITHER a Roblox staff level (Game) OR admin/owner of a guild the bot is
+    // actually in (Server-only). Otherwise there's nothing for them to do — deny.
+    let serverOnlyOk = false;
+    if (!level && Object.keys(perms).length) {
+      try {
+        const active = await query("select distinct guild_id from server_stats where updated_at > now() - interval '30 days'");
+        const set = new Set(active.map((r) => r.guild_id));
+        serverOnlyOk = Object.keys(perms).some((gid) => set.has(gid));
+      } catch { /* if we can't check, fall through to deny */ }
+    }
+    if (!level && !serverOnlyOk) return NextResponse.redirect(new URL("/?error=denied", req.url));
+
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
-    return NextResponse.redirect(new URL("/dashboard?welcome=1", req.url));
+    return NextResponse.redirect(new URL(level ? "/dashboard?welcome=1" : "/dashboard/server?welcome=1", req.url));
   } catch (e) {
     return NextResponse.redirect(new URL("/?error=oauth", req.url));
   }

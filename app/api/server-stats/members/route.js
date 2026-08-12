@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canManageGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -17,10 +17,10 @@ const top = (guild, days, col) =>
 
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const guild = req.nextUrl.searchParams.get("guild") || "";
+  if (!s || !canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const days = Math.min(90, Math.max(7, parseInt(req.nextUrl.searchParams.get("days") || "30", 10) || 30));
-  const guild = req.nextUrl.searchParams.get("guild") || "";
   if (!guild) return NextResponse.json({ messages: [], reactions: [], voice: [] });
 
   try {

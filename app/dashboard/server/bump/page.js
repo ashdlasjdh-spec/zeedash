@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import PageHeader from "../../../components/PageHeader";
 import FeatureSettings from "../../../components/FeatureSettings";
@@ -14,7 +14,7 @@ const FIELDS = [
 export default async function Page() {
   const u = await getSession();
   if (!u) return null;
-  if (!canGroup(u.level)) redirect("/dashboard");
+  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="clock" title="Bump Reminder" subtitle="Remind the server to /bump on Disboard. Off until enabled." />

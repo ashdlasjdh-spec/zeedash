@@ -1,5 +1,5 @@
 import { query, ensureSchema } from "@/lib/db";
-import { botAuthed } from "@/lib/botauth";
+import { guardBot } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 // Bot-facing read of a guild's feature settings (CRON_SECRET). The bot polls this and caches it,
 // then no-ops on any feature whose enabled flag is false / absent. Only enabled rows matter.
 export async function GET(req) {
-  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
+  const bad = guardBot(req); if (bad) return bad;
   const guild = req.nextUrl.searchParams.get("guild") || "";
   if (!guild) return NextResponse.json({ settings: {} });
   try {
@@ -25,7 +25,7 @@ export async function GET(req) {
 // config regardless of enabled state, adds/removes one ID, writes back. { guild, feature, key, add?, remove? }.
 const FEATURE = /^[a-z0-9_-]{2,40}$/;
 export async function POST(req) {
-  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
+  const bad = guardBot(req); if (bad) return bad;
   const { guild, feature, key, add, remove } = await req.json().catch(() => ({}));
   if (!guild || !FEATURE.test(String(feature || "")) || !/^[a-z_]{2,20}$/.test(String(key || ""))) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });

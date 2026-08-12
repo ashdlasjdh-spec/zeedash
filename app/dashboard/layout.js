@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { grantsFor, canGroup, canGroupScoped, canGroupAny, canConfig, canWhitelist, canBan, canPurge, canManageGrants } from "@/lib/permissions";
+import { grantsFor, canGroup, canGroupScoped, canGroupAny, canConfig, canWhitelist, canBan, canPurge, canManageGrants, canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -23,6 +23,7 @@ export default async function DashLayout({ children }) {
   const grants = grantsFor(lvl);
   const scopedGroup = !!user.scopedGroup;         // limited group access (e.g. Leaderboard HR)
   const groupAny = canGroup(lvl) || scopedGroup;  // any group access at all
+  const serverAccess = canAccessServerSection(user); // Discord-admin (or staff) access to the Server section
 
   // Centered quick links — a short set of the most-used destinations for this rank.
   const links = [{ label: "Overview", href: "/dashboard" }];
@@ -39,7 +40,8 @@ export default async function DashLayout({ children }) {
   const mod = [];
   if (canBan(lvl)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
   if (groupAny) mod.push({ label: "Group", href: "/dashboard/group" });
-  if (canGroup(lvl)) mod.push({ label: "Analytics", href: "/dashboard/analytics" }, { label: "Server", href: "/dashboard/server" });
+  if (canGroup(lvl)) mod.push({ label: "Analytics", href: "/dashboard/analytics" });
+  if (serverAccess) mod.push({ label: "Server", href: "/dashboard/server" });
   if (canConfig(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
@@ -57,7 +59,7 @@ export default async function DashLayout({ children }) {
       <Topbar user={user} links={links} allGroups={allGroups} canSettings={canWhitelist(lvl)} />
       <CommandPalette items={cmdItems} />
       <div className="shell">
-        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} canConfig={canConfig(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} />
+        <Sidebar user={user} grants={grants} canGroup={canGroup(lvl)} canGroupScoped={scopedGroup} canBan={canBan(lvl)} canConfig={canConfig(lvl)} isCofounderPlus={canWhitelist(lvl)} canPurge={canPurge(user.id)} gameAccess={!!user.gameAccess} serverAccess={serverAccess} />
         <main className="main">{children}</main>
       </div>
     </>

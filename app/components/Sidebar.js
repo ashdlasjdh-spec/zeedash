@@ -83,7 +83,7 @@ const NAV = [
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];
 
-export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge }) {
+export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge, gameAccess = true, serverAccess = false }) {
   const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
   const portal = path.startsWith("/dashboard/server") ? "server" : "game";
@@ -108,15 +108,16 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       <aside className={`side ${open ? "open" : ""}`}>
         <div className="brand side-brand">zhd<span>.lol</span></div>
 
-      {/* Portal switcher — Game vs Server Management, each its own sidebar below. */}
-      {canGroup && (
+      {/* Portal switcher — only shown when the user can reach BOTH portals. Server-only Discord
+          admins never see the Game tab; Game-only staff never see the Server tab. */}
+      {gameAccess && serverAccess && (
         <div className="side-portals">
           <a className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)}>🎮 Game</a>
           <a className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)}>💬 Server</a>
         </div>
       )}
 
-      {portal === "server" ? (
+      {(portal === "server" || !gameAccess) ? (
         <Suspense fallback={null}><ServerSidebarNav Icon={Icon} onNavigate={() => setOpen(false)} /></Suspense>
       ) : (<>
       {link("/dashboard", "Overview")}

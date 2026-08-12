@@ -24,6 +24,7 @@ export default function MessageBuilder() {
     }).catch(() => {});
   }, [guild]);
 
+  const [publishing, setPublishing] = useState(false);
   const up = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const save = async () => {
     if (!guild) return;
@@ -32,9 +33,24 @@ export default function MessageBuilder() {
       const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature: "messagebuilder", enabled: true, config: f }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: "Saved — run /sendembed in your server to post it." });
+      setToast({ ok: true, msg: "Saved — Publish it here or run /sendembed in your server." });
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setSaving(false);
+  };
+  const publish = async () => {
+    if (!guild) return;
+    if (!f.channel) { setToast({ ok: false, msg: "Pick a channel first." }); return; }
+    if (!f.content && !f.title && !f.description && !f.image && !f.footer) { setToast({ ok: false, msg: "Add some text or an embed first." }); return; }
+    setPublishing(true); setToast(null);
+    try {
+      // Save the draft too, then queue the post — the bot picks it up in a few seconds.
+      await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature: "messagebuilder", enabled: true, config: f }) });
+      const r = await fetch("/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, kind: "message", payload: f }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: "Queued — the bot will post it in a few seconds." });
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setPublishing(false);
   };
 
   const hasEmbed = f.title || f.description || f.image || f.footer;
@@ -51,7 +67,10 @@ export default function MessageBuilder() {
           <div><label>Footer</label><input value={f.footer} onChange={(e) => up("footer", e.target.value)} placeholder="Footer text" /></div>
         </div>
         <div style={{ marginTop: 12 }}><label>Image URL</label><input className="mono" value={f.image} onChange={(e) => up("image", e.target.value)} placeholder="https://…" /></div>
-        <div className="row" style={{ marginTop: 16 }}><button className="btn" style={{ width: "auto" }} disabled={saving} onClick={save}>{saving ? "Saving…" : "Save draft"}</button></div>
+        <div className="row" style={{ marginTop: 16, gap: 10 }}>
+          <button className="btn ghost" style={{ width: "auto" }} disabled={saving || publishing} onClick={save}>{saving ? "Saving…" : "Save draft"}</button>
+          <button className="btn" style={{ width: "auto" }} disabled={saving || publishing} onClick={publish}>{publishing ? "Publishing…" : "Publish now"}</button>
+        </div>
         {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
 

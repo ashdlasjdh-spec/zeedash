@@ -74,7 +74,14 @@ export default function ServerAnalytics({ userName }) {
   }, [load, guild, days]);
 
   if (err) return <div className="card"><div className="toast bad">{err}</div></div>;
-  if (!data) return <div className="card"><p className="muted">Loading…</p></div>;
+  if (!data) return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton-row" style={{ height: 88 }} />)}
+      </div>
+      <div className="skeleton-chart" />
+    </div>
+  );
 
   const guilds = data.guilds || [];
   if (guilds.length === 0) {

@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel } from "@/lib/permissions";
+import { redirect } from "next/navigation";
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
 import StatusBadges from "../components/StatusBadges";
@@ -60,6 +61,8 @@ function actionBadge(action) {
 export default async function Overview({ searchParams }) {
   const user = await getSession();
   if (!user) return null;
+  // Server-only Discord admins have no Game access — send them straight to the Server section.
+  if (!user.gameAccess) redirect("/dashboard/server");
   const lvl = user.level;
   const seesActivity = canGroup(lvl);
   const showChooser = (searchParams?.welcome ?? "") === "1";

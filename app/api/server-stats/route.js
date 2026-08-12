@@ -1,31 +1,38 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canAccessServerSection, canManageGuild, staffCanManageServers } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Server analytics for the dashboard "Server" page. Management+ only.
+// Server analytics for the dashboard "Server" page. Roblox staff, or a Discord admin of the guild.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canAccessServerSection(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const days = Math.min(90, Math.max(7, parseInt(req.nextUrl.searchParams.get("days") || "30", 10) || 30));
   let guild = req.nextUrl.searchParams.get("guild") || "";
 
   try {
-    // Every guild we have data for (most recently active first) — drives the server switcher.
-    // Only servers the bot is currently in AND the user shares (guilds OAuth scope); fall back to all
-    // active bot guilds when we don't have the user's guild list yet.
-    const mine = await query("select guild_ids from user_guilds where discord_id=$1", [s.id]).catch(() => []);
-    const myIds = Array.isArray(mine?.[0]?.guild_ids) ? mine[0].guild_ids : null;
+    // Server switcher list: staff see every guild they share with the bot; a Discord admin sees only
+    // the guilds they hold admin/owner in.
+    const staff = staffCanManageServers(s.level);
+    let ids;
+    if (staff) {
+      const mine = await query("select guild_ids from user_guilds where discord_id=$1", [s.id]).catch(() => []);
+      ids = Array.isArray(mine?.[0]?.guild_ids) ? mine[0].guild_ids : null;
+    } else {
+      ids = s.serverGuildIds || [];
+      if (!ids.length) return NextResponse.json({ guilds: [], guild: null, days });
+    }
     const gBase = "select guild_id, max(guild_name) guild_name, max(guild_icon) guild_icon, sum(messages)::bigint messages, max(updated_at) last from server_stats";
     const gTail = "group by guild_id having max(updated_at) > now() - interval '20 minutes' order by max(updated_at) desc";
-    const guilds = myIds && myIds.length
-      ? await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [myIds])
+    const guilds = ids && ids.length
+      ? await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [ids])
       : await query(`${gBase} ${gTail}`);
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });
+    if (!canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const [series, totals, prev, channels, latestMembers] = await Promise.all([
       query(

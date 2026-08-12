@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canGroup } from "@/lib/permissions";
+import { canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import PageHeader from "../../../components/PageHeader";
 
@@ -28,7 +28,7 @@ const NOTES = {
 export default async function Page({ params }) {
   const u = await getSession();
   if (!u) return null;
-  if (!canGroup(u.level)) redirect("/dashboard");
+  if (!canAccessServerSection(u)) redirect("/dashboard");
   const slug = params.feature;
   const title = TITLES[slug] || slug;
   const note = NOTES[slug];

@@ -1,7 +1,10 @@
 "use client";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ServerPicker from "./ServerPicker";
+
+// Feature slugs that are only shown to a guild's owner / antinuke admins (or top staff).
+const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
 
 // Top-level single links (icons come from the Sidebar ICON map via the Icon prop).
 const TOP = [
@@ -26,6 +29,16 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
   const q = g ? `?guild=${g}` : "";
   const active = (href) => path === href;
 
+  // Per-guild access: hide Antinuke/Antiraid unless the user is the guild owner / an antinuke admin.
+  const [security, setSecurity] = useState(true); // optimistic until we know (server also enforces)
+  useEffect(() => {
+    let alive = true;
+    if (!g) { setSecurity(false); return; }
+    fetch(`/api/guild-access?guild=${g}`).then((r) => r.json()).then((j) => { if (alive) setSecurity(!!j.security); }).catch(() => {});
+    return () => { alive = false; };
+  }, [g]);
+  const visibleItems = (items) => items.filter(([, slug]) => security || !SECURITY_SLUGS.has(slug));
+
   const [open, setOpen] = useState(() => {
     const o = {};
     for (const s of SECTIONS) o[s.label] = s.items.some(([, slug]) => path === `/dashboard/server/${slug}`);
@@ -43,7 +56,10 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
     <>
       <ServerPicker />
       {TOP.map((n) => link(n.href, n.label))}
-      {SECTIONS.map((sec) => (
+      {SECTIONS.map((sec) => {
+        const items = visibleItems(sec.items);
+        if (!items.length) return null; // e.g. Security with nothing visible
+        return (
         <div className="nav-group" key={sec.label}>
           <button className={`nav-group-h ${open[sec.label] ? "on" : ""}`} onClick={() => toggle(sec.label)} aria-expanded={!!open[sec.label]}>
             <Icon label={sec.label} /><span>{sec.label}</span>
@@ -51,14 +67,15 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
           </button>
           {open[sec.label] && (
             <div className="nav-sub">
-              {sec.items.map(([label, slug]) => {
+              {items.map(([label, slug]) => {
                 const href = `/dashboard/server/${slug}`;
                 return <a key={slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{label}</a>;
               })}
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
       {BOTTOM.map((n) => link(n.href, n.label))}
     </>
   );

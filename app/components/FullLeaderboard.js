@@ -64,7 +64,7 @@ export default function FullLeaderboard() {
       </div>
 
       {err ? <div className="toast bad">{err}</div>
-        : data == null ? <p className="muted" style={{ padding: "8px 0" }}>Loading…</p>
+        : data == null ? <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton-row" />)}</div>
         : rows.length === 0 ? <p className="muted" style={{ padding: "8px 0" }}>No member activity in this window yet.</p>
         : (
           <div className="lb-list">
