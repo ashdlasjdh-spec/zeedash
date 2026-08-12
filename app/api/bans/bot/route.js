@@ -1,11 +1,10 @@
 import { canBan } from "@/lib/permissions";
 import { banAction, lookupBan } from "@/lib/bans";
+import { botAuthed as authed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-const authed = (req) => process.env.CRON_SECRET && (req.headers.get("authorization") || "") === `Bearer ${process.env.CRON_SECRET}`;
 
 // GET ?user=X — look up a user's game-ban status (mod+). Actor level via x-actor-level header.
 export async function GET(req) {

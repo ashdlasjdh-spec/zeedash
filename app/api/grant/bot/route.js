@@ -3,6 +3,7 @@ import { resolveUsername } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
 import { applyGrant } from "@/lib/grantEngine";
 import { logAudit, query, ensureSchema } from "@/lib/db";
+import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,7 @@ function humanDur(sec) {
 // has no dashboard session). The actor (staff member running the Discord command) is passed in and
 // their level is re-checked here as defence-in-depth. Writes to the shared audit_log like the site.
 export async function POST(req) {
-  const auth = req.headers.get("authorization") || "";
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!botAuthed(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { category, key, username, action = "grant", seconds, actorName, actorId, actorLevel } = await req.json().catch(() => ({}));

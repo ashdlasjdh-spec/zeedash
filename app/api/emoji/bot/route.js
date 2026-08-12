@@ -1,13 +1,13 @@
 import { can } from "@/lib/permissions";
 import { applyEmoji } from "@/lib/emoji";
+import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // Bot-facing emoji giver (CRON_SECRET). Actor + level passed in and re-checked (emoji = co founders+).
 export async function POST(req) {
-  const auth = req.headers.get("authorization") || "";
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!botAuthed(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { username, userId, emojis, action = "set", actorName, actorId, actorLevel } = await req.json().catch(() => ({}));

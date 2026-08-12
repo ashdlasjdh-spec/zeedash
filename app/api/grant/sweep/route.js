@@ -1,6 +1,7 @@
 import { applyGrant } from "@/lib/grantEngine";
 import { query, logAudit, ensureSchema } from "@/lib/db";
 import { setConfig } from "@/lib/config";
+import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +12,7 @@ export const maxDuration = 300;
 // then drops the expiry row and logs an audit entry. Protected by CRON_SECRET: Vercel sends it
 // as `Authorization: Bearer <CRON_SECRET>`, so only the cron (or an owner with the secret) runs it.
 async function handle(req) {
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = req.headers.get("authorization") || "";
-    if (auth !== `Bearer ${secret}`) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
-  }
+  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
 
   try {
     await ensureSchema();

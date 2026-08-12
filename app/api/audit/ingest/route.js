@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { logAudit } from "@/lib/db";
+import { botAuthed } from "@/lib/botauth";
 
 export const dynamic = "force-dynamic";
 
 // Bot → site audit log. The Discord bot posts its moderation / group actions here (CRON_SECRET-gated)
 // so they show up in the dashboard's audit log AND the moderation analytics, alongside site actions.
 export async function POST(req) {
-  const auth = req.headers.get("authorization") || "";
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!botAuthed(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const b = await req.json().catch(() => ({}));

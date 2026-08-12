@@ -1,4 +1,5 @@
 import { query, ensureSchema } from "@/lib/db";
+import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -6,11 +7,7 @@ export const dynamic = "force-dynamic";
 // The bot POSTs activity deltas here every minute (Bearer CRON_SECRET). We add them onto today's
 // per-guild + per-channel rows. Deltas (not totals) so a bot restart never double-counts.
 export async function POST(req) {
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = req.headers.get("authorization") || "";
-    if (auth !== `Bearer ${secret}`) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
-  }
+  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad JSON" }, { status: 400 }); }
   const { guildId, guildName, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [] } = body || {};

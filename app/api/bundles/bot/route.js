@@ -2,6 +2,7 @@ import { canConfig, can } from "@/lib/permissions";
 import { resolveUsername } from "@/lib/roblox";
 import { applyGrant } from "@/lib/grantEngine";
 import { query, logAudit } from "@/lib/db";
+import { botAuthed as authed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,6 @@ async function readBundles() {
   try { const rows = await query("select value from config where key = 'grant_bundles'"); return JSON.parse(rows[0]?.value || "[]"); }
   catch { return []; }
 }
-const authed = (req) => process.env.CRON_SECRET && (req.headers.get("authorization") || "") === `Bearer ${process.env.CRON_SECRET}`;
 
 // GET — list bundle names (for the bot's /give bundle autocomplete).
 export async function GET(req) {
