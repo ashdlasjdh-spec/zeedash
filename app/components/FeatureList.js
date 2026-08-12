@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect, OptionMultiSelect } from "./metaFields";
-import AutoSaveStatus from "./AutoSaveStatus";
+import Dropdown from "./Dropdown";
 
 // Feature config for list-style features (autoresponder, autoreact, reaction roles). Enable toggle +
 // an editable list of rows, persisted to /api/guild-settings as config.items. OFF by default.
@@ -20,20 +20,12 @@ export default function FeatureList({ feature, title, description, columns, addL
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta([{ cols: columns }]));
 
-  const savedSig = useRef(null);
-  const [status, setStatus] = useState("idle");
-
   useEffect(() => {
     if (!guild) return;
     setLoading(true);
     fetch(`/api/guild-settings?guild=${guild}`)
       .then((r) => r.json())
-      .then((j) => {
-        const s = j.settings?.[feature] || {};
-        const its = Array.isArray(s.config?.items) ? s.config.items : [];
-        setEnabled(!!s.enabled); setItems(its);
-        savedSig.current = JSON.stringify({ enabled: !!s.enabled, items: its });
-      })
+      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setItems(Array.isArray(s.config?.items) ? s.config.items : []); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guild, feature]);
@@ -43,24 +35,17 @@ export default function FeatureList({ feature, title, description, columns, addL
   const remove = (i) => setItems((x) => x.filter((_, idx) => idx !== i));
   const setCell = (i, k, v) => setItems((x) => x.map((row, idx) => (idx === i ? { ...row, [k]: v } : row)));
 
-  // Debounced auto-save.
-  useEffect(() => {
-    if (!guild || loading) return;
-    const sig = JSON.stringify({ enabled, items });
-    if (sig === savedSig.current) return;
-    const t = setTimeout(async () => {
-      setStatus("saving"); setToast(null);
-      try {
-        const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config: { items } }) });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(j.error || "Failed");
-        savedSig.current = sig;
-        setStatus("saved");
-        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
-      } catch (e) { setStatus("error"); setToast({ ok: false, msg: e.message }); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [enabled, items, guild, feature, loading]);
+  const save = async () => {
+    if (!guild) return;
+    setSaving(true); setToast(null);
+    try {
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config: { items } }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setSaving(false);
+  };
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet.</p></div>;
 
@@ -95,9 +80,7 @@ export default function FeatureList({ feature, title, description, columns, addL
                     <label className="switch sm"><input type="checkbox" checked={!!row[c.key]} onChange={(e) => setCell(i, c.key, e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label>
                   </span>
                 ) : c.type === "select" ? (
-                  <select key={c.key} value={row[c.key] ?? c.options?.[0] ?? ""} onChange={(e) => setCell(i, c.key, e.target.value)} style={{ flex: c.flex || 1, minWidth: 0 }}>
-                    {(c.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
-                  </select>
+                  <Dropdown key={c.key} value={row[c.key] ?? c.options?.[0] ?? ""} onChange={(e) => setCell(i, c.key, e.target.value)} options={(c.options || []).map((o) => ({ value: o.value ?? o, label: o.label ?? o }))} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 ) : c.type === "textarea" ? (
                   <textarea key={c.key} rows={2} value={row[c.key] || ""} onChange={(e) => setCell(i, c.key, e.target.value)} placeholder={c.placeholder} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 ) : (
@@ -112,8 +95,9 @@ export default function FeatureList({ feature, title, description, columns, addL
       </div>
 
       <div className="row" style={{ marginTop: 18 }}>
-        <AutoSaveStatus status={status} error={toast?.msg} />
+        <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
       </div>
+      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
     </div>
   );
 }

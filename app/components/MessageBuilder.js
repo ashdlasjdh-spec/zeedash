@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, MetaSelect } from "./metaFields";
-import AutoSaveStatus from "./AutoSaveStatus";
 
 // Compose an embed/message on the web, save it, then post it with /sendembed in the server.
 // (The bot has no inbound endpoint, so publishing goes through a Discord admin command.)
@@ -10,11 +9,9 @@ export default function MessageBuilder() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
   const [guilds, setGuilds] = useState([]);
-  const DEFAULTS = { channel: "", content: "", title: "", description: "", color: "#7c5cff", image: "", footer: "" };
-  const [f, setF] = useState(DEFAULTS);
-  const [status, setStatus] = useState("idle");
-  const [saveErr, setSaveErr] = useState(null);
-  const savedSig = useRef(null);
+  const [f, setF] = useState({ channel: "", content: "", title: "", description: "", color: "#7c5cff", image: "", footer: "" });
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
@@ -24,30 +21,22 @@ export default function MessageBuilder() {
     if (!guild) return;
     fetch(`/api/guild-settings?guild=${guild}`).then((r) => r.json()).then((j) => {
       const c = j.settings?.messagebuilder?.config;
-      const merged = { ...DEFAULTS, ...(c && typeof c === "object" ? c : {}) };
-      setF(merged); savedSig.current = JSON.stringify(merged);
+      if (c && typeof c === "object") setF((s) => ({ ...s, ...c }));
     }).catch(() => {});
   }, [guild]);
 
   const up = (k, v) => setF((s) => ({ ...s, [k]: v }));
-
-  // Debounced auto-save of the draft (does NOT post — /sendembed does that).
-  useEffect(() => {
+  const save = async () => {
     if (!guild) return;
-    const sig = JSON.stringify(f);
-    if (sig === savedSig.current) return;
-    const t = setTimeout(async () => {
-      setStatus("saving"); setSaveErr(null);
-      try {
-        const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature: "messagebuilder", enabled: true, config: f }) });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(j.error || "Failed");
-        savedSig.current = sig; setStatus("saved");
-        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
-      } catch (e) { setStatus("error"); setSaveErr(e.message); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [f, guild]);
+    setSaving(true); setToast(null);
+    try {
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature: "messagebuilder", enabled: true, config: f }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: "Saved — run /sendembed in your server to post it." });
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setSaving(false);
+  };
 
   const hasEmbed = f.title || f.description || f.image || f.footer;
 
@@ -63,10 +52,8 @@ export default function MessageBuilder() {
           <div><label>Footer</label><input value={f.footer} onChange={(e) => up("footer", e.target.value)} placeholder="Footer text" /></div>
         </div>
         <div style={{ marginTop: 12 }}><label>Image URL</label><input className="mono" value={f.image} onChange={(e) => up("image", e.target.value)} placeholder="https://…" /></div>
-        <div className="row" style={{ marginTop: 16, gap: 12, alignItems: "center" }}>
-          <AutoSaveStatus status={status} error={saveErr} />
-          <span className="muted" style={{ fontSize: 12 }}>· run <b>/sendembed</b> in your server to post it</span>
-        </div>
+        <div className="row" style={{ marginTop: 16 }}><button className="btn" style={{ width: "auto" }} disabled={saving} onClick={save}>{saving ? "Saving…" : "Save draft"}</button></div>
+        {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
       </div>
 
       <div className="card">

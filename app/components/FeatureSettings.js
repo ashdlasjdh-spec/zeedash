@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
-import AutoSaveStatus from "./AutoSaveStatus";
+import Dropdown from "./Dropdown";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
 function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
@@ -49,43 +49,28 @@ export default function FeatureSettings({ feature, title, description, fields = 
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta(fields));
 
-  const savedSig = useRef(null);
-  const [status, setStatus] = useState("idle");
-
   useEffect(() => {
     if (!guild) return;
     setLoading(true);
     fetch(`/api/guild-settings?guild=${guild}`)
       .then((r) => r.json())
-      .then((j) => {
-        const s = j.settings?.[feature] || {};
-        setEnabled(!!s.enabled); setConfig(s.config || {});
-        savedSig.current = JSON.stringify({ enabled: !!s.enabled, config: s.config || {} }); // baseline: don't auto-save the freshly-loaded state
-      })
+      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [guild, feature]);
 
   const setField = (k, v) => setConfig((c) => ({ ...c, [k]: v }));
-
-  // Debounced auto-save: writes whenever enabled/config changes (skips the initial load via savedSig).
-  useEffect(() => {
-    if (!guild || loading) return;
-    const sig = JSON.stringify({ enabled, config });
-    if (sig === savedSig.current) return;
-    const t = setTimeout(async () => {
-      setStatus("saving"); setToast(null);
-      try {
-        const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(j.error || "Failed");
-        savedSig.current = sig;
-        setStatus("saved");
-        setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1800);
-      } catch (e) { setStatus("error"); setToast({ ok: false, msg: e.message }); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [enabled, config, guild, feature, loading]);
+  const save = async () => {
+    if (!guild) return;
+    setSaving(true); setToast(null);
+    try {
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setSaving(false);
+  };
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
 
@@ -111,9 +96,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
             ) : isMetaType(f.type) ? (
               <MetaSelect meta={meta} type={f.type} value={config[f.key]} onChange={(v) => setField(f.key, v)} placeholder={f.placeholder} mono={f.mono} />
             ) : f.type === "select" ? (
-              <select value={config[f.key] ?? f.options?.[0]?.value ?? f.options?.[0] ?? ""} onChange={(e) => setField(f.key, e.target.value)}>
-                {(f.options || []).map((o) => { const v = o.value ?? o; const l = o.label ?? o; return <option key={v} value={v}>{l}</option>; })}
-              </select>
+              <Dropdown value={config[f.key] ?? f.options?.[0]?.value ?? f.options?.[0] ?? ""} onChange={(e) => setField(f.key, e.target.value)} options={(f.options || []).map((o) => ({ value: o.value ?? o, label: o.label ?? o }))} />
             ) : f.type === "list" ? (
               <ListField value={config[f.key]} cols={f.cols} addLabel={f.addLabel} meta={meta} onChange={(v) => setField(f.key, v)} />
             ) : f.type === "textarea" ? (
@@ -129,8 +112,9 @@ export default function FeatureSettings({ feature, title, description, fields = 
       </div>
 
       <div className="row" style={{ marginTop: 18 }}>
-        <AutoSaveStatus status={status} error={toast?.msg} />
+        <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
       </div>
+      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
     </div>
   );
 }

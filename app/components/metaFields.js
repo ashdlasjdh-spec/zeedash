@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Dropdown from "./Dropdown";
 
 // Field/column types that become dropdowns populated from the guild's channels/roles.
 // "roles" (plural) is a multi-select (chip picker); the rest are single selects.
@@ -45,12 +46,8 @@ export function MetaSelect({ meta, type, value, onChange, placeholder, mono, sty
   if (meta === null) {
     return <input className={mono ? "mono" : ""} value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={style} />;
   }
-  return (
-    <select value={value || ""} onChange={(e) => onChange(e.target.value)} style={style}>
-      <option value="">{meta === undefined ? "Loading…" : "— none —"}</option>
-      {metaOptions(meta, type).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  );
+  const opts = [{ value: "", label: meta === undefined ? "Loading…" : "— none —" }, ...metaOptions(meta, type)];
+  return <Dropdown value={value || ""} onChange={(e) => onChange(e.target.value)} options={opts} placeholder={meta === undefined ? "Loading…" : "— none —"} style={style} />;
 }
 
 // Multi-role picker. Stores a comma-separated string of role IDs (what the bot parses). Shows chips
@@ -74,10 +71,7 @@ export function MetaMultiSelect({ meta, value, onChange, placeholder, style }) {
           ))}
         </div>
       )}
-      <select value="" onChange={(e) => { add(e.target.value); e.target.value = ""; }}>
-        <option value="">{meta === undefined ? "Loading…" : "+ Add role…"}</option>
-        {available.map((r) => <option key={r.id} value={r.id}>@ {r.name}</option>)}
-      </select>
+      <Dropdown value="" onChange={(e) => add(e.target.value)} options={available.map((r) => ({ value: r.id, label: `@ ${r.name}` }))} placeholder={meta === undefined ? "Loading…" : "+ Add role…"} />
     </div>
   );
 }
@@ -97,10 +91,7 @@ export function OptionMultiSelect({ options = [], value, onChange, placeholder, 
           {ids.map((v) => <span key={v} className="chip">{labelOf(v)}<button type="button" onClick={() => remove(v)} aria-label="Remove">×</button></span>)}
         </div>
       )}
-      <select value="" onChange={(e) => { add(e.target.value); e.target.value = ""; }}>
-        <option value="">{placeholder || "+ Add…"}</option>
-        {available.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <Dropdown value="" onChange={(e) => add(e.target.value)} options={available} placeholder={placeholder || "+ Add…"} />
     </div>
   );
 }
