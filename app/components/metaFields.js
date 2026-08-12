@@ -36,9 +36,10 @@ export function useGuildMeta(guild, active) {
     load(false);
     const onFocus = () => load(true); // returning to the tab → pull the very latest channels/roles
     const onVis = () => { if (document.visibilityState === "visible") load(true); };
+    const iv = setInterval(() => { if (document.visibilityState === "visible") load(true); }, 20000); // keep it fresh while open
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVis);
-    return () => { alive = false; window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVis); };
+    return () => { alive = false; clearInterval(iv); window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVis); };
   }, [guild, active]);
   return meta;
 }
