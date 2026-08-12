@@ -70,6 +70,10 @@ export default function FeatureList({ feature, title, description, columns, addL
                   <span key={c.key} style={{ flex: c.flex || 1, display: "flex", alignItems: "center" }}>
                     <label className="switch sm"><input type="checkbox" checked={!!row[c.key]} onChange={(e) => setCell(i, c.key, e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label>
                   </span>
+                ) : c.type === "select" ? (
+                  <select key={c.key} value={row[c.key] ?? c.options?.[0] ?? ""} onChange={(e) => setCell(i, c.key, e.target.value)} style={{ flex: c.flex || 1, minWidth: 0 }}>
+                    {(c.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 ) : c.type === "textarea" ? (
                   <textarea key={c.key} rows={2} value={row[c.key] || ""} onChange={(e) => setCell(i, c.key, e.target.value)} placeholder={c.placeholder} style={{ flex: c.flex || 1, minWidth: 0 }} />
                 ) : (

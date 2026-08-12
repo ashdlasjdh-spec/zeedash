@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const COLS = [
   { key: "channel", label: "Trap channel ID", mono: true, placeholder: "123456789012345678", flex: 1.4 },
-  { key: "punishment", label: "Punishment (ban / softban / kick / jail)", placeholder: "ban", flex: 1 },
+  { key: "punishment", label: "Punishment", type: "select", options: ["ban", "softban", "kick", "jail"], flex: 1 },
 ];
 
 export default async function Page() {

@@ -84,7 +84,11 @@ export default function FeatureSettings({ feature, title, description, fields = 
         {fields.map((f) => (
           <div key={f.key}>
             <label>{f.label}</label>
-            {f.type === "list" ? (
+            {f.type === "select" ? (
+              <select value={config[f.key] ?? f.options?.[0]?.value ?? f.options?.[0] ?? ""} onChange={(e) => setField(f.key, e.target.value)}>
+                {(f.options || []).map((o) => { const v = o.value ?? o; const l = o.label ?? o; return <option key={v} value={v}>{l}</option>; })}
+              </select>
+            ) : f.type === "list" ? (
               <ListField value={config[f.key]} cols={f.cols} addLabel={f.addLabel} onChange={(v) => setField(f.key, v)} />
             ) : f.type === "textarea" ? (
               <textarea rows={f.rows || 3} value={config[f.key] || ""} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} />
