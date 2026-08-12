@@ -118,6 +118,29 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .svp-opt.sel{color:var(--white);background:rgba(255,255,255,.05)}
 .svp-opt-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .svp-check{flex-shrink:0;color:#4ade80}
+
+/* collapsible nav sections (Server Management portal) */
+.nav-group{margin-top:1px}
+.nav-group-h{display:flex;align-items:center;gap:11px;width:100%;padding:7px 12px;border-radius:9px;background:transparent;border:0;cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:550;text-align:left;transition:background .12s ease,color .12s ease}
+.nav-group-h:hover,.nav-group-h.on{background:var(--surface-2);color:var(--text)}
+.nav-group-h span{flex:1;min-width:0}
+.nav-chev{flex-shrink:0;color:var(--faint);transition:transform .18s ease}
+.nav-group-h.on .nav-chev{transform:rotate(180deg)}
+.nav-sub{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px 22px;padding-left:12px;border-left:1px solid var(--line)}
+.nav-sub-link{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:13px;font-weight:500;text-decoration:none;transition:color .12s ease,background .12s ease}
+.nav-sub-link:hover{color:var(--text);background:var(--surface-2)}
+.nav-sub-link.active{color:var(--white);background:rgba(255,255,255,.08);font-weight:600}
+
+/* toggle switch (feature enable) */
+.switch{position:relative;display:inline-flex;flex-shrink:0;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch-track{width:42px;height:24px;border-radius:999px;background:var(--surface-3);border:1px solid var(--line);display:inline-flex;align-items:center;padding:2px;transition:background .18s ease,border-color .18s ease}
+.switch-thumb{width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .18s ease,background .18s ease}
+.switch input:checked + .switch-track{background:rgba(63,185,80,.35);border-color:rgba(63,185,80,.6)}
+.switch input:checked + .switch-track .switch-thumb{transform:translateX(18px);background:#4ade80}
+.switch.sm .switch-track{width:36px;height:21px}
+.switch.sm .switch-thumb{width:15px;height:15px}
+.switch.sm input:checked + .switch-track .switch-thumb{transform:translateX(15px)}
 .navsec{color:var(--faint);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;padding:10px 10px 4px}
 .navlink{display:flex;align-items:center;gap:11px;padding:7px 12px;border-radius:9px;color:var(--muted);font-size:13.5px;font-weight:550;position:relative;
   transition:color .18s,background .2s,padding .2s cubic-bezier(.34,1.4,.5,1)}

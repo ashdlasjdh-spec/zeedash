@@ -1,29 +1,65 @@
 "use client";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import ServerPicker from "./ServerPicker";
 
-const ITEMS = [
+// Top-level single links (icons come from the Sidebar ICON map via the Icon prop).
+const TOP = [
   { href: "/dashboard/server", label: "Overview" },
   { href: "/dashboard/server/leaderboard", label: "Leaderboard" },
+  { href: "/dashboard/server/message-builder", label: "Message Builder" },
 ];
+// Collapsible sections (bleed/greed-style). [label, slug] — slug maps to /dashboard/server/<slug>.
+const SECTIONS = [
+  { label: "Settings", items: [["General", "settings-general"], ["Customize", "customize"], ["AutoPFP", "autopfp"], ["Restrict", "restrict"], ["Disable", "disable"]] },
+  { label: "Security", items: [["Fake Permissions", "fake-permissions"], ["Automod", "automod"], ["Antiraid", "antiraid"], ["Antinuke", "antinuke"], ["Honeypot", "honeypot"]] },
+  { label: "Automation", items: [["Autoresponder", "autoresponder"], ["Autoreact", "autoreact"], ["Autorole", "autorole"], ["Ping on Join", "pingonjoin"], ["Tracking", "tracking"]] },
+  { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
+  { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Aliases", "aliases"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"]] },
+];
+const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets" }];
 
-// The Server Management sidebar: the server picker + its nav. Nav links carry the current ?guild=
-// so switching Overview/Leaderboard keeps the chosen server. Wrapped in <Suspense> by the parent
-// because it reads the search params.
 export default function ServerSidebarNav({ Icon, onNavigate }) {
   const path = usePathname();
   const sp = useSearchParams();
   const g = sp.get("guild");
   const q = g ? `?guild=${g}` : "";
+  const active = (href) => path === href;
+
+  const [open, setOpen] = useState(() => {
+    const o = {};
+    for (const s of SECTIONS) o[s.label] = s.items.some(([, slug]) => path === `/dashboard/server/${slug}`);
+    return o;
+  });
+  const toggle = (label) => setOpen((o) => ({ ...o, [label]: !o[label] }));
+
+  const link = (href, label) => (
+    <a key={href} className={`navlink ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>
+      <Icon label={label} /><span>{label}</span>
+    </a>
+  );
+
   return (
     <>
       <ServerPicker />
-      <div className="navsec">Server Management</div>
-      {ITEMS.map((n) => (
-        <a key={n.href} className={`navlink ${path === n.href ? "active" : ""}`} href={`${n.href}${q}`} onClick={onNavigate}>
-          <Icon label={n.label} /><span>{n.label}</span>
-        </a>
+      {TOP.map((n) => link(n.href, n.label))}
+      {SECTIONS.map((sec) => (
+        <div className="nav-group" key={sec.label}>
+          <button className={`nav-group-h ${open[sec.label] ? "on" : ""}`} onClick={() => toggle(sec.label)} aria-expanded={!!open[sec.label]}>
+            <Icon label={sec.label} /><span>{sec.label}</span>
+            <svg className="nav-chev" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          {open[sec.label] && (
+            <div className="nav-sub">
+              {sec.items.map(([label, slug]) => {
+                const href = `/dashboard/server/${slug}`;
+                return <a key={slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{label}</a>;
+              })}
+            </div>
+          )}
+        </div>
       ))}
+      {BOTTOM.map((n) => link(n.href, n.label))}
     </>
   );
 }

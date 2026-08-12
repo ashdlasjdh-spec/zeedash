@@ -1,0 +1,83 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+
+// Reusable feature config card for the Server Management portal. Renders an Enable toggle (OFF by
+// default) + the feature's fields, and persists to /api/guild-settings for the selected server
+// (?guild=). The bot reads the same store and does nothing while the feature is disabled.
+export default function FeatureSettings({ feature, title, description, fields = [] }) {
+  const sp = useSearchParams();
+  const guildParam = sp.get("guild") || "";
+  const [guilds, setGuilds] = useState([]);
+  const [enabled, setEnabled] = useState(false);
+  const [config, setConfig] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
+  }, []);
+  const guild = guildParam || guilds[0]?.id || "";
+
+  useEffect(() => {
+    if (!guild) return;
+    setLoading(true);
+    fetch(`/api/guild-settings?guild=${guild}`)
+      .then((r) => r.json())
+      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [guild, feature]);
+
+  const setField = (k, v) => setConfig((c) => ({ ...c, [k]: v }));
+  const save = async () => {
+    if (!guild) return;
+    setSaving(true); setToast(null);
+    try {
+      const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled, config }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: enabled ? "Saved — feature is ON." : "Saved — feature is OFF." });
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setSaving(false);
+  };
+
+  if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
+
+  return (
+    <div className="card" style={{ maxWidth: 720 }}>
+      <div className="between" style={{ gap: 14, alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
+          {description && <div className="muted" style={{ fontSize: 13, marginTop: 3 }}>{description}</div>}
+        </div>
+        <label className="switch" title={enabled ? "Enabled" : "Disabled"}>
+          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+          <span className="switch-track"><span className="switch-thumb" /></span>
+        </label>
+      </div>
+
+      <div style={{ marginTop: 16, opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? "auto" : "none", display: "flex", flexDirection: "column", gap: 13 }}>
+        {fields.map((f) => (
+          <div key={f.key}>
+            <label>{f.label}</label>
+            {f.type === "textarea" ? (
+              <textarea rows={f.rows || 3} value={config[f.key] || ""} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} />
+            ) : f.type === "bool" ? (
+              <div><label className="switch sm"><input type="checkbox" checked={!!config[f.key]} onChange={(e) => setField(f.key, e.target.checked)} /><span className="switch-track"><span className="switch-thumb" /></span></label></div>
+            ) : (
+              <input className={f.mono ? "mono" : ""} value={config[f.key] || ""} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} inputMode={f.numeric ? "numeric" : undefined} />
+            )}
+            {f.hint && <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{f.hint}</div>}
+          </div>
+        ))}
+      </div>
+
+      <div className="row" style={{ marginTop: 18 }}>
+        <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
+      </div>
+      {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+    </div>
+  );
+}
