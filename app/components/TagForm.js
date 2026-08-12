@@ -90,6 +90,7 @@ export default function TagForm() {
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [list, setList] = useState(null); const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [q, setQ] = useState("");
   const up = (k, v) => setF((s) => ({ ...s, [k]: v }));
 
   const setColor = (i, v) => setF((s) => ({ ...s, colors: s.colors.map((x, idx) => (idx === i ? v : x)) }));
@@ -142,11 +143,19 @@ export default function TagForm() {
     } catch (e) { setT({ bad: true, msg: e.message }); }
   }
 
+  // Filter the loaded tags by group ID (primary), tag text, or exact rank.
+  const needle = q.trim().toLowerCase();
+  const filtered = list == null ? null : (needle
+    ? list.filter((t) => String(t.group).toLowerCase().includes(needle)
+        || (t.name || "").toLowerCase().includes(needle)
+        || (t.rank != null && String(t.rank) === needle))
+    : list);
+
   return (
     <>
       <div className="card">
         <div style={{ display: "flex", gap: 22, alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 320 }}>
+          <div style={{ flex: 1, minWidth: 260 }}>
             <div className="grid g2">
               <div><label>Group ID</label><input className="mono" value={f.groupId} onChange={(e) => up("groupId", e.target.value)} placeholder="1099600954" /></div>
               <div><label>Rank (blank = whole group)</label><input className="mono" value={f.rank} onChange={(e) => up("rank", e.target.value)} placeholder="e.g. 255" /></div>
@@ -222,9 +231,18 @@ export default function TagForm() {
           <div><div style={{ fontWeight: 700, fontSize: 15 }}>Existing crew tags</div><div className="muted" style={{ fontSize: 13 }}>Every tag in the shared database. Edit reloads it into the form above.</div></div>
           <button className="btn ghost" style={{ width: "auto" }} disabled={loading} onClick={load}>{loading ? "Loading…" : list ? "Refresh" : "Load"}</button>
         </div>
-        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No tags yet.</p> : (
+        {list && list.length > 0 && (
+          <div className="row" style={{ marginTop: 14, alignItems: "center" }}>
+            <input className="mono" style={{ flex: 1, minWidth: 0 }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by group ID, tag text, or rank…" inputMode="search" aria-label="Search crew tags by group ID" />
+            {q && <button className="btn ghost" style={{ width: "auto" }} onClick={() => setQ("")}>Clear</button>}
+          </div>
+        )}
+        {list && q && <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>Showing {filtered.length} of {list.length} tag{list.length === 1 ? "" : "s"}.</div>}
+        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No tags yet.</p> : filtered.length === 0 ? (
+          <p className="muted" style={{ marginTop: 14 }}>No tags match “{q}”. Group IDs are numeric — try just the digits.</p>
+        ) : (
           <div className="stack" style={{ marginTop: 14 }}>
-            {list.map((t) => (
+            {filtered.map((t) => (
               <div key={t.group + ":" + t.rank} className="between" style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 13px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <span style={{ fontWeight: 800, fontStyle: "italic", backgroundImage: `linear-gradient(180deg, ${t.colors.map(toHex).join(", ")})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>{t.name || "(no text)"}</span>
