@@ -8,6 +8,7 @@ import LivePlayers from "../components/LivePlayers";
 import { getLivePlayers } from "@/lib/gamestats";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "../components/ProfileLinks";
 import LocalTime from "../components/LocalTime";
+import PortalChooser from "../components/PortalChooser";
 
 export const dynamic = "force-dynamic";
 
@@ -56,11 +57,12 @@ function actionBadge(action) {
   return <span className={`ab ${cls}`}>{a || "action"}</span>;
 }
 
-export default async function Overview() {
+export default async function Overview({ searchParams }) {
   const user = await getSession();
   if (!user) return null;
   const lvl = user.level;
   const seesActivity = canGroup(lvl);
+  const showChooser = (searchParams?.welcome ?? "") === "1";
 
   // --- stats (each independent + best-effort so one failure never blanks the page) ---
   const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };
@@ -104,6 +106,7 @@ export default async function Overview() {
 
   return (
     <div className="fullbleed">
+      {showChooser && <PortalChooser canServer={seesActivity} />}
       {/* HERO */}
       <section className="ov-hero">
         <div className="ov-hero-l">

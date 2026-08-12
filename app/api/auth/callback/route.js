@@ -16,7 +16,7 @@ export async function GET(req) {
     const level = await resolveLevel(du.id);
     if (!level) return NextResponse.redirect(new URL("/?error=denied", req.url));
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/dashboard?welcome=1", req.url));
   } catch (e) {
     return NextResponse.redirect(new URL("/?error=oauth", req.url));
   }

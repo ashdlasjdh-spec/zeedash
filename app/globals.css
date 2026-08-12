@@ -498,6 +498,27 @@ td a:hover{border-color:var(--muted)}
 .lb-val{flex-shrink:0;font-size:13px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
 @media(max-width:1080px){.sa-grid{grid-template-columns:1fr}.lb-card{position:static;max-height:none}.lb-list{max-height:560px}}
 
+/* post-login area chooser (Game / Server management) */
+.pc-overlay{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;
+  background:rgba(0,0,0,.62);backdrop-filter:blur(5px);animation:fade .22s ease}
+.pc-modal{position:relative;width:100%;max-width:560px;background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:var(--shadow);text-align:center;animation:pcpop .26s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pcpop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.pc-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.pc-title{font-size:26px;font-weight:800;letter-spacing:-.6px;margin:0 0 6px;color:var(--white)}
+.pc-sub{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+.pc-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pc-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;cursor:pointer;
+  padding:24px 16px;border-radius:15px;background:var(--bg-2);border:1px solid var(--line);color:var(--text);
+  transition:transform .14s ease,border-color .18s ease,background .18s ease}
+.pc-card:hover:not(:disabled){transform:translateY(-3px);border-color:rgba(63,185,80,.5);background:linear-gradient(180deg,var(--surface-3),var(--surface-2))}
+.pc-card:disabled{opacity:.42;cursor:not-allowed}
+.pc-ico{font-size:34px;line-height:1;margin-bottom:4px}
+.pc-c-t{font-weight:800;font-size:15.5px;color:var(--white)}
+.pc-c-s{font-size:12px;color:var(--muted);line-height:1.35}
+@media(max-width:520px){.pc-cards{grid-template-columns:1fr}.pc-modal{padding:24px}.pc-title{font-size:22px}}
+
 @media(max-width:960px){.ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ov-grid{grid-template-columns:1fr}}
 @media(max-width:560px){
   .ov-hero{padding:22px}.ov-hero h1{font-size:25px}.ov-clock{font-size:30px}
