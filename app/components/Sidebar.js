@@ -27,6 +27,9 @@ const ICON = {
   "Temp Grants": ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 7.5v5l3 2"],
   Analytics: ["M3 21h18", "M6 21V11", "M11 21V5", "M16 21V14", "M21 21V8"],
   Server: ["M3 12h4l2.5 7 4-15L16 12h5"],
+  Overview: ["M4 4h7v7H4z", "M13 4h7v7h-7z", "M4 13h7v7H4z", "M13 13h7v7h-7z"],
+  Leaderboard: ["M8 21h8", "M12 17v4", "M7 4h10v4a5 5 0 0 1-10 0z", "M7 6H4v2a3 3 0 0 0 3 3", "M17 6h3v2a3 3 0 0 0-3 3"],
+  Channels: ["M4 9h16", "M4 15h16", "M10 3 8 21", "M16 3l-2 18"],
   Settings: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M19.4 13a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 5.4 13H5a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 6.7 6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 11 4.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9z"],
 };
 function Icon({ label }) {
@@ -64,9 +67,8 @@ const NAV = [
   { sec: "Group", needGroupAny: true },
   { href: "/dashboard/group", label: "Group", needGroupAny: true },
 
-  { sec: "Insights", needGroup: true },
+  { sec: "Insights", needConfig: true },
   { href: "/dashboard/audit", label: "Audit Log", needConfig: true },
-  { href: "/dashboard/server", label: "Server", needGroup: true },
 
   { sec: "Manage", needManage: true },
   { href: "/dashboard/whitelist", label: "Whitelist", need: "cofounder" },
@@ -75,9 +77,16 @@ const NAV = [
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];
 
+// Server Management is its own portal with its own sidebar (Discord-side, not game-side).
+const SERVER_NAV = [
+  { href: "/dashboard/server", label: "Overview" },
+  { href: "/dashboard/server/leaderboard", label: "Leaderboard" },
+];
+
 export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge }) {
   const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
+  const portal = path.startsWith("/dashboard/server") ? "server" : "game";
   const [open, setOpen] = useState(false);
   // Close the mobile drawer whenever the route changes.
   useEffect(() => { setOpen(false); }, [path]);
@@ -98,6 +107,21 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       {open && <div className="side-backdrop" onClick={() => setOpen(false)} />}
       <aside className={`side ${open ? "open" : ""}`}>
         <div className="brand side-brand">zhd<span>.lol</span></div>
+
+      {/* Portal switcher — Game vs Server Management, each its own sidebar below. */}
+      {canGroup && (
+        <div className="side-portals">
+          <a className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)}>🎮 Game</a>
+          <a className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)}>💬 Server</a>
+        </div>
+      )}
+
+      {portal === "server" ? (
+        <>
+          <div className="navsec">Server Management</div>
+          {SERVER_NAV.map((n) => link(n.href, n.label))}
+        </>
+      ) : (<>
       {link("/dashboard", "Overview")}
       {NAV.map((n, i) => {
         if (n.sec) {
@@ -106,6 +130,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
           if (n.needBan && !canBan) return null;
           if (n.needGroupAny && !canGroupAny) return null;
           if (n.needGroup && !canGroup) return null;
+          if (n.needConfig && !canConfig) return null;
           if (n.needManage && !isCofounderPlus && !canPurge) return null;
           return <div key={i} className="navsec">{n.sec}</div>;
         }
@@ -119,6 +144,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
         if (n.perm && !grants.includes(n.perm)) return null;
         return link(n.href, n.label);
       })}
+      </>)}
       <div className="side-foot">
         <div className="avatar" style={user.avatar ? { background: "transparent", overflow: "hidden" } : undefined}>
           {user.avatar
