@@ -1,19 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useGuildMeta, MetaSelect } from "./metaFields";
+import { useGuildMeta, useGuilds, MetaSelect } from "./metaFields";
 
 // Compose an embed/message on the web, save it, then post it with /sendembed in the server.
 // (The bot has no inbound endpoint, so publishing goes through a Discord admin command.)
 export default function MessageBuilder() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [f, setF] = useState({ channel: "", content: "", title: "", description: "", color: "#7c5cff", image: "", footer: "" });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, true);
 

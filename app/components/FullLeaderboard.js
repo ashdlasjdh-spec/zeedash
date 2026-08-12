@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import DiscordAvatar from "./DiscordAvatar";
 import { DiscordLink } from "./ProfileLinks";
+import { useGuilds } from "./metaFields";
 
 const RANGES = [7, 14, 30, 90];
 const METRICS = [
@@ -16,15 +17,11 @@ const METRICS = [
 export default function FullLeaderboard() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [days, setDays] = useState(30);
   const [metric, setMetric] = useState("messages");
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
-  }, []);
 
   const guild = guildParam || guilds[0]?.id || "";
 

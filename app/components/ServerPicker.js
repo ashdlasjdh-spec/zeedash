@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useGuilds } from "./metaFields";
 
 const iconUrl = (g) => (g?.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=64` : null);
 
@@ -15,16 +16,13 @@ function Ava({ g, size = 26 }) {
 // ?guild= URL param — the analytics + leaderboard pages read the same param, so picking a server
 // here re-scopes everything. Fetches the server list (with Discord icons) once.
 export default function ServerPicker() {
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
   const wrap = useRef(null);
 
-  useEffect(() => {
-    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
-  }, []);
   useEffect(() => {
     const onDoc = (e) => { if (wrap.current && !wrap.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", onDoc);

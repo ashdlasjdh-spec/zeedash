@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
+import { useGuildMeta, useGuilds, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
 import Dropdown from "./Dropdown";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
@@ -38,16 +38,13 @@ function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) 
 export default function FeatureSettings({ feature, title, description, fields = [] }) {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [enabled, setEnabled] = useState(false);
   const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
-  }, []);
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta(fields));
 

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useGuilds } from "./metaFields";
 
 const PRESETS = [[1, "Profanity"], [2, "Sexual content"], [3, "Slurs"]];
 
@@ -9,13 +10,12 @@ const PRESETS = [[1, "Profanity"], [2, "Sexual content"], [3, "Slurs"]];
 export default function AutomodRules() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [rules, setRules] = useState(null);
   const [err, setErr] = useState(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
 
   useEffect(() => {

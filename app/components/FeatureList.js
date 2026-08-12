@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useGuildMeta, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect, OptionMultiSelect } from "./metaFields";
+import { useGuildMeta, useGuilds, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect, OptionMultiSelect } from "./metaFields";
 import Dropdown from "./Dropdown";
 
 // Feature config for list-style features (autoresponder, autoreact, reaction roles). Enable toggle +
@@ -9,14 +9,13 @@ import Dropdown from "./Dropdown";
 export default function FeatureList({ feature, title, description, columns, addLabel = "Add entry" }) {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
-  const [guilds, setGuilds] = useState([]);
+  const guilds = useGuilds();
   const [enabled, setEnabled] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => { fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {}); }, []);
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta([{ cols: columns }]));
 

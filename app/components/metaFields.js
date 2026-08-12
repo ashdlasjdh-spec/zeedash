@@ -2,6 +2,19 @@
 import { useState, useEffect } from "react";
 import Dropdown from "./Dropdown";
 
+// Shared, cached list of servers (the picker + every feature page use it). Returns the cached list
+// instantly on navigation so pages never flash "No servers yet" / "No server available" while loading.
+let guildsCache = null;
+export function useGuilds() {
+  const [guilds, setGuilds] = useState(() => guildsCache || []);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => { const g = j.guilds || []; guildsCache = g; if (alive) setGuilds(g); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  return guilds;
+}
+
 // Field/column types that become dropdowns populated from the guild's channels/roles.
 // "roles" (plural) is a multi-select (chip picker); the rest are single selects.
 export const META_TYPES = ["channel", "voice", "category", "role", "roles"];
