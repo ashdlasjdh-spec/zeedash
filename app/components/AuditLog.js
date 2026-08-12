@@ -16,7 +16,7 @@ const A_GREEN = new Set(["grant", "accept", "rank", "promote", "acceptall", "unb
 const A_RED = new Set(["revoke", "ban", "kick", "exile", "decline", "declineall", "wipe", "warn", "blacklist", "purge"]);
 const actionColor = (a) => {
   a = String(a || "").toLowerCase();
-  return A_GREEN.has(a) ? "#4ade80" : A_RED.has(a) ? "var(--danger)" : "var(--text)";
+  return A_GREEN.has(a) ? "var(--success)" : A_RED.has(a) ? "var(--danger)" : "var(--text)";
 };
 
 export default function AuditLog() {
