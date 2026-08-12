@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import Dropdown from "./Dropdown";
+import { useSearchParams } from "next/navigation";
 import DiscordAvatar from "./DiscordAvatar";
 import { DiscordLink } from "./ProfileLinks";
 
@@ -11,22 +11,22 @@ const METRICS = [
   { k: "reactions", label: "Reactions", unit: "" },
 ];
 
-// Full-page member leaderboard (Server Management portal). Top 50 by the chosen metric, per guild
-// and window, with a rank bar. Reuses /api/server-stats (guild list) + /api/server-stats/members.
+// Full-page member leaderboard (Server Management portal). The server is chosen from the sidebar
+// picker (?guild= URL param); this shows top 50 by the chosen metric + window, with a rank bar.
 export default function FullLeaderboard() {
+  const sp = useSearchParams();
+  const guildParam = sp.get("guild") || "";
   const [guilds, setGuilds] = useState([]);
-  const [guild, setGuild] = useState("");
   const [days, setDays] = useState(30);
   const [metric, setMetric] = useState("messages");
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
-    fetch("/api/server-stats?days=30")
-      .then((r) => r.json())
-      .then((j) => { setGuilds(j.guilds || []); setGuild((g) => g || j.guild || ""); })
-      .catch(() => {});
+    fetch("/api/server-stats/guilds").then((r) => r.json()).then((j) => setGuilds(j.guilds || [])).catch(() => {});
   }, []);
+
+  const guild = guildParam || guilds[0]?.id || "";
 
   const load = useCallback(async (silent = false) => {
     if (!guild) return;
@@ -56,17 +56,14 @@ export default function FullLeaderboard() {
 
   return (
     <div className="card">
-      <div className="between" style={{ marginBottom: 16, gap: 10, flexWrap: "wrap" }}>
-        <Dropdown value={guild} onChange={(e) => setGuild(e.target.value)} style={{ width: "auto" }} minWidth={220} options={guilds.map((g) => ({ value: g.guildId, label: g.guildName }))} />
-        <div className="row" style={{ gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-          {METRICS.map((m) => (
-            <button key={m.k} className={`btn ${metric === m.k ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 12px", fontSize: 12.5 }} onClick={() => setMetric(m.k)}>{m.label}</button>
-          ))}
-          <span style={{ width: 8 }} />
-          {RANGES.map((d) => (
-            <button key={d} className={`btn ${days === d ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 11px" }} onClick={() => setDays(d)}>{d}d</button>
-          ))}
-        </div>
+      <div className="row" style={{ marginBottom: 16, gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+        {METRICS.map((m) => (
+          <button key={m.k} className={`btn ${metric === m.k ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 12px", fontSize: 12.5 }} onClick={() => setMetric(m.k)}>{m.label}</button>
+        ))}
+        <span style={{ width: 8 }} />
+        {RANGES.map((d) => (
+          <button key={d} className={`btn ${days === d ? "" : "ghost"}`} style={{ width: "auto", padding: "7px 11px" }} onClick={() => setDays(d)}>{d}d</button>
+        ))}
       </div>
 
       {err ? <div className="toast bad">{err}</div>

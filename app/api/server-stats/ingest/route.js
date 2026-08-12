@@ -10,22 +10,23 @@ export async function POST(req) {
   if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad JSON" }, { status: 400 }); }
-  const { guildId, guildName, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [], users = [] } = body || {};
+  const { guildId, guildName, guildIcon = null, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [], users = [] } = body || {};
   if (!guildId) return NextResponse.json({ error: "guildId required" }, { status: 400 });
 
   try {
     await ensureSchema();
     await query(
-      `insert into server_stats (guild_id, day, guild_name, messages, reactions, voice_minutes, members, updated_at)
-       values ($1, current_date, $2, $3, $4, $5, $6, now())
+      `insert into server_stats (guild_id, day, guild_name, guild_icon, messages, reactions, voice_minutes, members, updated_at)
+       values ($1, current_date, $2, $3, $4, $5, $6, $7, now())
        on conflict (guild_id, day) do update set
          messages = server_stats.messages + excluded.messages,
          reactions = server_stats.reactions + excluded.reactions,
          voice_minutes = server_stats.voice_minutes + excluded.voice_minutes,
          guild_name = coalesce(excluded.guild_name, server_stats.guild_name),
+         guild_icon = coalesce(excluded.guild_icon, server_stats.guild_icon),
          members = coalesce(excluded.members, server_stats.members),
          updated_at = now()`,
-      [String(guildId), guildName || null, Math.round(messages) || 0, Math.round(reactions) || 0, Math.round(voiceMinutes) || 0, members == null ? null : Math.round(members)],
+      [String(guildId), guildName || null, guildIcon || null, Math.round(messages) || 0, Math.round(reactions) || 0, Math.round(voiceMinutes) || 0, members == null ? null : Math.round(members)],
     );
     for (const ch of Array.isArray(channels) ? channels.slice(0, 200) : []) {
       if (!ch?.id || !ch?.messages) continue;

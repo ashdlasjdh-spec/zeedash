@@ -1,7 +1,8 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { pillClassForLevel } from "@/lib/permissions";
+import ServerSidebarNav from "./ServerSidebarNav";
 
 // Feather-style line icons (inner paths), keyed by label.
 const ICON = {
@@ -77,12 +78,6 @@ const NAV = [
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
 ];
 
-// Server Management is its own portal with its own sidebar (Discord-side, not game-side).
-const SERVER_NAV = [
-  { href: "/dashboard/server", label: "Overview" },
-  { href: "/dashboard/server/leaderboard", label: "Leaderboard" },
-];
-
 export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge }) {
   const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
@@ -117,10 +112,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       )}
 
       {portal === "server" ? (
-        <>
-          <div className="navsec">Server Management</div>
-          {SERVER_NAV.map((n) => link(n.href, n.label))}
-        </>
+        <Suspense fallback={null}><ServerSidebarNav Icon={Icon} onNavigate={() => setOpen(false)} /></Suspense>
       ) : (<>
       {link("/dashboard", "Overview")}
       {NAV.map((n, i) => {

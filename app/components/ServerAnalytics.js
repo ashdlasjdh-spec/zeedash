@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import Dropdown from "./Dropdown";
+import { useSearchParams } from "next/navigation";
 import { fmt, AreaChart, Spark } from "./chart";
 import MemberLeaderboard from "./MemberLeaderboard";
 
@@ -24,8 +24,9 @@ function fillSeries(series, days) {
 }
 
 export default function ServerAnalytics() {
+  const sp = useSearchParams();
+  const guild = sp.get("guild") || ""; // driven by the sidebar server picker (empty = API picks first)
   const [data, setData] = useState(null);
-  const [guild, setGuild] = useState("");
   const [days, setDays] = useState(30);
   const [metric, setMetric] = useState("messages");
   const [loading, setLoading] = useState(true);
@@ -39,7 +40,6 @@ export default function ServerAnalytics() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
       setData(j);
-      if (!g && j.guild) setGuild(j.guild);
     } catch (e) { if (!silent) setErr(e.message); }
     if (!silent) setLoading(false);
   }, []);
@@ -75,8 +75,7 @@ export default function ServerAnalytics() {
 
   return (
     <>
-      <div className="between" style={{ marginBottom: 16, gap: 10 }}>
-        <Dropdown value={guild} onChange={(e) => setGuild(e.target.value)} style={{ width: "auto" }} minWidth={220} options={guilds.map((g) => ({ value: g.guildId, label: g.guildName }))} />
+      <div className="row" style={{ marginBottom: 16, gap: 6, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
         <div className="row" style={{ gap: 6, alignItems: "center" }}>
           <span className="pill" title="Auto-updates every 30s"><span className="livedot" /> Live</span>
           {RANGES.map((d) => (
@@ -132,7 +131,7 @@ export default function ServerAnalytics() {
           </div>
         </div>
 
-        <MemberLeaderboard guild={guild} days={days} />
+        <MemberLeaderboard guild={data.guild || guild} days={days} />
       </div>
     </>
   );
