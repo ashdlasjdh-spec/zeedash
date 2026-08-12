@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 // Discord avatar for an audit actor. Resolves through /api/discord-avatar (bot token, cached
 // server-side); requests are batched per tick and cached for the session. Falls back to the
@@ -28,7 +28,7 @@ function resolve(id) {
   });
 }
 
-export default function DiscordAvatar({ actorId, name, size = 32 }) {
+function DiscordAvatar({ actorId, name, size = 32 }) {
   const valid = actorId && /^\d{5,}$/.test(String(actorId));
   const [src, setSrc] = useState(() => (valid ? cache.get(String(actorId)) || "" : ""));
   useEffect(() => {
@@ -42,3 +42,7 @@ export default function DiscordAvatar({ actorId, name, size = 32 }) {
   if (src) return <img src={src} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" style={{ ...box, objectFit: "cover", background: "var(--surface-3)", border: "1px solid var(--line)" }} />;
   return <div className="ov-av" style={box}>{initials}</div>;
 }
+
+// Pure component keyed only on actorId/name/size — memoized so re-renders of the
+// leaderboards (top-50 lists, 15s polling, metric toggles) skip unchanged rows.
+export default memo(DiscordAvatar);

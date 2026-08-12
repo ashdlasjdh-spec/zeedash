@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 // Roblox retired the old headshot-thumbnail/image direct URL, and the Thumbnails API
 // (which replaces it) returns JSON and blocks cross-origin browser calls — so we resolve
@@ -35,7 +35,7 @@ function resolveAvatar(userId) {
   });
 }
 
-export default function Avatar({ userId, size = 32 }) {
+function Avatar({ userId, size = 32 }) {
   const [src, setSrc] = useState(() => cache.get(String(userId)) || "");
   useEffect(() => {
     let alive = true;
@@ -49,3 +49,7 @@ export default function Avatar({ userId, size = 32 }) {
     ? <img src={src} alt="" width={size} height={size} loading="lazy" style={base} />
     : <span style={base} aria-hidden="true" />;
 }
+
+// Pure component keyed only on userId/size — memoized so re-renders of big lists
+// (the 200-row ban list, ban-list polling, search keystrokes) don't re-render every avatar.
+export default memo(Avatar);

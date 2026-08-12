@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 
 // Shared chart primitives — used by both the Server analytics and Moderation analytics pages so
 // their graphs are literally the same component.
@@ -57,25 +57,33 @@ export function smooth(p) {
   return d;
 }
 
+const AC_W = 1000, AC_H = 240, AC_PAD = { l: 48, r: 16, t: 18, b: 26 };
+
 export function AreaChart({ series, label = "messages", accessor = (s) => s.messages, color = "#ffffff" }) {
   const [hi, setHi] = useState(null);
   const wrapRef = useRef(null);
   const uid = color.replace(/[^a-z0-9]/gi, "");
   const fillId = "af" + uid, glowId = "ag" + uid;
-  const W = 1000, H = 240, pad = { l: 48, r: 16, t: 18, b: 26 };
-  const vals = series.map(accessor);
-  const rawMax = Math.max(0, ...vals.map((v) => Math.max(0, v)));
-  const { top, ticks: yTicks } = niceScale(rawMax, 4);
-  const { pts } = points(vals, W, H, pad, top);
-  const line = smooth(pts);
+  const W = AC_W, H = AC_H, pad = AC_PAD;
   const base = H - pad.b;
-  const area = pts.length ? `${line} L${pts[pts.length - 1].x},${base} L${pts[0].x},${base} Z` : "";
-  const n = series.length;
-  const want = n <= 14 ? n : n <= 30 ? 8 : 7;
-  const step = Math.max(1, Math.round((n - 1) / (want - 1)));
-  const xIdx = [];
-  for (let i = 0; i < n; i += step) xIdx.push(i);
-  if (xIdx[xIdx.length - 1] !== n - 1) xIdx.push(n - 1);
+  // Geometry depends only on the data (series/accessor), NOT on the hovered index. Memoize it so
+  // the Fritsch–Carlson smoothing + point/scale math isn't recomputed on every mousemove (which
+  // only moves the hover marker). Same values as before — purely a caching change.
+  const { vals, yTicks, pts, line, area, n, xIdx } = useMemo(() => {
+    const vals = series.map(accessor);
+    const rawMax = Math.max(0, ...vals.map((v) => Math.max(0, v)));
+    const { top, ticks: yTicks } = niceScale(rawMax, 4);
+    const { pts } = points(vals, W, H, pad, top);
+    const line = smooth(pts);
+    const area = pts.length ? `${line} L${pts[pts.length - 1].x},${base} L${pts[0].x},${base} Z` : "";
+    const n = series.length;
+    const want = n <= 14 ? n : n <= 30 ? 8 : 7;
+    const step = Math.max(1, Math.round((n - 1) / (want - 1)));
+    const xIdx = [];
+    for (let i = 0; i < n; i += step) xIdx.push(i);
+    if (xIdx[xIdx.length - 1] !== n - 1) xIdx.push(n - 1);
+    return { vals, yTicks, pts, line, area, n, xIdx };
+  }, [series, accessor]);
 
   function onMove(e) {
     const el = wrapRef.current; if (!el || n < 1) return;
