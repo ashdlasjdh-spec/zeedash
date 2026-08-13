@@ -1,16 +1,19 @@
-import { getSession } from "@/lib/session";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // Resolve a Roblox asset's image URL via the Thumbnails API (server-side — the direct
 // asset-thumbnail/image URL is retired and the API blocks cross-origin browser calls).
-// Used by the crew-tag live preview to show the uploaded decal icon. Cached 1h.
+// Used by the crew-tag live preview (dashboard AND the public /preview tool) to show a decal icon —
+// it only returns PUBLIC Roblox thumbnail URLs, so it's open, with a per-IP rate limit to prevent
+// someone hammering the upstream Roblox API. Cached 1h.
 const cache = new Map(); // assetId -> { url, at }
 const TTL = 60 * 60 * 1000;
 
 export async function GET(req) {
-  if (!(await getSession())) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  const rl = await rateLimit(`assetthumb:${clientIp(req)}`, { max: 60, windowSec: 60 });
+  if (!rl.ok) return NextResponse.json({ url: "" }, { status: 429, headers: { "retry-after": "20" } });
   const id = (new URL(req.url).searchParams.get("id") || "").match(/\d+/)?.[0];
   if (!id) return NextResponse.json({ url: "" });
 

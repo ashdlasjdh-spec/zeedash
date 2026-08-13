@@ -7,6 +7,7 @@ export default async function Login({ searchParams }) {
     denied: "You're not whitelisted. Ask an owner to add you.",
     state: "Login expired — try again.",
     oauth: "Discord sign-in failed — try again.",
+    busy: "Too many attempts — wait a moment and try again.",
   };
   const msg = errors[searchParams?.error];
   return (
@@ -16,6 +17,7 @@ export default async function Login({ searchParams }) {
         <div className="login-sub">Zee [MACRO!] staff control panel</div>
         <a className="btn" href="/api/auth/login">Continue with Discord</a>
         {msg && <div className="err">{msg}</div>}
+        <a className="muted" href="/preview" style={{ display: "inline-block", marginTop: 16, fontSize: 13 }}>Preview crew tags &amp; emojis →</a>
       </div>
     </div>
   );
