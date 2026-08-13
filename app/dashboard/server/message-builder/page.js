@@ -12,7 +12,7 @@ export default async function Page() {
   if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
-      <PageHeader icon="list" title="Message Builder" subtitle="Compose an embed on the web, then run /sendembed in your server to post it." />
+      <PageHeader icon="list" title="Message Builder" subtitle="Compose an embed on the web and post it straight to a channel — instantly." />
       <MessageBuilder />
     </div>
   );
