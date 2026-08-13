@@ -15,8 +15,14 @@ const nextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(), usb=(), bluetooth=()" },
           { key: "X-DNS-Prefetch-Control", value: "off" },
+          // Cross-origin isolation: put this page in its own browsing-context group so another origin
+          // can't grab a handle to our window (XS-Leaks / cross-window attacks). Safe here because our
+          // OAuth flow is a top-level redirect, not a popup that relies on window.opener.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Legacy Adobe cross-domain policy files are never valid for this site.
+          { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
         ],
       },
     ];

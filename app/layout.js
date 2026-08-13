@@ -11,5 +11,15 @@ export const viewport = { width: "device-width", initialScale: 1, viewportFit: "
 // Roblox calls) during the build's "Collecting page data" step.
 export const dynamic = "force-dynamic";
 export default function RootLayout({ children }) {
-  return (<html lang="en" className={inter.variable}><body className={inter.className}>{children}</body></html>);
+  return (
+    <html lang="en" className={inter.variable}>
+      <head>
+        {/* Warm up the TLS connection to Discord's CDN — avatars load from here on nearly every page
+            (sidebar, topbar, activity feed, leaderboards), so preconnecting shaves their first paint. */}
+        <link rel="preconnect" href="https://cdn.discordapp.com" />
+        <link rel="dns-prefetch" href="https://cdn.discordapp.com" />
+      </head>
+      <body className={inter.className}>{children}</body>
+    </html>
+  );
 }

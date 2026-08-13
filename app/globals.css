@@ -19,6 +19,12 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg)}
+/* Global media/overflow guards: no image, video, or long unbroken string can push the layout wider
+   than the screen on mobile (e.g. an embed preview image, a pasted URL, or a long ID). Scoped to
+   raster media so it never touches the explicitly-sized inline icon SVGs. */
+img,video{max-width:100%;height:auto}
+pre{overflow-x:auto}
+html{-webkit-text-size-adjust:100%}   /* stop iOS auto-inflating text in landscape */
 body{
   color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:.1px;
