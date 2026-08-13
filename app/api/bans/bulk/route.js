@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canBulkBan } from "@/lib/permissions";
+import { limited } from "@/lib/ratelimit";
 import { resolveUsername } from "@/lib/roblox";
 import { getConfig } from "@/lib/config";
 import { logAudit } from "@/lib/db";
@@ -32,6 +33,7 @@ async function setRestriction(url, key, gameJoinRestriction) {
 export async function POST(req) {
   const s = await getSession();
   if (!s || !canBulkBan(s.level)) return NextResponse.json({ error: "Bulk ban/unban is co owners+ only." }, { status: 403 });
+  const capped = await limited(`bulkban:${s.id}`, { max: 10, windowSec: 60 }); if (capped) return capped;
 
   const { users, action = "ban", reason } = await req.json();
   const isBan = action === "ban";

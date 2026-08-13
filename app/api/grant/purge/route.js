@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canPurge } from "@/lib/permissions";
+import { limited } from "@/lib/ratelimit";
 import { applyGrant, PERK_FIELD } from "@/lib/grantEngine";
 import { listPerks } from "@/lib/perksApi";
 import { logAudit, query } from "@/lib/db";
@@ -23,6 +24,7 @@ export async function POST(req) {
   const s = await getSession();
   if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   if (!canPurge(s.id)) return NextResponse.json({ error: "Only owners can remove all." }, { status: 403 });
+  const capped = await limited(`purge:${s.id}`, { max: 10, windowSec: 60 }); if (capped) return capped;
 
   const body = await req.json().catch(() => ({}));
 

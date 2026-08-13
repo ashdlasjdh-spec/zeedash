@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canPurge } from "@/lib/permissions";
+import { limited } from "@/lib/ratelimit";
 import { wipeUserData } from "@/lib/wipe";
 import { NextResponse } from "next/server";
 
@@ -10,6 +11,7 @@ export const maxDuration = 120;
 export async function POST(req) {
   const s = await getSession();
   if (!s || !canPurge(s.id)) return NextResponse.json({ error: "Owner only." }, { status: 403 });
+  const capped = await limited(`wipeuser:${s.id}`, { max: 10, windowSec: 60 }); if (capped) return capped;
   const { username } = await req.json();
   if (!username) return NextResponse.json({ error: "Enter a username or ID." }, { status: 400 });
   const r = await wipeUserData({ username, actorName: s.name, actorId: s.id });

@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { canWhitelist, PURGE_OWNER_IDS } from "@/lib/permissions";
+import { limited } from "@/lib/ratelimit";
 import { query, logAudit, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -19,6 +20,7 @@ export async function GET() {
 export async function POST(req) {
   const s = await getSession();
   if (!s || !canWhitelist(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const capped = await limited(`blacklist:${s.id}`, { max: 20, windowSec: 60 }); if (capped) return capped;
   const { discordId, note } = await req.json();
   const id = String(discordId || "").trim();
   if (!/^\d{5,}$/.test(id)) return NextResponse.json({ error: "Enter a valid Discord user ID." }, { status: 400 });

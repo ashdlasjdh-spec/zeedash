@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
+import { limited } from "@/lib/ratelimit";
 import { resolveUsername } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
 import { applyGrant } from "@/lib/grantEngine";
@@ -17,6 +18,7 @@ export async function POST(req) {
   const { category, key, users, action = "grant" } = await req.json();
   if (!category || !key || !Array.isArray(users) || !users.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   if (!can(s.level, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
+  const capped = await limited(`bulkgrant:${s.id}`, { max: 20, windowSec: 60 }); if (capped) return capped;
   if (!findItem(category, key)) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
 
   const list = [...new Set(users.map((u) => String(u).trim()).filter(Boolean))].slice(0, 500);
