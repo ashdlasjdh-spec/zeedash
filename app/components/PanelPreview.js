@@ -67,8 +67,9 @@ export default function PanelPreview({ mode, config }) {
       const btns = allBtns
         .filter((b) => single || String(b.panel || "") === String(p.name || ""))
         .map((b) => ({ label: b.label, emoji: b.emoji, variant: "primary" })); // tickets are always blurple
-      const title = p.name ? p.name.charAt(0).toUpperCase() + p.name.slice(1) : "Support";
-      return <Message key={pi} title={title} description="Click a button below to open a ticket." buttons={btns} />;
+      const title = p.title ? String(p.title) : (p.name ? p.name.charAt(0).toUpperCase() + p.name.slice(1) : "Support");
+      const description = p.description ? String(p.description) : "Click a button below to open a ticket.";
+      return <Message key={pi} title={title} description={description} buttons={btns} />;
     });
     if (!msgs.length) return <div className="dpv-empty">Add a panel (with a name) and some buttons to preview it.</div>;
     return <div className="dpv-stack">{msgs}</div>;

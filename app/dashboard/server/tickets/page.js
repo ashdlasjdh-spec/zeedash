@@ -9,9 +9,11 @@ export const dynamic = "force-dynamic";
 
 const FIELDS = [
   { key: "panels", label: "Panels (one per channel)", type: "list", addLabel: "Add panel", cols: [
-    { key: "name", label: "Panel name", placeholder: "main", flex: 0.9 },
-    { key: "channel", label: "Channel", type: "channel", flex: 1.2 },
-    { key: "category", label: "Default category", type: "category", flex: 1.2 },
+    { key: "name", label: "Panel name", placeholder: "main", flex: 0.7 },
+    { key: "channel", label: "Channel", type: "channel", flex: 1 },
+    { key: "category", label: "Default category", type: "category", flex: 1 },
+    { key: "title", label: "Panel title (blank = name)", placeholder: "Support", flex: 0.9 },
+    { key: "description", label: "Panel text", placeholder: "Click a button below to open a ticket.", flex: 1.4 },
   ] },
   { key: "buttons", label: "Buttons (assign each to a panel by name)", type: "list", addLabel: "Add ticket type", cols: [
     { key: "panel", label: "Panel", placeholder: "main", flex: 0.6 },
