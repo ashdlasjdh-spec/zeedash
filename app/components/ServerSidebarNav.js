@@ -2,6 +2,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import ServerPicker from "./ServerPicker";
+import { useGuilds } from "./metaFields";
 
 // Feature slugs that are only shown to a guild's owner / antinuke admins (or top staff).
 const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
@@ -26,7 +27,11 @@ const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets", slug: "ti
 export default function ServerSidebarNav({ Icon, onNavigate }) {
   const path = usePathname();
   const sp = useSearchParams();
-  const g = sp.get("guild");
+  const guilds = useGuilds();
+  // Resolve the effective guild the same way the picker and pages do: the ?guild= param, else the
+  // first available server. Without this, landing on the section with no param left the nav with no
+  // guild to check access against, so it hid every feature until a param settled (needed reloads).
+  const g = sp.get("guild") || guilds[0]?.id || "";
   const q = g ? `?guild=${g}` : "";
   const active = (href) => path === href;
 
@@ -37,7 +42,7 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
   const [access, setAccess] = useState(null);
   useEffect(() => {
     let alive = true;
-    if (!g) { setAccess({ manage: false, security: false, manageable: [] }); return; }
+    if (!g) { setAccess(null); return; } // no server resolved yet — stay optimistic (show all) until it loads
     fetch(`/api/guild-access?guild=${g}`)
       .then((r) => r.json())
       .then((j) => { if (alive) setAccess({ manage: !!j.manage, security: !!j.security, manageable: Array.isArray(j.manageable) ? j.manageable : [] }); })
