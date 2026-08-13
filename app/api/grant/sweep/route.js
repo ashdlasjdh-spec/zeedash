@@ -19,6 +19,18 @@ async function handle(req) {
     // Heartbeat: the 24/7 bot pings this endpoint every ~15s, so a fresh last_sweep_at is proof
     // the bot + dashboard + DB are all alive. The Overview status badges read it. Best-effort.
     try { await setConfig("last_sweep_at", new Date().toISOString(), "system"); } catch {}
+    // The bot's ping carries its boot time + build id (POST body). Persist them so /status can show
+    // "bot up Xm · build abc123" — the at-a-glance proof that a redeploy actually took. GET (Vercel
+    // cron) has no body; guard on method + swallow parse errors so the sweep never depends on this.
+    if (req.method === "POST") {
+      try {
+        const b = await req.json();
+        if (b && typeof b === "object") {
+          if (b.bootAt) await setConfig("bot_boot_at", String(b.bootAt).slice(0, 40), "system");
+          if (b.build) await setConfig("bot_build", String(b.build).slice(0, 40), "system");
+        }
+      } catch { /* no/invalid body — heartbeat still counts */ }
+    }
     const due = await query(
       "select user_id, category, item_key from grant_expiry where expires_at <= now() order by expires_at limit 500",
     );

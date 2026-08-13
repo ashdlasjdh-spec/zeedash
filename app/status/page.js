@@ -27,6 +27,16 @@ export default function StatusPage() {
 
   const allOk = s && s.botOnline && s.dbOk && s.robloxOk;
 
+  // "up 3d 4h" / "up 12m" — short human uptime for the bot heartbeat.
+  const fmtUptime = (sec) => {
+    if (sec == null) return "";
+    const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
+    if (d) return `up ${d}d ${h}h`;
+    if (h) return `up ${h}h ${m}m`;
+    if (m) return `up ${m}m`;
+    return "up <1m";
+  };
+
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: "48px 18px 80px" }}>
       <div style={{ textAlign: "center", marginBottom: 30 }}>
@@ -41,6 +51,13 @@ export default function StatusPage() {
         <Row label="Database" ok={s ? s.dbOk : null} />
         <Row label="Roblox game API" ok={s ? s.robloxOk : null} detail={s && s.players != null ? `${s.players} in-game` : ""} />
       </div>
+      {s && s.botOnline && (s.uptimeSec != null || s.build) && (
+        <div className="muted" style={{ textAlign: "center", fontSize: 12, marginTop: 14, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          {s.uptimeSec != null && <span>bot {fmtUptime(s.uptimeSec)}</span>}
+          {s.uptimeSec != null && s.build && <span aria-hidden>·</span>}
+          {s.build && <span>build <code style={{ fontSize: 11.5, background: "var(--surface-2)", padding: "2px 6px", borderRadius: 6 }}>{s.build}</code></span>}
+        </div>
+      )}
       {err && <div className="muted" style={{ textAlign: "center", fontSize: 12.5, marginTop: 16 }}>Couldn&apos;t reach the status service — retrying…</div>}
       <div style={{ textAlign: "center", marginTop: 30, fontSize: 13 }}>
         <a href="/" className="muted">← zhd.lol</a> · <a href="/preview" className="muted">tag &amp; emoji preview</a>
