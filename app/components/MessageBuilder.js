@@ -3,6 +3,23 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, useGuilds, MetaSelect } from "./metaFields";
 
+// Poll the publish queue for the outcome of the job we just enqueued, so a silent failure (bad
+// channel, missing bot permission, bot offline) surfaces instead of a permanent "Queued". Resolves
+// with a toast-shaped { ok, msg } once the bot marks the job done/failed, or after a timeout.
+async function pollPublish(guild, kind, tries = 12, delayMs = 1500) {
+  for (let i = 0; i < tries; i++) {
+    await new Promise((res) => setTimeout(res, delayMs));
+    try {
+      const r = await fetch(`/api/publish/status?guild=${guild}&kind=${kind}`);
+      const j = await r.json();
+      if (j.status === "done") return { ok: true, msg: j.result ? `Sent — ${j.result}.` : "Sent." };
+      if (j.status === "failed") return { ok: false, msg: `Didn't send: ${j.result || "unknown error"}` };
+      // pending / working → the bot hasn't finished yet; keep waiting.
+    } catch { /* transient — keep waiting */ }
+  }
+  return { ok: false, msg: "Still queued — the bot hasn't picked it up. It may be offline or restarting; it'll post when it's back." };
+}
+
 // Compose an embed/message on the web, save it, then post it with /sendembed in the server.
 // (The bot has no inbound endpoint, so publishing goes through a Discord admin command.)
 export default function MessageBuilder() {
@@ -48,7 +65,9 @@ export default function MessageBuilder() {
       const r = await fetch("/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, kind: "message", payload: f }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
-      setToast({ ok: true, msg: "Queued — the bot will post it in a few seconds." });
+      setToast({ ok: true, msg: "Queued — waiting for the bot to post it…" });
+      // Wait for the real outcome so a silent failure (bad channel / missing perms / bot offline) shows.
+      setToast(await pollPublish(guild, "message"));
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setPublishing(false);
   };
