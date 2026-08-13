@@ -1,12 +1,13 @@
 import { getSession } from "@/lib/session";
-import { canManageGuild } from "@/lib/permissions";
+import { canReachGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // Member leaderboard for the Server analytics page — top 50 members by messages, reactions and
-// voice hours in the selected guild + window. Management+ only. Counts only, never content.
+// voice hours in the selected guild + window. Any user with standing in the guild (admin, a manual
+// permission, or antinuke-admin) can view it — it backs the Overview/Leaderboard. Counts, never content.
 const top = (guild, days, col) =>
   query(
     `select user_id, max(username) username, sum(${col})::bigint v from member_stats
@@ -18,7 +19,7 @@ const top = (guild, days, col) =>
 export async function GET(req) {
   const s = await getSession();
   const guild = req.nextUrl.searchParams.get("guild") || "";
-  if (!s || !canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const days = Math.min(90, Math.max(7, parseInt(req.nextUrl.searchParams.get("days") || "30", 10) || 30));
   if (!guild) return NextResponse.json({ messages: [], reactions: [], voice: [] });

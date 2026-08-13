@@ -1,21 +1,24 @@
 import { getSession } from "@/lib/session";
-import { canManageGuild } from "@/lib/permissions";
+import { canManageFeature } from "@/lib/permissions";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // Kinds the bot's publisher knows how to dispatch. Keep in sync with zee-hood-bot/publisher.js.
-const KINDS = new Set(["message", "buttonpanel", "ticketpanel", "reactionseed"]);
+// Each maps to the Server feature that governs it, so a manual-permission holder can publish exactly
+// the kinds their perms unlock (an "administrator" manual perm, or Discord admin, unlocks all of them).
+const KIND_FEATURE = { message: "message-builder", buttonpanel: "button-roles", ticketpanel: "tickets", reactionseed: "reaction-roles" };
 
-// Enqueue a "publish" action from the dashboard (whoever manages the guild). The bot polls
-// /api/publish/pending, executes it in the server, then acks. This is how the site posts embeds /
-// panels without the bot needing an inbound HTTP endpoint. payload is kind-specific.
+// Enqueue a "publish" action from the dashboard (whoever manages the relevant feature in the guild).
+// The bot polls /api/publish/pending, executes it in the server, then acks. This is how the site posts
+// embeds / panels without the bot needing an inbound HTTP endpoint. payload is kind-specific.
 export async function POST(req) {
   const s = await getSession();
   const { guild, kind, payload } = await req.json().catch(() => ({}));
-  if (!s || !canManageGuild(s, guild)) return NextResponse.json({ error: "You don't manage that server." }, { status: 403 });
-  if (!guild || !KINDS.has(String(kind || ""))) return NextResponse.json({ error: "Bad guild/kind." }, { status: 400 });
+  const feature = KIND_FEATURE[String(kind || "")];
+  if (!guild || !feature) return NextResponse.json({ error: "Bad guild/kind." }, { status: 400 });
+  if (!s || !canManageFeature(s, guild, feature)) return NextResponse.json({ error: "You don't have permission to do this in that server." }, { status: 403 });
   try {
     await ensureSchema();
     // Collapse duplicate pending requests of the same kind for a guild (avoid double-posts if the

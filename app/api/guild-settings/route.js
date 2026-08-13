@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canManageGuild, isSecurityFeature } from "@/lib/permissions";
+import { canReachGuild, isSecurityFeature, canManageFeature } from "@/lib/permissions";
 import { canManageSecurity } from "@/lib/guildaccess";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -8,24 +8,27 @@ export const dynamic = "force-dynamic";
 
 const FEATURE = /^[a-z0-9_-]{2,40}$/;
 
-// Per-guild feature settings for the Server Management portal. Access is by the user's Discord
-// permissions in THAT guild (admin/owner), with Roblox staff as an override — NOT the game ladder.
+// Per-guild feature settings for the Server Management portal. Access is by the user's standing in THAT
+// guild — Discord admin/owner, a manual ("fake") permission, or antinuke-admin — NOT the Roblox ladder.
 // GET ?guild=X  -> { settings: { feature: { enabled, config } } }
-//   (security features — antinuke/antiraid — are stripped for anyone without security access)
-// POST { guild, feature, enabled?, config? } -> upsert one feature
-//   (security features require the guild owner / an antinuke admin / top staff)
+//   Only the features the caller may actually manage are returned. A Discord admin sees every
+//   non-security feature; a manual-permission holder sees just the ones their perms unlock; antinuke
+//   admins additionally see antinuke/antiraid. Everything else is withheld (shows as OFF in the UI).
+// POST { guild, feature, enabled?, config? } -> upsert one feature (gated per-feature the same way;
+//   antinuke/antiraid require the guild owner or an antinuke admin — never a plain admin or manual perm).
 export async function GET(req) {
   const s = await getSession();
   const guild = req.nextUrl.searchParams.get("guild") || "";
-  if (!s || !canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!guild) return NextResponse.json({ settings: {} });
   try {
     await ensureSchema();
-    const security = await canManageSecurity(s, guild);
+    const security = await canManageSecurity(s, guild); // one authoritative check, reused for both security rows
     const rows = await query("select feature, enabled, config from guild_settings where guild_id=$1", [guild]);
     const settings = {};
     for (const r of rows) {
-      if (isSecurityFeature(r.feature) && !security) continue; // don't expose antinuke/antiraid config
+      const allowed = isSecurityFeature(r.feature) ? security : canManageFeature(s, guild, r.feature);
+      if (!allowed) continue; // don't expose config for features this user can't manage
       settings[r.feature] = { enabled: !!r.enabled, config: r.config || {} };
     }
     return NextResponse.json({ settings });
@@ -37,10 +40,14 @@ export async function GET(req) {
 export async function POST(req) {
   const s = await getSession();
   const { guild, feature, enabled, config } = await req.json().catch(() => ({}));
-  if (!s || !canManageGuild(s, guild)) return NextResponse.json({ error: "You don't manage that server." }, { status: 403 });
+  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "You don't manage that server." }, { status: 403 });
   if (!guild || !FEATURE.test(String(feature || ""))) return NextResponse.json({ error: "Bad guild/feature." }, { status: 400 });
-  if (isSecurityFeature(feature) && !(await canManageSecurity(s, guild))) {
-    return NextResponse.json({ error: "Only the server owner or an antinuke admin can change this." }, { status: 403 });
+  if (isSecurityFeature(feature)) {
+    if (!(await canManageSecurity(s, guild))) {
+      return NextResponse.json({ error: "Only the server owner or an antinuke admin can change this." }, { status: 403 });
+    }
+  } else if (!canManageFeature(s, guild, feature)) {
+    return NextResponse.json({ error: "You don't have permission to change this feature." }, { status: 403 });
   }
   const en = typeof enabled === "boolean" ? enabled : null;
   const cfg = config == null ? null : JSON.stringify(config);

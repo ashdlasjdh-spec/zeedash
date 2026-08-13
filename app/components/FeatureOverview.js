@@ -14,26 +14,39 @@ const GROUPS = [
 ];
 // feature slug in the store ↔ page slug (mostly identical).
 const STORE_KEY = { "button-roles": "buttonroles", "reaction-roles": "reactionroles", "fake-permissions": "fake-permissions" };
+const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
 
 export default function FeatureOverview() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
   const guilds = useGuilds();
   const [settings, setSettings] = useState(null);
+  const [access, setAccess] = useState(null); // { manage, security, manageable } — same shape as the nav
   const guild = guildParam || guilds[0]?.id || "";
 
   useEffect(() => {
     if (!guild) return;
     setSettings(null);
     fetch(`/api/guild-settings?guild=${guild}`).then((r) => r.json()).then((j) => setSettings(j.settings || {})).catch(() => setSettings({}));
+    fetch(`/api/guild-access?guild=${guild}`).then((r) => r.json())
+      .then((j) => setAccess({ manage: !!j.manage, security: !!j.security, manageable: Array.isArray(j.manageable) ? j.manageable : [] }))
+      .catch(() => setAccess({ manage: false, security: false, manageable: [] }));
   }, [guild]);
 
+  // Only surface features this user may manage (Discord admin sees all; a manual-permission holder
+  // sees just theirs; antinuke admins additionally see antinuke/antiraid). Server also enforces.
+  const canSee = (slug) => {
+    if (!access) return true;
+    if (SECURITY_SLUGS.has(slug)) return access.security;
+    if (access.manage) return true;
+    return access.manageable.includes(slug);
+  };
   const q = guild ? `?guild=${guild}` : "";
   const isOn = (slug) => {
     const key = STORE_KEY[slug] || slug;
     return !!settings?.[key]?.enabled;
   };
-  const enabledCount = settings ? GROUPS.flatMap((g) => g.items).filter(([, slug]) => isOn(slug)).length : 0;
+  const enabledCount = settings ? GROUPS.flatMap((g) => g.items).filter(([, slug]) => canSee(slug) && isOn(slug)).length : 0;
 
   return (
     <div className="card" style={{ marginBottom: 16 }}>
@@ -45,11 +58,14 @@ export default function FeatureOverview() {
         {settings && <span className="muted" style={{ fontSize: 12.5 }}>{enabledCount} enabled</span>}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
-        {GROUPS.map((grp) => (
+        {GROUPS.map((grp) => {
+          const items = grp.items.filter(([, slug]) => canSee(slug));
+          if (!items.length) return null; // e.g. a manual-permission user with nothing in this group
+          return (
           <div key={grp.label}>
             <div className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700, marginBottom: 8 }}>{grp.label}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {grp.items.map(([label, slug]) => {
+              {items.map(([label, slug]) => {
                 const on = isOn(slug);
                 return (
                   <a key={slug} href={`/dashboard/server/${slug}${q}`} className="fo-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--line)", textDecoration: "none", color: "inherit" }}>
@@ -62,7 +78,8 @@ export default function FeatureOverview() {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

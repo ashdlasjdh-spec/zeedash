@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canAccessServerSection, canManageGuild } from "@/lib/permissions";
+import { canAccessServerSection, canReachGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -22,7 +22,7 @@ export async function GET(req) {
     const guilds = await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [ids]);
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });
-    if (!canManageGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const [series, totals, prev, channels, latestMembers] = await Promise.all([
       query(

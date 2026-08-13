@@ -6,11 +6,12 @@ import ServerPicker from "./ServerPicker";
 // Feature slugs that are only shown to a guild's owner / antinuke admins (or top staff).
 const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
 
-// Top-level single links (icons come from the Sidebar ICON map via the Icon prop).
+// Top-level single links (icons come from the Sidebar ICON map via the Icon prop). `slug` (when set)
+// is the feature this link maps to, so it can be hidden when the user can't manage that feature.
 const TOP = [
   { href: "/dashboard/server", label: "Overview" },
   { href: "/dashboard/server/leaderboard", label: "Leaderboard" },
-  { href: "/dashboard/server/message-builder", label: "Message Builder" },
+  { href: "/dashboard/server/message-builder", label: "Message Builder", slug: "message-builder" },
 ];
 // Collapsible sections (bleed/greed-style). [label, slug] — slug maps to /dashboard/server/<slug>.
 const SECTIONS = [
@@ -20,7 +21,7 @@ const SECTIONS = [
   { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
   { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Aliases", "aliases"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"]] },
 ];
-const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets" }];
+const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets", slug: "tickets" }];
 
 export default function ServerSidebarNav({ Icon, onNavigate }) {
   const path = usePathname();
@@ -29,15 +30,28 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
   const q = g ? `?guild=${g}` : "";
   const active = (href) => path === href;
 
-  // Per-guild access: hide Antinuke/Antiraid unless the user is the guild owner / an antinuke admin.
-  const [security, setSecurity] = useState(true); // optimistic until we know (server also enforces)
+  // Per-guild access snapshot: { manage (Discord admin/owner), security (antinuke/antiraid),
+  // manageable (non-security slugs a manual-permission holder may manage) }. Hides Antinuke/Antiraid
+  // unless owner/antinuke-admin, and — for manual-permission users — hides every feature their perms
+  // don't unlock. Null while loading = optimistic (show all); the server enforces regardless.
+  const [access, setAccess] = useState(null);
   useEffect(() => {
     let alive = true;
-    if (!g) { setSecurity(false); return; }
-    fetch(`/api/guild-access?guild=${g}`).then((r) => r.json()).then((j) => { if (alive) setSecurity(!!j.security); }).catch(() => {});
+    if (!g) { setAccess({ manage: false, security: false, manageable: [] }); return; }
+    fetch(`/api/guild-access?guild=${g}`)
+      .then((r) => r.json())
+      .then((j) => { if (alive) setAccess({ manage: !!j.manage, security: !!j.security, manageable: Array.isArray(j.manageable) ? j.manageable : [] }); })
+      .catch(() => {});
     return () => { alive = false; };
   }, [g]);
-  const visibleItems = (items) => items.filter(([, slug]) => security || !SECURITY_SLUGS.has(slug));
+  // Can the user see/manage a given feature slug in the selected guild?
+  const canSee = (slug) => {
+    if (!access) return true;                       // still loading — optimistic
+    if (SECURITY_SLUGS.has(slug)) return access.security;
+    if (access.manage) return true;                 // Discord admin manages all non-security features
+    return access.manageable.includes(slug);        // otherwise only what their manual perms unlock
+  };
+  const visibleItems = (items) => items.filter(([, slug]) => canSee(slug));
 
   const [open, setOpen] = useState(() => {
     const o = {};
@@ -55,7 +69,7 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
   return (
     <>
       <ServerPicker />
-      {TOP.map((n) => link(n.href, n.label))}
+      {TOP.filter((n) => !n.slug || canSee(n.slug)).map((n) => link(n.href, n.label))}
       {SECTIONS.map((sec) => {
         const items = visibleItems(sec.items);
         if (!items.length) return null; // e.g. Security with nothing visible
@@ -76,7 +90,7 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
         </div>
         );
       })}
-      {BOTTOM.map((n) => link(n.href, n.label))}
+      {BOTTOM.filter((n) => !n.slug || canSee(n.slug)).map((n) => link(n.href, n.label))}
     </>
   );
 }
