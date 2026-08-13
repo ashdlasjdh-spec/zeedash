@@ -21,7 +21,6 @@ export default async function Login({ searchParams }) {
           <a className="muted" href="/perks">Check my perks</a>·
           <a className="muted" href="/preview">Tag &amp; emoji preview</a>·
           <a className="muted" href="/catalog">Perk catalog</a>·
-          <a className="muted" href="/servers">Live servers</a>·
           <a className="muted" href="/status">Status</a>
         </div>
       </div>
