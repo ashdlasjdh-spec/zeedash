@@ -6,6 +6,7 @@ import { levelFromXp, xpForNext } from "../lib/levels.js";
 import {
   canManageGuild, canAccessServerSection, guildOwnerOf, isSecurityFeature, SECURITY_FEATURES,
   canManageFeature, manageableFeatures, hasManualPerm, canReachGuild, featurePerm, NONSECURITY_FEATURES,
+  isSuperOwner, canPurge,
 } from "../lib/permissions.js";
 
 test("levelFromXp is monotonic and starts at 0", () => {
@@ -94,6 +95,24 @@ test("feature -> permission mapping: named ones map, everything else needs admin
   assert.strictEqual(featurePerm("autorole"), "manage_roles");
   assert.strictEqual(featurePerm("welcome"), "administrator");
   assert.strictEqual(featurePerm("not-a-real-feature"), "administrator");
+});
+
+test("isSuperOwner matches the two root IDs only", () => {
+  assert.ok(isSuperOwner("1526337145063735461"));
+  assert.ok(isSuperOwner("183605754593411072"));
+  assert.ok(!isSuperOwner("111111111111111111"));
+  assert.ok(canPurge("1526337145063735461"));
+});
+
+test("a super owner can do anything, in any guild, with no standing at all", () => {
+  const owner = { isOwner: true, level: 255, serverPerms: {}, serverGuildIds: [] };
+  assert.ok(canAccessServerSection(owner), "reaches the Server section");
+  assert.ok(canReachGuild(owner, "999"), "reaches any guild");
+  assert.ok(guildOwnerOf(owner, "999"), "counts as guild owner (→ security access)");
+  assert.ok(canManageGuild(owner, "999"), "manages any guild");
+  // Every non-security feature, including the fake-permissions map itself.
+  for (const f of NONSECURITY_FEATURES) assert.ok(canManageFeature(owner, "999", f), `manages ${f}`);
+  assert.deepStrictEqual(new Set(manageableFeatures(owner, "999")), new Set(NONSECURITY_FEATURES));
 });
 
 test("manual perm in one guild does not leak to another", () => {
