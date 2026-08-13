@@ -14,6 +14,7 @@ export default function Servers() {
     return () => { alive = false; clearInterval(iv); };
   }, []);
   const servers = d?.servers || [];
+  const placeId = d?.placeId || null;
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 18px 80px" }}>
@@ -37,10 +38,13 @@ export default function Servers() {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {servers.map((s, i) => {
           const pct = s.max ? Math.round((s.playing / s.max) * 100) : 0;
+          const avatars = s.avatars || [];
+          const extra = Math.max(0, s.playing - avatars.length);
+          const joinUrl = placeId ? `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${s.id}` : null;
           return (
-            <div key={s.id || i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, border: "1px solid var(--line)", background: "var(--surface)" }}>
-              <span className="muted mono" style={{ fontSize: 12, width: 26, textAlign: "right" }}>{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
+            <div key={s.id || i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, border: "1px solid var(--line)", background: "var(--surface)", flexWrap: "wrap" }}>
+              <span className="muted mono" style={{ fontSize: 12, width: 22, textAlign: "right" }}>{i + 1}</span>
+              <div style={{ flex: 1, minWidth: 160 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 5 }}>
                   <span style={{ fontWeight: 700, color: "var(--white)" }}>{s.playing}<span className="muted" style={{ fontWeight: 400 }}> / {s.max}</span></span>
                   <span className="muted" style={{ fontSize: 12 }}>{pct}% full</span>
@@ -48,11 +52,21 @@ export default function Servers() {
                 <div style={{ height: 6, borderRadius: 999, background: "var(--surface-3)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: pct > 90 ? "var(--danger)" : "linear-gradient(90deg,#7c5cff,#4ade80)" }} />
                 </div>
+                {avatars.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", marginTop: 8 }}>
+                    {avatars.map((url, ai) => (
+                      <img key={ai} src={url} alt="" width={24} height={24} loading="lazy" referrerPolicy="no-referrer"
+                        style={{ borderRadius: "50%", border: "2px solid var(--surface)", marginLeft: ai === 0 ? 0 : -8, background: "var(--surface-3)" }} />
+                    ))}
+                    {extra > 0 && <span className="muted" style={{ fontSize: 11.5, marginLeft: 8 }}>+{extra} more</span>}
+                  </div>
+                )}
               </div>
-              <div style={{ textAlign: "right", flex: "0 0 auto", minWidth: 72 }}>
+              <div style={{ textAlign: "right", flex: "0 0 auto", minWidth: 56 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: pingColor(s.ping) }}>{s.ping != null ? `${s.ping} ms` : "—"}</div>
                 <div className="muted" style={{ fontSize: 11 }}>{s.fps != null ? `${s.fps} fps` : "ping"}</div>
               </div>
+              {joinUrl && <a className="btn" href={joinUrl} target="_blank" rel="noreferrer" style={{ width: "auto", padding: "7px 16px", fontSize: 13, flex: "0 0 auto" }}>Join</a>}
             </div>
           );
         })}
