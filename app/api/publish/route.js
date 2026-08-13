@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // Kinds and the Server feature that governs each, so a manual-permission holder can publish exactly
 // the kinds their perms unlock (an "administrator" manual perm, or Discord admin, unlocks all of them).
-const KIND_FEATURE = { message: "message-builder", buttonpanel: "button-roles", ticketpanel: "tickets", reactionseed: "reaction-roles" };
+const KIND_FEATURE = { message: "message-builder", buttonpanel: "button-roles", ticketpanel: "tickets", reactionseed: "reaction-roles", setnick: "customize" };
 
 const DEFAULT_EMBED_COLOR = 0x7c5cff; // brand fallback when no valid #hex is given
 
@@ -48,7 +48,14 @@ export async function POST(req) {
         return NextResponse.json({ error: "Pick a channel in this server." }, { status: 400 });
       }
     } catch { /* couldn't verify — proceed */ }
-    const res = await postChannelMessage(p.channel, { content: p.content, embed: buildEmbed(p) });
+    // Per-guild posting identity (custom name/avatar) from the Customize feature → post via webhook.
+    let profile = null;
+    try {
+      const rows = await query("select config from guild_settings where guild_id=$1 and feature='customize'", [String(guild)]);
+      const cfg = rows[0]?.config;
+      if (cfg && (cfg.postName || cfg.postAvatar)) profile = { name: cfg.postName, avatarUrl: cfg.postAvatar };
+    } catch { /* no custom profile — post as the bot */ }
+    const res = await postChannelMessage(p.channel, { content: p.content, embed: buildEmbed(p), profile });
     if (!res.ok) return NextResponse.json({ error: res.error }, { status: 400 });
     return NextResponse.json({ ok: true, sent: true });
   }
