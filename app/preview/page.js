@@ -70,6 +70,18 @@ function TagPreview({ name, colors, animated, iconId, dir, speed }) {
 const inp = { width: "100%", padding: "10px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text)", fontSize: 14 };
 const lbl = { display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--muted)", margin: "0 0 6px" };
 
+// One-click gradient palettes.
+const PRESETS = [
+  { name: "Neon", colors: ["#7c5cff", "#4ade80"] },
+  { name: "Sunset", colors: ["#ff8a00", "#ff2d55", "#a259ff"] },
+  { name: "Ocean", colors: ["#00c6ff", "#0072ff"] },
+  { name: "Fire", colors: ["#ffd200", "#ff6a00", "#ff0844"] },
+  { name: "Candy", colors: ["#ff6ec4", "#7873f5"] },
+  { name: "Gold", colors: ["#f5d020", "#f53803"] },
+  { name: "Toxic", colors: ["#a8ff00", "#00ffa3"] },
+  { name: "Mono", colors: ["#ffffff", "#8a8a8a"] },
+];
+
 export default function PublicPreview() {
   const [name, setName] = useState("CREW");
   const [colors, setColors] = useState(["#7c5cff", "#4ade80"]);
@@ -83,6 +95,28 @@ export default function PublicPreview() {
 
   const [eName, setEName] = useState("YourName");
   const [emojis, setEmojis] = useState("⭐💖🔥");
+  const [copied, setCopied] = useState(false);
+
+  // Hydrate the design from a shared link (?name=&colors=&anim=&dir=&speed=&icon=).
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("name")) setName(p.get("name").slice(0, 20));
+    const cols = p.get("colors");
+    if (cols) { const arr = cols.split(",").map(normHex).filter(Boolean); if (arr.length) setColors(arr.slice(0, 8)); }
+    if (p.has("anim")) setAnimated(p.get("anim") !== "0");
+    if (p.get("dir") && DIRCSS[p.get("dir")]) setDir(p.get("dir"));
+    if (p.get("speed")) setSpeed(Math.min(2, Math.max(0.1, Number(p.get("speed")) || 0.5)));
+    if (p.get("icon")) setIconId(p.get("icon"));
+  }, []);
+
+  const shareLink = () => {
+    const p = new URLSearchParams();
+    p.set("name", name); p.set("colors", colors.join(",")); p.set("anim", animated ? "1" : "0");
+    p.set("dir", dir); p.set("speed", String(speed));
+    const icon = String(iconId || "").match(/\d+/)?.[0]; if (icon) p.set("icon", icon);
+    const url = `${window.location.origin}/preview?${p.toString()}`;
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});
+  };
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 18px 80px" }}>
@@ -97,6 +131,17 @@ export default function PublicPreview() {
         <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>Crew tag</div>
         <div className="muted" style={{ fontSize: 13, marginBottom: 16 }}>Type your text, pick your gradient colours, and tune the animation.</div>
         <TagPreview name={name} colors={colors} animated={animated} iconId={iconId} dir={dir} speed={speed} />
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 14, alignItems: "center" }}>
+          <span style={{ ...lbl, margin: "0 4px 0 0" }}>Presets</span>
+          {PRESETS.map((p) => (
+            <button key={p.name} onClick={() => setColors(p.colors)} title={p.name}
+              style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "5px 10px", borderRadius: 999, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text)", cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
+              <span style={{ width: 24, height: 11, borderRadius: 3, backgroundImage: `linear-gradient(90deg, ${p.colors.join(", ")})` }} />
+              {p.name}
+            </button>
+          ))}
+        </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}>
           <div><label style={lbl}>Tag text</label><input style={inp} value={name} maxLength={20} onChange={(e) => setName(e.target.value)} placeholder="CREW" /></div>
@@ -132,6 +177,11 @@ export default function PublicPreview() {
           <div><label style={lbl}>Speed ({speed})</label>
             <input type="range" min="0.1" max="2" step="0.1" value={speed} onChange={(e) => setSpeed(e.target.value)} disabled={!animated} style={{ width: "100%" }} />
           </div>
+        </div>
+
+        <div className="row" style={{ marginTop: 18, alignItems: "center", gap: 10 }}>
+          <button className="btn" style={{ width: "auto" }} onClick={shareLink}>{copied ? "Link copied ✓" : "Copy share link"}</button>
+          <span className="muted" style={{ fontSize: 12.5 }}>Shares this exact design — colours, animation &amp; icon.</span>
         </div>
       </div>
 
