@@ -1,29 +1,40 @@
 import { NextResponse } from "next/server";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
-// Defense-in-depth CSRF guard for the API. On a STATE-CHANGING request that carries our session
-// COOKIE, require the browser's Origin to match this site's own host. SameSite=Lax already stops the
-// session cookie from riding along on a cross-site request, so this is a deliberate second layer.
+// API guard for state-changing requests. Two layers, both scoped to POST/PUT/PATCH/DELETE and only to
+// requests that carry our SESSION COOKIE — so the bot (which authenticates with a Bearer secret and
+// sends no cookie) and all GET/navigation traffic are never touched:
 //
-// It is written to FAIL OPEN on every ambiguous case, so it can't break the app or the bot:
-//   - only POST/PUT/PATCH/DELETE are ever considered (never GET/HEAD/navigation),
-//   - a request WITHOUT our session cookie is let through (the bot authenticates with a Bearer secret
-//     and sends no cookie — its polling/ingest is untouched),
-//   - a request with no Origin header, or an unparseable one, is let through,
-//   - a same-origin request is let through.
-// Only a mutating, cookie-bearing request whose Origin is a *different* host is rejected — the exact
-// shape of a cross-site forgery.
+//   1. CSRF: require the browser's Origin to match this site's host. SameSite=Lax already stops the
+//      session cookie riding along cross-site; this is a deliberate second layer.
+//   2. Rate limit: a generous per-IP cap on user-driven writes, to stop a runaway client or a hijacked
+//      session from hammering the write endpoints. Distributed via Upstash (see lib/ratelimit.js) —
+//      completely inert until the Upstash env vars are set, and it fails open, so it can't break anything.
+//
+// Both fail open on every ambiguous case, so they cannot break the app or the bot.
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const SESSION_COOKIE = "zhd_session";
 
-export function middleware(req) {
+export async function middleware(req) {
   if (!MUTATING.has(req.method)) return NextResponse.next();
   if (!req.cookies.get(SESSION_COOKIE)) return NextResponse.next(); // not cookie-authed (e.g. the bot)
+
+  // 1) CSRF — reject only a mutating, cookie-bearing request whose Origin is a *different* host.
   const origin = req.headers.get("origin");
-  if (!origin) return NextResponse.next(); // nothing to compare against
-  let originHost;
-  try { originHost = new URL(origin).host; } catch { return NextResponse.next(); }
-  if (originHost === req.nextUrl.host) return NextResponse.next(); // same origin — fine
-  return NextResponse.json({ error: "Cross-site request blocked." }, { status: 403 });
+  if (origin) {
+    let originHost = null;
+    try { originHost = new URL(origin).host; } catch { originHost = null; }
+    if (originHost && originHost !== req.nextUrl.host) {
+      return NextResponse.json({ error: "Cross-site request blocked." }, { status: 403 });
+    }
+  }
+
+  // 2) Rate limit user-driven writes per IP (2/sec sustained — far above any human, catches loops/abuse).
+  const rl = await rateLimit(`apiwrite:${clientIp(req)}`, { max: 120, windowSec: 60 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many requests — slow down a moment." }, { status: 429, headers: { "retry-after": "30" } });
+  }
+  return NextResponse.next();
 }
 
 // Only run on API routes — never on page navigations or static assets.

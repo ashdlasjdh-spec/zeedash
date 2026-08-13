@@ -1,9 +1,14 @@
 import { exchangeCode, getUser, getUserGuilds } from "@/lib/discord";
 import { createSession, resolveLevel, labelForLevel } from "@/lib/session";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
+  // Rate-limit the OAuth callback per IP — it does a Discord token exchange + DB writes, so it's the
+  // most expensive pre-auth endpoint. No-op until Upstash is configured; fails open.
+  const rl = await rateLimit(`authcb:${clientIp(req)}`, { max: 20, windowSec: 60 });
+  if (!rl.ok) return NextResponse.redirect(new URL("/?error=busy", req.url));
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
