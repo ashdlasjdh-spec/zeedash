@@ -92,8 +92,13 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .side{
   background:linear-gradient(180deg,var(--surface),var(--bg));border-right:1px solid var(--line);
   padding:12px 14px;display:flex;flex-direction:column;gap:1px;position:sticky;top:76px;height:calc(100dvh - 76px);
-  overflow:hidden;   /* static — never scrolls or moves */
+  overflow-y:auto;overflow-x:hidden;   /* scroll when the expanded nav is taller than the viewport */
+  scrollbar-width:thin;overscroll-behavior:contain;
 }
+/* Slim, unobtrusive sidebar scrollbar. */
+.side::-webkit-scrollbar{width:7px}
+.side::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:20px;border:2px solid transparent;background-clip:padding-box}
+.side:hover::-webkit-scrollbar-thumb{background:#2b2b33;background-clip:padding-box}
 .side-brand{display:none}   /* brand lives in the full-width top pill */
 .side .brand{font-size:22px;padding:6px 10px 22px;font-weight:800;letter-spacing:-1px}
 /* content column holds the top bar + the page; min-width:0 stops wide children overflowing */
