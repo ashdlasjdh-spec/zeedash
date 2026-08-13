@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Dropdown from "./Dropdown";
-import { RANKS, pillClassForLevel } from "@/lib/permissions";
+import { RANKS, roleTone } from "@/lib/permissions";
 
 export default function WhitelistManager({ myLevel }) {
   // Only ranks at or below your own level are assignable.
@@ -36,7 +36,7 @@ export default function WhitelistManager({ myLevel }) {
         <tbody>{list.map((w) => (
           <tr key={w.discord_id}>
             <td className="mono">{w.discord_id}</td>
-            <td><span className={`role-pill role-${pillClassForLevel(w.level)}`}>{w.roleLabel} ({w.level})</span></td>
+            <td><span className={`role-pill role-t-${roleTone(w.level)}`}>{w.roleLabel} ({w.level})</span></td>
             <td>{w.note || "—"}</td><td>{w.added_by || "—"}</td>
             <td><button className="btn danger" style={{ width: "auto", padding: "5px 10px", fontSize: 12 }} onClick={() => del(w.discord_id)}>Remove</button></td>
           </tr>

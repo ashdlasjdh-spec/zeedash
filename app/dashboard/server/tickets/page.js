@@ -33,7 +33,7 @@ export default async function Page() {
   return (
     <div className="fullbleed">
       <PageHeader icon="ticket" title="Tickets" subtitle="Let members open private support tickets. Off until enabled." />
-      <FeatureSettings feature="tickets" title="Tickets" description="Make one or more panels — each posts to its own channel with a default category (the panel name becomes its heading). Add buttons and assign each to a panel by name; a button opens tickets in its own category, or the panel's if left blank, with its support roles. Publish (or run /ticketpanel) to post all panels. A Close button saves a transcript and deletes the ticket. One open ticket per member per type. Bot needs Manage Channels." fields={FIELDS} />
+      <FeatureSettings feature="tickets" title="Tickets" description="Make one or more panels — each posts to its own channel with a default category (the panel name becomes its heading). Add buttons and assign each to a panel by name; a button opens tickets in its own category, or the panel's if left blank, with its support roles. Publish (or run /ticketpanel) to post all panels. A Close button saves a transcript and deletes the ticket. One open ticket per member per type. Bot needs Manage Channels." fields={FIELDS} previewMode="tickets" />
       <PublishPanel kind="ticketpanel" title="Publish the panels" label="Publish ticket panels" hint="Posts every configured panel to its channel now — same as running /ticketpanel." />
     </div>
   );

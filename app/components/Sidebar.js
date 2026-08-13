@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
-import { pillClassForLevel } from "@/lib/permissions";
+import { roleTone } from "@/lib/permissions";
 import ServerSidebarNav from "./ServerSidebarNav";
 
 // Feather-style line icons (inner paths), keyed by label.
@@ -162,7 +162,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
             : (user.name || "?")[0].toUpperCase()}
           <span className="online" />
         </div>
-        <div><div className="who">{user.name}</div><span className={`role-pill role-${pillClassForLevel(user.level)}`}>{user.role}</span></div>
+        <div><div className="who">{user.name}</div><span className={`role-pill role-t-${roleTone(user.level)}`}>{user.role}</span></div>
       </div>
       <form action="/api/auth/logout" method="post" style={{ marginTop: 10 }}>
         <button className="btn ghost" style={{ fontSize: 13, padding: "9px" }}>Sign out</button>

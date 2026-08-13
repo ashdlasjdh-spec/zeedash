@@ -6,6 +6,7 @@ export default function EmojiForm() {
   const [username, setU] = useState(""); const [emojis, setE] = useState("");
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [list, setList] = useState(null); const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState("");
 
   async function go(action) {
     setB(true); setT(null);
@@ -51,11 +52,17 @@ export default function EmojiForm() {
           <div><div style={{ fontWeight: 700, fontSize: 15 }}>Players with custom emojis</div><div className="muted" style={{ fontSize: 13 }}>Everyone in the emoji datastore.</div></div>
           <button className="btn ghost" style={{ width: "auto" }} disabled={loading} onClick={load}>{loading ? "Loading…" : list ? "Refresh" : "Load"}</button>
         </div>
-        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No custom emojis set yet.</p> : (
-          <table style={{ marginTop: 14 }}>
+        {list && (list.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No custom emojis set yet.</p> : (() => {
+          const s = q.trim().toLowerCase();
+          const shown = s ? list.filter((r) => String(r.userId).toLowerCase().includes(s) || String(r.emojis || "").includes(q.trim())) : list;
+          return (
+          <>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${list.length} players — user ID or emoji…`} style={{ marginTop: 14 }} />
+          {shown.length === 0 ? <p className="muted" style={{ marginTop: 12 }}>No players match “{q}”.</p> : (
+          <table style={{ marginTop: 12 }}>
             <thead><tr><th>User</th><th>Emojis</th><th></th></tr></thead>
             <tbody>
-              {list.map((r) => (
+              {shown.map((r) => (
                 <tr key={r.userId}>
                   <td><a className="mono" href={`https://www.roblox.com/users/${r.userId}/profile`} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}><Avatar userId={r.userId} size={26} />{r.userId}</a></td>
                   <td style={{ fontSize: 18 }}>{r.emojis}</td>
@@ -64,7 +71,10 @@ export default function EmojiForm() {
               ))}
             </tbody>
           </table>
-        ))}
+          )}
+          </>
+          );
+        })())}
       </div>
     </>
   );

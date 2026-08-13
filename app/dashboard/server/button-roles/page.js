@@ -31,6 +31,7 @@ export default async function Page() {
         title="Button roles"
         description="Configure the panel here, then Publish (or run /buttonpanel). Clicking a button toggles the role. Styles: green, blurple, gray, red. Bot needs Manage Roles."
         fields={FIELDS}
+        previewMode="buttonroles"
       />
       <PublishPanel kind="buttonpanel" title="Publish the panel" label="Publish button panel" hint="Posts the panel to its channel now — same as running /buttonpanel." />
     </div>

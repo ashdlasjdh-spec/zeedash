@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGuildMeta, useGuilds, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
 import Dropdown from "./Dropdown";
+import PanelPreview from "./PanelPreview";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
 function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
@@ -35,7 +36,7 @@ function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) 
 // Reusable feature config card for the Server Management portal. Renders an Enable toggle (OFF by
 // default) + the feature's fields, and persists to /api/guild-settings for the selected server
 // (?guild=). The bot reads the same store and does nothing while the feature is disabled.
-export default function FeatureSettings({ feature, title, description, fields = [] }) {
+export default function FeatureSettings({ feature, title, description, fields = [], previewMode = null }) {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
   const guilds = useGuilds();
@@ -75,8 +76,8 @@ export default function FeatureSettings({ feature, title, description, fields = 
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
 
-  return (
-    <div className="card" style={{ maxWidth: 720 }}>
+  const inner = (
+    <div className="card" style={previewMode ? { minWidth: 0 } : { maxWidth: 720 }}>
       <div className="between" style={{ gap: 14, alignItems: "flex-start" }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
@@ -116,6 +117,17 @@ export default function FeatureSettings({ feature, title, description, fields = 
         <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
       </div>
       {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
+    </div>
+  );
+
+  if (!previewMode) return inner;
+  return (
+    <div className="fs-preview-wrap">
+      {inner}
+      <div className="card fs-preview-card">
+        <div className="fs-preview-label">Live preview — what members will see</div>
+        <PanelPreview mode={previewMode} config={config} />
+      </div>
     </div>
   );
 }

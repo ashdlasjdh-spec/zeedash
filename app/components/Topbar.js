@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { pillClassForLevel } from "@/lib/permissions";
+import { roleTone } from "@/lib/permissions";
 
 // Floating top pill: brand far-left, role-aware links + an "All" mega-menu centered, and the
 // signed-in Discord user (pfp + name -> a detailed account menu) far-right. Desktop only —
@@ -82,7 +82,7 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
                 {pfp ? <img className="tb-menu-pfp" src={pfp} alt="" referrerPolicy="no-referrer" /> : <span className="tb-menu-pfp">{(user.name || "?")[0].toUpperCase()}</span>}
                 <div style={{ minWidth: 0 }}>
                   <div className="tb-menu-name">{user.name}</div>
-                  <span className={`role-pill role-${pillClassForLevel(user.level)}`}>{user.role}</span>
+                  <span className={`role-pill role-t-${roleTone(user.level)}`}>{user.role}</span>
                 </div>
               </div>
               <div className="tb-menu-meta">
