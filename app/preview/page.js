@@ -25,8 +25,11 @@ function TagPreview({ name, colors, animated, iconId, dir, speed }) {
     const id = String(iconId || "").match(/\d+/)?.[0];
     if (!id) { setIconUrl(""); return; }
     let alive = true;
-    fetch(`/api/asset-thumbnail?id=${id}`).then((r) => r.json()).then((j) => { if (alive) setIconUrl(j.url || ""); }).catch(() => {});
-    return () => { alive = false; };
+    // Debounce: wait until they stop typing the ID, so we don't fire a request per keystroke.
+    const t = setTimeout(() => {
+      fetch(`/api/asset-thumbnail?id=${id}`).then((r) => r.json()).then((j) => { if (alive) setIconUrl(j.url || ""); }).catch(() => {});
+    }, 500);
+    return () => { alive = false; clearTimeout(t); };
   }, [iconId]);
   return (
     <div style={{
@@ -144,7 +147,7 @@ export default function PublicPreview() {
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 90,
           fontSize: 22, fontWeight: 700, color: "var(--white)",
         }}>
-          <span>{eName || "YourName"}</span>
+          <span>[{eName || "YourName"}]</span>
           <span style={{ fontSize: 24 }}>{emojis}</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}>
