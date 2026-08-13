@@ -17,7 +17,12 @@ export default async function Login({ searchParams }) {
         <div className="login-sub">Zee [MACRO!] staff control panel</div>
         <a className="btn" href="/api/auth/login">Continue with Discord</a>
         {msg && <div className="err">{msg}</div>}
-        <a className="muted" href="/preview" style={{ display: "inline-block", marginTop: 16, fontSize: 13 }}>Preview crew tags &amp; emojis →</a>
+        <div className="muted" style={{ marginTop: 18, fontSize: 12.5, display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+          <a className="muted" href="/perks">Check my perks</a>·
+          <a className="muted" href="/preview">Tag &amp; emoji preview</a>·
+          <a className="muted" href="/catalog">Perk catalog</a>·
+          <a className="muted" href="/status">Status</a>
+        </div>
       </div>
     </div>
   );
