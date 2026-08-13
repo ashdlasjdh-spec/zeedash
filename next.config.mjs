@@ -2,6 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Keep visited/prefetched route segments in the client Router Cache briefly, so hopping back and
+  // forth between dashboard sections re-uses the last render instead of a fresh server round-trip
+  // (dynamic pages default to 0s = never cached). Live data still refreshes: the client components on
+  // each page fetch/poll their own data on mount, so only the static shell is reused.
+  experimental: {
+    staleTimes: { dynamic: 30, static: 180 },
+  },
   // Security headers on every response. The dashboard performs privileged actions,
   // so deny framing (clickjacking), block MIME sniffing, trim the referrer, and
   // disable device APIs it never uses.
