@@ -1,30 +1,6 @@
-// Content-Security-Policy. 'unsafe-inline' is kept ONLY for script/style: this app renders inline
-// style={} props pervasively (which can't carry a nonce) and Next injects inline hydration scripts, so
-// a nonce/strict-dynamic policy would need per-request middleware wiring and live testing or it white-
-// screens the app. Everything else is locked down: no plugins/embeds, no <base> hijack, no framing,
-// forms only post to us, connections only to us, and images limited to https/data/blob (embed previews
-// and Discord/Roblox avatars use arbitrary https hosts, so https: is intentional). Verified there are no
-// external client scripts/styles/fetches, so 'self' is safe for script/style/connect.
-// In dev, `next dev` HMR needs 'unsafe-eval' (React Refresh) and a websocket connection — allow them
-// only there so local development isn't broken; production stays strict.
-const DEV = process.env.NODE_ENV !== "production";
-const CSP = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "frame-src 'none'",
-  "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${DEV ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' https: data: blob:",
-  "font-src 'self' data:",
-  `connect-src 'self'${DEV ? " ws:" : ""}`,
-  "manifest-src 'self'",
-  "worker-src 'self' blob:",
-  "upgrade-insecure-requests",
-].join("; ");
-
+// NOTE: the Content-Security-Policy is set in middleware.js, not here — it needs a fresh per-request
+// nonce so script-src can drop 'unsafe-inline' entirely (nonce + 'strict-dynamic'). All the other,
+// static security headers stay below.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -45,7 +21,6 @@ const nextConfig = {
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Content-Security-Policy", value: CSP },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

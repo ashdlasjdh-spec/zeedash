@@ -1,41 +1,75 @@
 import { NextResponse } from "next/server";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 
-// API guard for state-changing requests. Two layers, both scoped to POST/PUT/PATCH/DELETE and only to
-// requests that carry our SESSION COOKIE — so the bot (which authenticates with a Bearer secret and
-// sends no cookie) and all GET/navigation traffic are never touched:
-//
-//   1. CSRF: require the browser's Origin to match this site's host. SameSite=Lax already stops the
-//      session cookie riding along cross-site; this is a deliberate second layer.
-//   2. Rate limit: a generous per-IP cap on user-driven writes, to stop a runaway client or a hijacked
-//      session from hammering the write endpoints. Distributed via Upstash (see lib/ratelimit.js) —
-//      completely inert until the Upstash env vars are set, and it fails open, so it can't break anything.
-//
-// Both fail open on every ambiguous case, so they cannot break the app or the bot.
+// Two jobs:
+//   1. API guards on state-changing requests that carry our SESSION COOKIE — a CSRF Origin check and a
+//      per-IP write rate limit. Scoped to cookie-authed mutations, so the bot (Bearer secret, no
+//      cookie) and all reads are never touched; both fail open.
+//   2. A strict, per-request-nonce Content-Security-Policy on document responses, so script-src can
+//      drop 'unsafe-inline' (nonce + 'strict-dynamic'): Next reads the nonce from the request CSP
+//      header and stamps it onto its own <script> tags. style-src keeps 'unsafe-inline' because inline
+//      style={} props can't carry a nonce.
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const SESSION_COOKIE = "zhd_session";
+const DEV = process.env.NODE_ENV !== "production";
 
-export async function middleware(req) {
-  if (!MUTATING.has(req.method)) return NextResponse.next();
-  if (!req.cookies.get(SESSION_COOKIE)) return NextResponse.next(); // not cookie-authed (e.g. the bot)
-
-  // 1) CSRF — reject only a mutating, cookie-bearing request whose Origin is a *different* host.
-  const origin = req.headers.get("origin");
-  if (origin) {
-    let originHost = null;
-    try { originHost = new URL(origin).host; } catch { originHost = null; }
-    if (originHost && originHost !== req.nextUrl.host) {
-      return NextResponse.json({ error: "Cross-site request blocked." }, { status: 403 });
-    }
-  }
-
-  // 2) Rate limit user-driven writes per IP (2/sec sustained — far above any human, catches loops/abuse).
-  const rl = await rateLimit(`apiwrite:${clientIp(req)}`, { max: 120, windowSec: 60 });
-  if (!rl.ok) {
-    return NextResponse.json({ error: "Too many requests — slow down a moment." }, { status: 429, headers: { "retry-after": "30" } });
-  }
-  return NextResponse.next();
+function buildCSP(nonce) {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "form-action 'self'",
+    // nonce + strict-dynamic = only Next's nonce'd bootstrap (and the chunks it loads) run. 'self' is
+    // kept as a fallback for browsers that ignore strict-dynamic. 'unsafe-eval' only in dev (HMR).
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${DEV ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' https: data: blob:",
+    "font-src 'self' data:",
+    `connect-src 'self'${DEV ? " ws:" : ""}`,
+    "manifest-src 'self'",
+    "worker-src 'self' blob:",
+    "upgrade-insecure-requests",
+  ].join("; ");
 }
 
-// Only run on API routes — never on page navigations or static assets.
-export const config = { matcher: ["/api/:path*"] };
+export async function middleware(req) {
+  const isApi = req.nextUrl.pathname.startsWith("/api/");
+
+  // 1) API guards — only mutating, cookie-bearing requests are ever considered.
+  if (isApi) {
+    if (MUTATING.has(req.method) && req.cookies.get(SESSION_COOKIE)) {
+      const origin = req.headers.get("origin");
+      if (origin) {
+        let originHost = null;
+        try { originHost = new URL(origin).host; } catch { originHost = null; }
+        if (originHost && originHost !== req.nextUrl.host) {
+          return NextResponse.json({ error: "Cross-site request blocked." }, { status: 403 });
+        }
+      }
+      const rl = await rateLimit(`apiwrite:${clientIp(req)}`, { max: 120, windowSec: 60 });
+      if (!rl.ok) {
+        return NextResponse.json({ error: "Too many requests — slow down a moment." }, { status: 429, headers: { "retry-after": "30" } });
+      }
+    }
+    return NextResponse.next();
+  }
+
+  // 2) Document response — attach a fresh nonce'd CSP (set on both the request headers, so Next can
+  //    read the nonce for its scripts, and the response headers, so the browser enforces it).
+  const nonce = crypto.randomUUID().replace(/-/g, "");
+  const csp = buildCSP(nonce);
+  const reqHeaders = new Headers(req.headers);
+  reqHeaders.set("x-nonce", nonce);
+  reqHeaders.set("Content-Security-Policy", csp);
+  const res = NextResponse.next({ request: { headers: reqHeaders } });
+  res.headers.set("Content-Security-Policy", csp);
+  return res;
+}
+
+// Run on API routes (guards) and document routes (CSP), but skip static assets & the metadata icons —
+// they don't need a nonce and shouldn't pay the middleware cost.
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)"],
+};
