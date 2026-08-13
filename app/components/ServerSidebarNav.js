@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import ServerPicker from "./ServerPicker";
@@ -66,9 +67,9 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
   const toggle = (label) => setOpen((o) => ({ ...o, [label]: !o[label] }));
 
   const link = (href, label) => (
-    <a key={href} className={`navlink ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>
+    <Link key={href} className={`navlink ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>
       <Icon label={label} /><span>{label}</span>
-    </a>
+    </Link>
   );
 
   return (
@@ -88,7 +89,7 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
             <div className="nav-sub">
               {items.map(([label, slug]) => {
                 const href = `/dashboard/server/${slug}`;
-                return <a key={slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{label}</a>;
+                return <Link key={slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{label}</Link>;
               })}
             </div>
           )}

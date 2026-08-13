@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel } from "@/lib/permissions";
 import { redirect } from "next/navigation";
@@ -142,14 +143,14 @@ export default async function Overview({ searchParams }) {
           <div className="ov-sec-h">Quick actions <span className="ov-line" /></div>
           <div className="ov-actions">
             {actions.map((a) => (
-              <a className="ov-action" href={a.href} key={a.href}>
+              <Link className="ov-action" href={a.href} key={a.href}>
                 <span className="ov-a-ico"><Icon name={a.icon} /></span>
                 <span style={{ minWidth: 0 }}>
                   <div className="ov-a-t">{a.label}</div>
                   <div className="ov-a-s">{a.sub}</div>
                 </span>
                 <span className="ov-a-arrow">→</span>
-              </a>
+              </Link>
             ))}
           </div>
         </>
@@ -163,7 +164,7 @@ export default async function Overview({ searchParams }) {
               <div style={{ fontWeight: 800, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
                 <span className="livedot" /> Recent activity
               </div>
-              <a className="muted" href="/dashboard/audit" style={{ fontSize: 12.5 }}>View all →</a>
+              <Link className="muted" href="/dashboard/audit" style={{ fontSize: 12.5 }}>View all →</Link>
             </div>
             <div className="ov-feed">
               {log.length === 0 && <div className="muted" style={{ padding: "14px 0" }}>Nothing yet. Grants and group actions show up here.</div>}

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { pillClassForLevel } from "@/lib/permissions";
@@ -91,9 +92,9 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
   // Close the mobile drawer whenever the route changes.
   useEffect(() => { setOpen(false); }, [path]);
   const link = (href, label) => (
-    <a key={href} className={`navlink ${path === href ? "active" : ""}`} href={href} onClick={() => setOpen(false)}>
+    <Link key={href} className={`navlink ${path === href ? "active" : ""}`} href={href} onClick={() => setOpen(false)}>
       <Icon label={label} /><span>{label}</span>
-    </a>
+    </Link>
   );
   return (
     <>
@@ -112,8 +113,8 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
           admins never see the Game tab; Game-only staff never see the Server tab. */}
       {gameAccess && serverAccess && (
         <div className="side-portals">
-          <a className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)}>🎮 Game</a>
-          <a className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)}>💬 Server</a>
+          <Link className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)}>🎮 Game</Link>
+          <Link className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)}>💬 Server</Link>
         </div>
       )}
 

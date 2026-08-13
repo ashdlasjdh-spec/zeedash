@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { pillClassForLevel } from "@/lib/permissions";
@@ -38,10 +39,10 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
   return (
     <div className="topbar">
       <div className="tb-pill">
-        <a className="tb-brand" href="/dashboard">zhd<span>.lol</span></a>
+        <Link className="tb-brand" href="/dashboard">zhd<span>.lol</span></Link>
         <nav className="tb-links">
           {links.map((l) => (
-            <a key={l.href} className={`tb-link ${isActive(l.href) ? "active" : ""}`} href={l.href}>{l.label}</a>
+            <Link key={l.href} className={`tb-link ${isActive(l.href) ? "active" : ""}`} href={l.href}>{l.label}</Link>
           ))}
           <div className="tb-all-wrap" ref={allRef}>
             <button className={`tb-link tb-all ${all ? "active" : ""}`} onClick={() => setAll((v) => !v)} aria-haspopup="menu" aria-expanded={all}>
@@ -54,7 +55,7 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
                   <div className="tb-mega-col" key={g.sec}>
                     <div className="tb-mega-h">{g.sec}</div>
                     {g.items.map((it) => (
-                      <a key={it.href} className={`tb-mega-link ${isActive(it.href) ? "active" : ""}`} href={it.href}>{it.label}</a>
+                      <Link key={it.href} className={`tb-mega-link ${isActive(it.href) ? "active" : ""}`} href={it.href}>{it.label}</Link>
                     ))}
                   </div>
                 ))}
@@ -97,8 +98,8 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
                 </div>
               </div>
               <div className="tb-menu-links">
-                <a className="tb-mi" href="/dashboard">Overview</a>
-                {canSettings && <a className="tb-mi" href="/dashboard/settings">Settings</a>}
+                <Link className="tb-mi" href="/dashboard">Overview</Link>
+                {canSettings && <Link className="tb-mi" href="/dashboard/settings">Settings</Link>}
                 <a className="tb-mi" href={`https://discord.com/users/${user.id}`} target="_blank" rel="noreferrer">Discord profile ↗</a>
               </div>
               <form action="/api/auth/logout" method="post">
