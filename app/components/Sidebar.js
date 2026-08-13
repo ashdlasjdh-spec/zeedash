@@ -112,9 +112,20 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       {/* Portal switcher — only shown when the user can reach BOTH portals. Server-only Discord
           admins never see the Game tab; Game-only staff never see the Server tab. */}
       {gameAccess && serverAccess && (
-        <div className="side-portals">
-          <Link className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)}>🎮 Game</Link>
-          <Link className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)}>💬 Server</Link>
+        <div className="side-portals" role="tablist" aria-label="Portal">
+          <Link className={`sp ${portal === "game" ? "on" : ""}`} href="/dashboard" onClick={() => setOpen(false)} role="tab" aria-selected={portal === "game"}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M6.5 11h3M8 9.5v3" /><path d="M15 10.5h.01M17.5 12.5h.01" />
+              <path d="M17.5 6.5h-11A4.5 4.5 0 0 0 2 11v2.4A3.6 3.6 0 0 0 8.2 16l1.1-1.1h5.4L15.8 16A3.6 3.6 0 0 0 22 13.4V11a4.5 4.5 0 0 0-4.5-4.5Z" />
+            </svg>
+            <span>Game</span>
+          </Link>
+          <Link className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)} role="tab" aria-selected={portal === "server"}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 14a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>Server</span>
+          </Link>
         </div>
       )}
 
