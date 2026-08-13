@@ -3,6 +3,7 @@ import { canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import ServerAnalytics from "../../components/ServerAnalytics";
 import FeatureOverview from "../../components/FeatureOverview";
+import SettingsBackup from "../../components/SettingsBackup";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function Page() {
     <div className="fullbleed">
       <ServerAnalytics userName={u.name} />
       <FeatureOverview />
+      <SettingsBackup />
     </div>
   );
 }
