@@ -15,6 +15,18 @@ const DIRCSS = {
   diagonal: { angle: 135, size: "200% 200%" },
 };
 
+// Split a string into individual emojis (proper grapheme clusters, so multi-part emojis stay whole).
+function splitEmojis(str) {
+  const s = String(str || "").trim();
+  if (!s) return [];
+  try {
+    if (typeof Intl !== "undefined" && Intl.Segmenter) {
+      return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s)].map((x) => x.segment).filter((x) => x.trim());
+    }
+  } catch { /* fall back */ }
+  return Array.from(s).filter((x) => x.trim());
+}
+
 function TagPreview({ name, colors, animated, iconId, dir, speed }) {
   const stops = (colors && colors.length ? colors : ["#ffffff"]).map(normHex);
   const d = DIRCSS[dir] || DIRCSS.diagonal;
@@ -147,8 +159,10 @@ export default function PublicPreview() {
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 90,
           fontSize: 22, fontWeight: 700, color: "var(--white)",
         }}>
-          <span>[{eName || "YourName"}]</span>
-          <span style={{ fontSize: 24 }}>{emojis}</span>
+          <span>{eName || "YourName"}</span>
+          {splitEmojis(emojis).map((e, i) => (
+            <span key={i} style={{ fontSize: 24, fontWeight: 400 }}>[{e}]</span>
+          ))}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}>
           <div><label style={lbl}>Test name</label><input style={inp} value={eName} maxLength={20} onChange={(e) => setEName(e.target.value)} placeholder="YourName" /></div>
