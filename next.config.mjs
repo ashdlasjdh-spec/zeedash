@@ -30,6 +30,10 @@ const nextConfig = {
           // can't grab a handle to our window (XS-Leaks / cross-window attacks). Safe here because our
           // OAuth flow is a top-level redirect, not a popup that relies on window.opener.
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Pair with COOP: stop other origins from embedding/reading our responses as a subresource
+          // (image, script, fetch). Safe — this login-gated dashboard is never legitimately embedded
+          // cross-origin, and server-side crawlers (Discord unfurls) aren't affected by CORP.
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
           // Legacy Adobe cross-domain policy files are never valid for this site.
           { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
         ],
