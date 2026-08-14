@@ -12,7 +12,12 @@ export async function POST(req) {
   }
   const { username, userId, emojis, action = "set", actorName, actorId, actorLevel } = await req.json().catch(() => ({}));
   if (!can(Number(actorLevel) || 0, "emoji")) return NextResponse.json({ error: "Your rank can't manage emojis." }, { status: 403 });
-  const r = await applyEmoji({ username, userId, emojis, action, actorName: actorName || "Discord", actorId: actorId || "bot" });
-  if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
-  return NextResponse.json(r);
+  try {
+    const r = await applyEmoji({ username, userId, emojis, action, actorName: actorName || "Discord", actorId: actorId || "bot" });
+    if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
+    return NextResponse.json(r);
+  } catch (e) {
+    // Surface the real reason to the bot's ❌ reply instead of a blank "Emoji update failed (500)".
+    return NextResponse.json({ error: e.message || "Emoji update failed." }, { status: 500 });
+  }
 }

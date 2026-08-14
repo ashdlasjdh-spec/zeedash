@@ -21,7 +21,12 @@ export async function POST(req) {
   const s = await getSession();
   if (!s || !can(s.level, "emoji")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { username, userId, emojis, action = "set" } = await req.json();
-  const r = await applyEmoji({ username, userId, emojis, action, actorName: s.name, actorId: s.id });
-  if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
-  return NextResponse.json(r);
+  try {
+    const r = await applyEmoji({ username, userId, emojis, action, actorName: s.name, actorId: s.id });
+    if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
+    return NextResponse.json(r);
+  } catch (e) {
+    // Surface the real reason (e.g. the detailed DataStore/Open Cloud error) instead of a blank 500.
+    return NextResponse.json({ error: e.message || "Emoji update failed." }, { status: 500 });
+  }
 }
