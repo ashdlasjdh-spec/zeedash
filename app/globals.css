@@ -11,6 +11,12 @@
   --white:#ffffff;
   --ok:#e8e8ea; --danger:#ff6b6b; --danger-soft:rgba(255,107,107,.14);
   --success:#4ade80; --warning:#e0a53a;
+  /* Zee Hood signature accent — blurple, matched to the bot embeds + sites so
+     the whole product reads as one brand. Drives primary actions, active nav,
+     focus rings and links. */
+  --brand:#5865f2; --brand-2:#7c5cff; --brand-strong:#4752e0;
+  --brand-soft:rgba(88,101,242,.16); --brand-line:rgba(124,92,255,.45);
+  --brand-glow:rgba(88,101,242,.35);
   --radius:16px; --radius-sm:11px;
   --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans:"Inter",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -65,21 +71,22 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   border:1px solid var(--line);border-radius:22px;padding:46px 34px;text-align:center;box-shadow:var(--shadow);overflow:hidden;
 }
 .login-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
-  background:linear-gradient(140deg,rgba(255,255,255,.4),transparent 42%);
+  background:linear-gradient(140deg,var(--brand-line),rgba(255,255,255,.28) 30%,transparent 55%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 .brand{font-weight:800;font-size:30px;letter-spacing:-1.4px;color:var(--white)}
-.brand span{color:var(--muted)}
+.brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 .login-sub{color:var(--muted);margin:10px 0 30px;font-size:14px}
 .err{margin-top:18px;color:var(--danger);font-size:13px;background:var(--danger-soft);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:10px 12px}
 
 /* ============ buttons ============ */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
-  border:1px solid var(--white);border-radius:11px;padding:10.5px 18px;font-weight:700;font-size:13.5px;
-  background:var(--white);color:#000;transition:transform .12s ease,background .18s ease,box-shadow .18s ease;
-  box-shadow:0 6px 20px -8px rgba(255,255,255,.25);
+  border:1px solid transparent;border-radius:11px;padding:10.5px 18px;font-weight:700;font-size:13.5px;
+  background:linear-gradient(135deg,var(--brand-2),var(--brand));color:#fff;
+  transition:transform .12s ease,filter .18s ease,box-shadow .18s ease;
+  box-shadow:0 8px 22px -10px var(--brand-glow);
 }
-.btn:hover{background:#e9e9ec;transform:translateY(-1px)}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 12px 26px -10px var(--brand-glow)}
 .btn:active{transform:translateY(0)}
 .btn:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
 .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:none;font-weight:600}
@@ -103,7 +110,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .side .brand{font-size:22px;padding:6px 10px 22px;font-weight:800;letter-spacing:-1px}
 /* content column holds the top bar + the page; min-width:0 stops wide children overflowing */
 .content{min-width:0;display:flex;flex-direction:column}
-.side .brand span{color:var(--muted)}
+.side .brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 /* Game / Server portal switcher — a segmented control above the split sidebar nav. Inset track with a
    raised, monochrome active pill so it reads as a built-in control, not two stray buttons. */
 .side-portals{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;margin:2px 2px 12px;border-radius:12px;
@@ -148,7 +155,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .nav-sub{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px 22px;padding-left:12px;border-left:1px solid var(--line)}
 .nav-sub-link{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:13px;font-weight:500;text-decoration:none;transition:color .12s ease,background .12s ease}
 .nav-sub-link:hover{color:var(--text);background:var(--surface-2)}
-.nav-sub-link.active{color:var(--white);background:rgba(255,255,255,.08);font-weight:600}
+.nav-sub-link.active{color:var(--white);background:var(--brand-soft);font-weight:600}
 
 /* toggle switch (feature enable) */
 .switch{position:relative;display:inline-flex;flex-shrink:0;cursor:pointer}
@@ -184,9 +191,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .nav-ico{width:17px;height:17px;flex-shrink:0;opacity:.6;transition:opacity .18s,transform .2s cubic-bezier(.34,1.4,.5,1)}
 .navlink:hover{background:var(--surface-2);color:var(--text);padding-left:16px}
 .navlink:hover .nav-ico{opacity:1;transform:scale(1.12)}
-.navlink.active{background:linear-gradient(90deg,rgba(255,255,255,.1),rgba(255,255,255,.015));color:var(--white);font-weight:650}
+.navlink.active{background:linear-gradient(90deg,var(--brand-soft),rgba(88,101,242,.02));color:var(--white);font-weight:650}
 .navlink.active .nav-ico{opacity:1}
-.navlink.active::before{content:"";position:absolute;left:0;top:50%;width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--white);transform:translateY(-50%);
+.navlink.active::before{content:"";position:absolute;left:0;top:50%;width:3px;height:17px;border-radius:0 3px 3px 0;background:linear-gradient(var(--brand-2),var(--brand));transform:translateY(-50%);
   animation:barIn .3s cubic-bezier(.34,1.4,.5,1)}
 @keyframes barIn{from{height:0;opacity:0}to{height:17px;opacity:1}}
 .side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:16px;display:flex;align-items:center;gap:11px}
@@ -250,7 +257,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .tb-link{padding:8px 15px;border-radius:999px;color:var(--muted);font-size:13.5px;font-weight:600;
   transition:color .16s,background .18s;white-space:nowrap}
 .tb-link:hover{color:var(--text);background:var(--surface-3)}
-.tb-link.active{color:var(--white);background:rgba(255,255,255,.11)}
+.tb-link.active{color:var(--white);background:var(--brand-soft)}
 .tb-user-wrap{position:relative;flex-shrink:0}
 .tb-user{display:flex;align-items:center;gap:9px;padding:5px 11px 5px 6px;border-radius:999px;
   border:1px solid var(--line);background:var(--bg-2);transition:border-color .16s,background .16s}
@@ -270,7 +277,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .tb-mega-h{color:var(--faint);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:2px 8px 8px}
 .tb-mega-link{padding:7px 8px;border-radius:8px;color:var(--muted);font-size:13.5px;font-weight:600;transition:color .15s,background .16s}
 .tb-mega-link:hover{color:var(--text);background:var(--surface-3)}
-.tb-mega-link.active{color:var(--white);background:rgba(255,255,255,.09)}
+.tb-mega-link.active{color:var(--white);background:var(--brand-soft)}
 
 /* account dropdown */
 .tb-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:268px;z-index:70;
@@ -375,9 +382,9 @@ input,select,textarea{
   padding:11px 13px;font-size:14px;font-family:inherit;transition:border-color .16s,box-shadow .16s,background .16s;
 }
 input::placeholder,textarea::placeholder{color:var(--faint)}
-input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(255,255,255,.55);background:var(--surface);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand-line);background:var(--surface);box-shadow:0 0 0 3px var(--brand-soft)}
 input[type=color]{padding:4px;height:42px;cursor:pointer}
-input[type=checkbox]{width:auto;accent-color:var(--white)}
+input[type=checkbox]{width:auto;accent-color:var(--brand)}
 textarea{resize:vertical;min-height:60px}
 .mono{font-family:var(--mono);font-size:13px}
 
@@ -501,7 +508,8 @@ td a:hover{border-color:var(--muted)}
   display:flex;justify-content:space-between;align-items:flex-start;gap:28px;flex-wrap:wrap;
 }
 .ov-hero::before{content:"";position:absolute;inset:0;
-  background:radial-gradient(720px 320px at 82% -30%,rgba(255,255,255,.10),transparent 62%);pointer-events:none}
+  background:radial-gradient(720px 320px at 82% -30%,var(--brand-soft),transparent 62%),
+    radial-gradient(560px 260px at 6% 130%,rgba(124,92,255,.10),transparent 60%);pointer-events:none}
 .ov-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
   background:rgba(255,255,255,.1);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
