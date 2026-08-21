@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useGuildMeta, useGuilds, fieldsNeedMeta, isMetaType, MetaSelect, MetaMultiSelect } from "./metaFields";
 import Dropdown from "./Dropdown";
 import PanelPreview from "./PanelPreview";
+import { cachedGuildSettings, loadGuildSettings, updateFeatureCache } from "@/lib/guildSettingsClient";
 
 // Inline add/remove sub-list for a single field (e.g. Levels role rewards). Value is an array of rows.
 function ListField({ value = [], cols = [], addLabel = "Add", onChange, meta }) {
@@ -51,12 +52,16 @@ export default function FeatureSettings({ feature, title, description, fields = 
 
   useEffect(() => {
     if (!guild) return;
-    setLoading(true);
-    fetch(`/api/guild-settings?guild=${guild}`)
-      .then((r) => r.json())
-      .then((j) => { const s = j.settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); })
+    let alive = true;
+    const apply = (settings) => { const s = settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); };
+    // Instant paint from cache if we already have this guild's settings; otherwise show a skeleton.
+    const cached = cachedGuildSettings(guild);
+    if (cached) { apply(cached); setLoading(false); } else setLoading(true);
+    loadGuildSettings(guild)
+      .then((settings) => { if (alive) apply(settings); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, [guild, feature]);
 
   const setField = (k, v) => setConfig((c) => ({ ...c, [k]: v }));
@@ -67,6 +72,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
       const r = await fetch("/api/guild-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, feature, enabled: en, config: cfg }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed");
+      updateFeatureCache(guild, feature, en, cfg); // keep the cache in step with what we just saved
       setToast({ ok: true, msg: en ? "Saved — feature is ON." : "Saved — feature is OFF." });
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setSaving(false);
@@ -75,6 +81,18 @@ export default function FeatureSettings({ feature, title, description, fields = 
   const toggle = (checked) => { setEnabled(checked); persist(checked, config); }; // the on/off switch saves instantly
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet — the picker needs at least one server with recorded activity.</p></div>;
+
+  // First load with no cached settings — show a shimmer instead of a blank/flashing form.
+  if (loading) return (
+    <div className="card" style={{ maxWidth: 720 }}>
+      <div className="stack" style={{ gap: 12 }}>
+        <div className="skeleton-row" style={{ height: 30, width: "45%" }} />
+        <div className="skeleton-row" style={{ height: 44 }} />
+        <div className="skeleton-row" style={{ height: 44 }} />
+        <div className="skeleton-row" style={{ height: 44 }} />
+      </div>
+    </div>
+  );
 
   const inner = (
     <div className="card" style={previewMode ? { minWidth: 0 } : { maxWidth: 720 }}>
