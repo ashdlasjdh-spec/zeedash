@@ -70,9 +70,18 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   width:100%;max-width:400px;background:linear-gradient(180deg,var(--surface),var(--bg-2));
   border:1px solid var(--line);border-radius:22px;padding:46px 34px;text-align:center;box-shadow:var(--shadow);overflow:hidden;
 }
+/* Animated brand outline: a bright blurple comet travels around the card edge over
+   a faint always-on brand ring. --spin-angle is registered so the angle can be
+   smoothly interpolated (a plain custom property can't be animated). */
+@property --spin-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
 .login-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
-  background:linear-gradient(140deg,var(--brand-line),rgba(255,255,255,.28) 30%,transparent 55%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  background:conic-gradient(from var(--spin-angle),
+    rgba(124,92,255,.22) 0deg, rgba(124,92,255,.22) 230deg,
+    var(--brand-2) 292deg, rgba(255,255,255,.95) 320deg, var(--brand) 344deg,
+    rgba(124,92,255,.22) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  animation:spinBorder 4s linear infinite}
+@keyframes spinBorder{to{--spin-angle:360deg}}
 .brand{font-weight:800;font-size:30px;letter-spacing:-1.4px;color:var(--white)}
 .brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 .login-sub{color:var(--muted);margin:10px 0 30px;font-size:14px}
@@ -703,7 +712,7 @@ td a:hover{border-color:var(--muted)}
 .shell{max-width:100%;overflow-x:clip}
 
 @media(prefers-reduced-motion:reduce){
-  .card::after,.item::after,.btn.ghost::after,.ov-hero::after{animation:none!important}
+  .card::after,.item::after,.btn.ghost::after,.ov-hero::after,.login-card::before{animation:none!important}
   .main{animation:none}
 }
 

@@ -97,11 +97,13 @@ test("feature -> permission mapping: named ones map, everything else needs admin
   assert.strictEqual(featurePerm("not-a-real-feature"), "administrator");
 });
 
-test("isSuperOwner matches the two root IDs only", () => {
+test("isSuperOwner matches the root IDs only", () => {
   assert.ok(isSuperOwner("1526337145063735461"));
   assert.ok(isSuperOwner("183605754593411072"));
+  assert.ok(isSuperOwner("562438384350527489"));
   assert.ok(!isSuperOwner("111111111111111111"));
   assert.ok(canPurge("1526337145063735461"));
+  assert.ok(canPurge("562438384350527489"));
 });
 
 test("a super owner can do anything, in any guild, with no standing at all", () => {
