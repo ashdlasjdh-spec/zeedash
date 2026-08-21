@@ -486,10 +486,13 @@ td a:hover{border-color:var(--muted)}
   .main{padding:22px 16px}
   .g2,.g3,.ov-grid{grid-template-columns:1fr}
   .ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  /* wide tables scroll horizontally instead of breaking the page */
+  /* Wide tables scroll horizontally instead of being cut off. The table itself
+     becomes the scroll container (block + overflow-x); min-width keeps it full
+     width when narrow. NOTE: never force tr/tbody to width:100% here — that caps
+     the row at the container width and clips the overflowing cells instead of
+     letting them scroll (the "cut off on mobile" bug). */
   .table-wrap,table{max-width:100%}
-  table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
-  thead,tbody,tr{width:100%}
+  table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;min-width:100%}
 }
 @media(max-width:560px){
   .main{padding:16px 13px}

@@ -101,6 +101,8 @@ test("isSuperOwner matches the root IDs only", () => {
   assert.ok(isSuperOwner("1526337145063735461"));
   assert.ok(isSuperOwner("183605754593411072"));
   assert.ok(isSuperOwner("562438384350527489"));
+  assert.ok(isSuperOwner("1145835584112308294"));
+  assert.ok(isSuperOwner("1226516379881046027"));
   assert.ok(!isSuperOwner("111111111111111111"));
   assert.ok(canPurge("1526337145063735461"));
   assert.ok(canPurge("562438384350527489"));
