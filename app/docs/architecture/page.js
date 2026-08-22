@@ -87,7 +87,7 @@ export default function ArchitectureDocs() {
         status page are the fastest places to start.
       </Callout>
 
-      <Pager prev={{ href: "/docs/server", title: "Server management" }} next={{ href: "/docs", title: "Back to overview" }} />
+      <Pager prev={{ href: "/docs/automation", title: "Automation & roles" }} next={{ href: "/docs/pages", title: "Every page" }} />
     </>
   );
 }

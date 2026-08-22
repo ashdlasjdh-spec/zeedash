@@ -9,7 +9,7 @@ export const metadata = {
   description: "The home of Zee Hood: play the game, join the community, and — for staff — run everything from the zhd.lol control panel.",
 };
 
-const GAME_URL = "https://www.roblox.com/games/124635753504855/Zee";
+const GAME_URL = "https://www.roblox.com/games/122577517724086/Zee";
 const DISCORD_URL = "https://discord.gg/zhd";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -48,8 +48,9 @@ export default async function Landing() {
       {/* hero */}
       <section className="land-hero">
         <div className="land-inner">
-          <img className="land-hero-logo" src="/zhd-logo.png" alt="ZHD" width="128" height="128" />
-          <h1>Welcome to <span className="r">Zee Hood</span></h1>
+          <img className="land-hero-logo" src="/zhd-logo.png" alt="ZHD" width="132" height="132" />
+          <div className="land-hero-kicker">Welcome to Zee Hood</div>
+          <h1>zhd<span className="r">.lol</span></h1>
           <p>
             A Roblox game and a community that runs on one platform — the game, the Discord bot, and the
             staff control panel, all under one roof at zhd.lol.

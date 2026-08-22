@@ -31,9 +31,10 @@ const GROUPS = [
     ],
   },
   {
-    label: "Under the hood",
+    label: "Reference",
     links: [
       ["/docs/architecture", "How it works"],
+      ["/docs/pages", "Every page"],
     ],
   },
 ];

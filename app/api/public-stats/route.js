@@ -4,17 +4,32 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// PUBLIC, unauthenticated community stats for the landing page: the servers the
-// bot is active in, their member counts, and recent message activity, plus the
-// live in-game player count. Intentionally open — this is the public front page.
-//
-// "Active" = a guild the bot has reported stats for in the last 2 days, so servers
-// it was removed from drop off on their own. Cached at the edge so the landing page
-// can be hammered without touching Postgres on every hit.
+// The guilds allowed to appear on the public front page. Only these servers' stats
+// are ever exposed publicly — everything else the bot is in stays private.
+const PUBLIC_GUILD_IDS = [
+  "1447037325380157452",
+  "1496219608800170004",
+  "1494327144829026354",
+];
+
+// Per-guild Discord invite for the "Join Discord" button on each server's stats.
+// Fill in a real invite code per guild id; unlisted guilds fall back to the main
+// community invite. Codes only (no https://discord.gg/ prefix).
+const DEFAULT_INVITE = "zhd";
+const GUILD_INVITES = {
+  // "1447037325380157452": "yourcode",
+};
+const inviteFor = (id) => `https://discord.gg/${GUILD_INVITES[id] || DEFAULT_INVITE}`;
+
+// PUBLIC, unauthenticated community stats for the landing page — but strictly for the
+// allow-listed guilds above: member counts, recent message activity, and the live
+// in-game player count. Cached at the edge so the landing page can be hammered
+// without touching Postgres on every hit.
 export async function GET() {
   try {
     const [rows, playersInGame] = await Promise.all([
-      query(`
+      query(
+        `
         select s.guild_id,
                max(s.guild_name) as guild_name,
                max(s.guild_icon) as guild_icon,
@@ -23,12 +38,12 @@ export async function GET() {
                   where m.guild_id = s.guild_id and m.members is not null
                   order by m.day desc limit 1) as members
         from server_stats s
-        where s.day >= current_date - interval '45 days'
+        where s.guild_id = any($1::text[]) and s.day >= current_date - interval '45 days'
         group by s.guild_id
-        having max(s.updated_at) > now() - interval '2 days'
         order by members desc nulls last, messages_30d desc
-        limit 60
-      `),
+      `,
+        [PUBLIC_GUILD_IDS],
+      ),
       getLivePlayers().catch(() => null),
     ]);
 
@@ -38,6 +53,7 @@ export async function GET() {
       icon: g.guild_icon ? `https://cdn.discordapp.com/icons/${g.guild_id}/${g.guild_icon}.png?size=80` : null,
       members: g.members == null ? null : Number(g.members),
       messages30d: Number(g.messages_30d || 0),
+      invite: inviteFor(g.guild_id),
     }));
 
     const totals = {
