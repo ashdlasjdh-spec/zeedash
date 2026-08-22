@@ -157,3 +157,21 @@
 @media (max-width: 460px) {
   .ps-tile b { font-size: 26px; }
 }
+
+/* expanded server modal: chart + leaderboard */
+.ps-modal-lg { max-width: 480px; max-height: 88vh; overflow-y: auto; }
+.ps-stats-4 { grid-template-columns: repeat(2, 1fr); }
+.ps-stats-4 .ps-ms b { font-size: 20px; }
+.ps-sec-t { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); font-weight: 700; margin: 18px 0 9px; }
+.ps-chart { display: flex; align-items: flex-end; gap: 5px; height: 84px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.ps-bar-wrap { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.ps-bar { width: 100%; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--brand-2), var(--brand)); min-height: 3px; transition: height .3s ease; }
+.ps-board { display: flex; flex-direction: column; gap: 2px; }
+.ps-board-row { display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 9px; }
+.ps-board-row:nth-child(odd) { background: var(--surface); }
+.ps-rank { flex: 0 0 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 11.5px; font-weight: 800; color: var(--muted); background: var(--surface-3); }
+.ps-rank.top { color: #fff; background: linear-gradient(135deg, var(--brand-2), var(--brand)); }
+.ps-board-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 650; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-board-n { flex: 0 0 auto; font-size: 12px; color: var(--muted); }
+.ps-muted { color: var(--muted); font-size: 13px; padding: 12px 4px; text-align: center; width: 100%; }
+.ps-join { margin-top: 18px; }

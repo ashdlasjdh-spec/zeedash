@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { canBan } from "@/lib/permissions";
+import { canBanS } from "@/lib/permissions";
 import { resolveUsername, cacheGetMany, cachePut } from "@/lib/roblox";
 import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
@@ -44,7 +44,7 @@ function rateLimited(key, max, windowMs) {
 // GET /api/bans?user=X   -> resolve one target (avatar, id, ban status, history)
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canBanS(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (rateLimited(`get:${s.id}`, 50, 10_000)) return NextResponse.json({ error: "Slow down — too many requests." }, { status: 429 });
   const { key, universeId } = banConfig(await getConfig());
   if (!key || !universeId) return NextResponse.json({ error: "Bans not configured (API key + universe id)." }, { status: 500 });
@@ -204,7 +204,7 @@ async function headshotUrl(userId) {
 export async function POST(req) {
   try {
     const s = await getSession();
-    if (!s || !canBan(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!s || !canBanS(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     if (rateLimited(`post:${s.id}`, 15, 60_000)) return NextResponse.json({ error: "Slow down — too many actions." }, { status: 429 });
 
     const { user: input, reason, duration, evidence, action = "ban" } = await req.json();

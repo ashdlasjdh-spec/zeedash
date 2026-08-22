@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel, isSuperOwner } from "@/lib/permissions";
+import { canGroup, canGroupS, canBan, canBanS, canWhitelist, canManageGrants, canManageGrantsS, canPurge, grantsFor, grantsForSession, labelForLevel, isSuperOwner } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
@@ -65,7 +65,7 @@ export default async function Overview({ searchParams }) {
   // Server-only Discord admins have no Game access — send them straight to the Server section.
   if (!user.gameAccess) redirect("/dashboard/server");
   const lvl = user.level;
-  const seesActivity = canGroup(lvl);
+  const seesActivity = canGroupS(user);
   const showChooser = (searchParams?.welcome ?? "") === "1";
 
   // --- stats (each independent + best-effort so one failure never blanks the page) ---
@@ -85,7 +85,7 @@ export default async function Overview({ searchParams }) {
   const moverMax = movers.reduce((m, r) => Math.max(m, Number(r.n) || 0), 0) || 1;
 
   // --- role-aware quick actions ---
-  const cats = grantsFor(lvl);
+  const cats = grantsForSession(user);
   // Fixed quick-action set: Tags, Powers, Tools, Gamepasses, Moderation, Audit Log —
   // each still shown only if the viewer's rank can use it.
   const actions = [];
@@ -94,8 +94,8 @@ export default async function Overview({ searchParams }) {
   if (has("power")) actions.push({ label: "Powers", icon: "bolt", href: "/dashboard/powers", sub: "Grant abilities" });
   if (has("tool")) actions.push({ label: "Tools", icon: "wrench", href: "/dashboard/tools", sub: "Grant tools" });
   if (has("gamepass")) actions.push({ label: "Gamepasses", icon: "ticket", href: "/dashboard/gamepasses", sub: "Grant passes" });
-  if (canBan(lvl)) actions.push({ label: "Moderation", icon: "ban", href: "/dashboard/bans", sub: "Ban / unban / warn" });
-  if (canGroup(lvl) || canManageGrants(lvl)) actions.push({ label: "Audit Log", icon: "list", href: "/dashboard/audit", sub: "Full action history" });
+  if (canBanS(user)) actions.push({ label: "Moderation", icon: "ban", href: "/dashboard/bans", sub: "Ban / unban / warn" });
+  if (canGroupS(user) || canManageGrantsS(user)) actions.push({ label: "Audit Log", icon: "list", href: "/dashboard/audit", sub: "Full action history" });
 
   const stats = [
     { live: <LivePlayers initial={livePlayers} />, l: "Players in-game", hint: "live right now", icon: "users" },
@@ -141,7 +141,7 @@ export default async function Overview({ searchParams }) {
       {isSuperOwner(user.id) && (
         <>
           <div className="ov-sec-h">Super owner <span className="ov-line" /></div>
-          <Link className="ov-super" href="/dashboard/role-access">
+          <Link className="ov-super" href="/dashboard/server/role-access">
             <span className="ov-super-ico"><Icon name="shield" /></span>
             <span style={{ minWidth: 0, flex: 1 }}>
               <div className="ov-a-t">Role access</div>

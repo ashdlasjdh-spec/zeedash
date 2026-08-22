@@ -130,7 +130,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       )}
 
       {(portal === "server" || !gameAccess) ? (
-        <Suspense fallback={null}><ServerSidebarNav Icon={Icon} onNavigate={() => setOpen(false)} /></Suspense>
+        <Suspense fallback={null}><ServerSidebarNav Icon={Icon} superOwner={!!user.isOwner} onNavigate={() => setOpen(false)} /></Suspense>
       ) : (<>
       {link("/dashboard", "Overview")}
       {NAV.map((n, i) => {

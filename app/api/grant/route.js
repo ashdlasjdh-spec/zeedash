@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { can } from "@/lib/permissions";
+import { canCat } from "@/lib/permissions";
 import { resolveUsername } from "@/lib/roblox";
 import { findItem } from "@/lib/catalog";
 import { applyGrant } from "@/lib/grantEngine";
@@ -32,7 +32,7 @@ export async function POST(req) {
   if (rateLimited(`grant:${s.id}`, 60, 10_000)) return NextResponse.json({ error: "Slow down — too many grant actions." }, { status: 429 });
   const { category, key, username, action = "grant", seconds } = await req.json();
   if (!category || !key || !username) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  if (!can(s.level, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
+  if (!canCat(s, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
   if (!findItem(category, key)) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
 
   const user = await resolveUsername(username);

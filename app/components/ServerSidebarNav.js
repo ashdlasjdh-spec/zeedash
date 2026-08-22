@@ -25,7 +25,7 @@ const SECTIONS = [
 ];
 const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets", slug: "tickets" }];
 
-export default function ServerSidebarNav({ Icon, onNavigate }) {
+export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false }) {
   const path = usePathname();
   const sp = useSearchParams();
   const guilds = useGuilds();
@@ -97,6 +97,14 @@ export default function ServerSidebarNav({ Icon, onNavigate }) {
         );
       })}
       {BOTTOM.filter((n) => !n.slug || canSee(n.slug)).map((n) => link(n.href, n.label))}
+      {superOwner && (
+        <>
+          <div className="nav-sep" />
+          <Link className={`navlink ${path === "/dashboard/server/role-access" ? "active" : ""}`} href="/dashboard/server/role-access" onClick={onNavigate}>
+            <Icon label="Security" /><span>Role Access</span>
+          </Link>
+        </>
+      )}
     </>
   );
 }

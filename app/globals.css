@@ -785,3 +785,5 @@ tr.skeleton-row{height:auto;border:0;background:none;animation:none}
 .ra-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
 .ra-item-role{font-weight:750;color:var(--white);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ra-item-perms{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.ra-grp{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:700;margin:4px 0 6px}
+.nav-sep{height:1px;background:var(--line-soft);margin:10px 12px}

@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/session";
 import { isSuperOwner } from "@/lib/permissions";
 import { redirect } from "next/navigation";
-import RoleAccess from "../../components/RoleAccess";
-import PageHeader from "../../components/PageHeader";
+import RoleAccess from "../../../components/RoleAccess";
+import PageHeader from "../../../components/PageHeader";
 
 export const dynamic = "force-dynamic";
 

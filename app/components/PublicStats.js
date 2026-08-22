@@ -19,6 +19,8 @@ export default function PublicStats() {
   const totals = data?.totals || {};
   const guilds = data?.guilds || [];
   const [sel, setSel] = useState(null); // selected guild for the detail modal
+  const [detail, setDetail] = useState(null); // full stats for the selected guild
+  const [detailErr, setDetailErr] = useState(false);
 
   // Close the modal on Escape.
   useEffect(() => {
@@ -26,6 +28,18 @@ export default function PublicStats() {
     const onKey = (e) => e.key === "Escape" && setSel(null);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [sel]);
+
+  // Load full stats + leaderboard when a server is opened.
+  useEffect(() => {
+    if (!sel) { setDetail(null); setDetailErr(false); return; }
+    let alive = true;
+    setDetail(null); setDetailErr(false);
+    fetch(`/api/public-stats/${sel.id}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive) { if (d.error) setDetailErr(true); else setDetail(d); } })
+      .catch(() => { if (alive) setDetailErr(true); });
+    return () => { alive = false; };
   }, [sel]);
 
   const tiles = [
@@ -74,7 +88,7 @@ export default function PublicStats() {
 
       {sel && (
         <div className="ps-modal-wrap" onClick={() => setSel(null)} role="dialog" aria-modal="true" aria-label={`${sel.name} stats`}>
-          <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="ps-modal ps-modal-lg" onClick={(e) => e.stopPropagation()}>
             <button className="ps-close" onClick={() => setSel(null)} aria-label="Close">×</button>
             <div className="ps-modal-head">
               {sel.icon
@@ -85,11 +99,49 @@ export default function PublicStats() {
                 <div className="ps-modal-sub">Community server</div>
               </div>
             </div>
-            <div className="ps-modal-stats">
-              <div className="ps-ms"><b>{fmt(sel.members)}</b><span>Members</span></div>
-              <div className="ps-ms"><b>{fmt(sel.messages30d)}</b><span>Messages / 30d</span></div>
+
+            <div className="ps-modal-stats ps-stats-4">
+              <div className="ps-ms"><b>{fmt(detail?.totals?.members ?? sel.members)}</b><span>Members</span></div>
+              <div className="ps-ms"><b>{fmt(detail?.totals?.messages ?? sel.messages30d)}</b><span>Messages / 30d</span></div>
+              <div className="ps-ms"><b>{detail ? fmt(detail.totals.reactions) : "…"}</b><span>Reactions / 30d</span></div>
+              <div className="ps-ms"><b>{detail ? fmt(detail.totals.voiceMinutes) : "…"}</b><span>Voice mins / 30d</span></div>
             </div>
-            <a className="ps-join" href={sel.invite || "https://discord.gg/zhd"} target="_blank" rel="noopener noreferrer">
+
+            {/* 14-day activity chart */}
+            <div className="ps-sec-t">Activity · last 14 days</div>
+            <div className="ps-chart">
+              {detail
+                ? (detail.series.length
+                    ? (() => {
+                        const max = Math.max(1, ...detail.series.map((s) => s.m));
+                        return detail.series.map((s, i) => (
+                          <div className="ps-bar-wrap" key={i} title={`${s.d}: ${s.m.toLocaleString()} msgs`}>
+                            <div className="ps-bar" style={{ height: `${Math.max(3, (s.m / max) * 100)}%` }} />
+                          </div>
+                        ));
+                      })()
+                    : <div className="ps-muted">No activity recorded yet.</div>)
+                : <div className="ps-muted">Loading…</div>}
+            </div>
+
+            {/* top members leaderboard */}
+            <div className="ps-sec-t">Top members · 30 days</div>
+            <div className="ps-board">
+              {detail
+                ? (detail.leaderboard.length
+                    ? detail.leaderboard.map((m) => (
+                        <div className="ps-board-row" key={m.rank}>
+                          <span className={`ps-rank ${m.rank <= 3 ? "top" : ""}`}>{m.rank}</span>
+                          <span className="ps-board-name" title={m.name}>{m.name}</span>
+                          <span className="ps-board-n">{fmt(m.messages)} msgs</span>
+                        </div>
+                      ))
+                    : <div className="ps-muted">No member activity yet.</div>)
+                : <div className="ps-muted">Loading leaderboard…</div>}
+              {detailErr && <div className="ps-muted">Stats are unavailable right now.</div>}
+            </div>
+
+            <a className="ps-join" href={detail?.invite || sel.invite || "https://discord.gg/zhd"} target="_blank" rel="noopener noreferrer">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M8 12h.01M16 12h.01M7.5 7.5C9 7 10.5 6.8 12 6.8s3 .2 4.5.7c1.7 2 2.5 4.6 2.5 7.5-1.3 1-2.7 1.7-4 2l-.9-1.6M8.4 15.4c-1.3-.3-2.7-1-4-2 0-2.9.8-5.5 2.5-7.5" />
               </svg>
