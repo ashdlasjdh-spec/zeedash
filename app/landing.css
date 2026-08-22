@@ -1,0 +1,127 @@
+/* ============================================================
+   zhd.lol public landing page — bold, branded, red/white/black.
+   Uses the global design tokens (--brand red, --bg black, etc.).
+   ============================================================ */
+.land { min-height: 100dvh; overflow-x: clip; }
+.land-inner { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* ---- top bar ---- */
+.land-top {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(6, 6, 7, 0.72); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.land-top .land-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+.land-brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 20px; letter-spacing: -0.8px; color: var(--white); }
+.land-brand img { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 3px 9px rgba(224,31,31,.5)); }
+.land-brand span { background: linear-gradient(135deg, var(--brand-2), var(--brand)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.land-nav { display: flex; align-items: center; gap: 8px; }
+.land-nav a.link { color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 9px; }
+.land-nav a.link:hover { color: var(--text); background: var(--surface-2); }
+.land-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 17px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; color: #fff;
+  background: linear-gradient(135deg, var(--brand-2), var(--brand));
+  box-shadow: 0 10px 26px -12px var(--brand-glow); border: 0;
+}
+.land-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.land-btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+.land-btn.ghost:hover { background: var(--surface-2); border-color: var(--brand-line); }
+@media (max-width: 640px) { .land-nav a.link { display: none; } }
+
+/* ---- hero ---- */
+.land-hero { position: relative; text-align: center; padding: 74px 0 40px; }
+.land-hero::before {
+  content: ""; position: absolute; inset: -10% 0 auto 0; height: 520px; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(680px 340px at 50% 0%, rgba(224,31,31,.20), transparent 62%),
+    radial-gradient(500px 300px at 50% 12%, rgba(255,59,48,.10), transparent 60%);
+}
+.land-hero > * { position: relative; z-index: 1; }
+.land-hero-logo {
+  width: 128px; height: 128px; object-fit: contain; margin: 0 auto 22px; display: block;
+  filter: drop-shadow(0 18px 40px rgba(224,31,31,.42));
+}
+.land-hero h1 {
+  font-size: clamp(34px, 6vw, 58px); line-height: 1.03; letter-spacing: -1.6px; font-weight: 850;
+  color: var(--white); margin: 0 0 16px;
+}
+.land-hero h1 .r { background: linear-gradient(135deg, #ff5b4d, var(--brand)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.land-hero p { max-width: 600px; margin: 0 auto 26px; font-size: 17px; line-height: 1.6; color: var(--muted); }
+.land-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.land-cta .land-btn { padding: 12px 22px; font-size: 15px; }
+
+/* ---- section shell ---- */
+.land-sec { padding: 46px 0; }
+.land-sec-h { text-align: center; margin-bottom: 30px; }
+.land-sec-h .kick { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brand-2); background: var(--brand-soft); border: 1px solid var(--brand-line); padding: 4px 12px; border-radius: 999px; margin-bottom: 12px; }
+.land-sec-h h2 { font-size: clamp(24px, 4vw, 32px); font-weight: 800; letter-spacing: -0.6px; color: var(--white); margin: 0 0 8px; }
+.land-sec-h p { color: var(--muted); font-size: 15px; margin: 0; }
+
+/* ---- public stats ---- */
+.ps-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
+.ps-tile {
+  position: relative; text-align: center; padding: 22px 16px; border-radius: 16px;
+  border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
+}
+.ps-tile b { display: block; font-size: 32px; font-weight: 850; letter-spacing: -1px; color: var(--white); }
+.ps-tile span { font-size: 12.5px; color: var(--muted); }
+.ps-live { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: pspulse 1.8s infinite; }
+@keyframes pspulse { 0% { box-shadow: 0 0 0 0 rgba(74,222,128,.5); } 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+.ps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.ps-card {
+  display: flex; align-items: center; gap: 13px; padding: 13px 15px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--surface); transition: border-color .15s ease, transform .15s ease;
+}
+.ps-card:hover { border-color: var(--brand-line); transform: translateY(-2px); }
+.ps-ic { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: 0 0 auto; background: var(--surface-3); }
+.ps-ic-fb { display: grid; place-items: center; border: 1px solid var(--line); }
+.ps-ini { font-weight: 800; font-size: 15px; color: var(--brand-2); }
+.ps-meta { min-width: 0; flex: 1; }
+.ps-name { font-weight: 700; font-size: 14.5px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-nums { display: flex; gap: 6px; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.ps-dot { opacity: .5; }
+.ps-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 26px; border: 1px dashed var(--line); border-radius: 14px; }
+.ps-sk { display: inline-block; background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%); background-size: 400% 100%; animation: sk 1.2s ease-in-out infinite; border-radius: 8px; }
+.ps-sk-num { width: 64px; height: 30px; }
+.ps-sk-ic { width: 44px; height: 44px; border-radius: 12px; }
+.ps-sk-line { flex: 1; height: 16px; }
+@keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .ps-sk, .ps-live { animation: none; } }
+
+/* ---- feature cards ---- */
+.land-feat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.land-fcard { padding: 22px; border-radius: 16px; border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2)); transition: border-color .15s ease, transform .15s ease; }
+.land-fcard:hover { border-color: var(--brand-line); transform: translateY(-3px); }
+.land-fic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--brand-soft); border: 1px solid var(--brand-line); color: var(--brand-2); margin-bottom: 14px; }
+.land-fic svg { width: 22px; height: 22px; }
+.land-fcard h3 { margin: 0 0 7px; font-size: 17px; font-weight: 750; color: var(--white); }
+.land-fcard p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.land-fcard ul { margin: 12px 0 0; padding-left: 18px; }
+.land-fcard li { font-size: 13px; color: #c6c6cf; margin-bottom: 4px; }
+
+/* ---- cta banner ---- */
+.land-banner {
+  text-align: center; padding: 44px 30px; border-radius: 22px; margin: 20px 0;
+  border: 1px solid var(--brand-line);
+  background: radial-gradient(120% 160% at 50% -20%, rgba(224,31,31,.18), transparent 60%), linear-gradient(180deg, var(--surface), var(--bg-2));
+}
+.land-banner h2 { font-size: clamp(22px, 4vw, 30px); font-weight: 820; letter-spacing: -0.5px; color: var(--white); margin: 0 0 10px; }
+.land-banner p { color: var(--muted); font-size: 15px; margin: 0 0 20px; }
+
+/* ---- footer ---- */
+.land-foot { border-top: 1px solid var(--line-soft); padding: 30px 0 46px; margin-top: 26px; }
+.land-foot .land-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.land-foot .land-brand { font-size: 17px; }
+.land-foot-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.land-foot-links a { color: var(--muted); font-size: 13.5px; }
+.land-foot-links a:hover { color: var(--text); }
+.land-foot-copy { color: var(--faint); font-size: 12.5px; width: 100%; }
+
+@media (max-width: 820px) {
+  .ps-tiles { grid-template-columns: repeat(2, 1fr); }
+  .land-feat { grid-template-columns: 1fr; }
+}
+@media (max-width: 460px) {
+  .ps-tile b { font-size: 26px; }
+}

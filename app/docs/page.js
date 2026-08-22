@@ -53,7 +53,7 @@ export default function DocsOverview() {
         whitelist. If you&apos;re not whitelisted, an owner has to add you first.
       </p>
       <Steps items={[
-        { title: "Open zhd.lol", body: "You land on the sign-in card. Hit “Continue with Discord”." },
+        { title: "Open zhd.lol", body: "You land on the public front page. Hit “Staff login” in the top-right, then “Continue with Discord”." },
         { title: "Approve on Discord", body: "Discord asks you to authorise the app once. Nothing is posted on your behalf." },
         { title: "You’re matched to a rank", body: "The panel looks you up on the staff whitelist and resolves your level. Everything you can do flows from that number." },
         { title: "Land on your dashboard", body: "You get a signed session cookie and the two portals appear in the sidebar." },

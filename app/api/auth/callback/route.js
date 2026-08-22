@@ -8,13 +8,13 @@ export async function GET(req) {
   // Rate-limit the OAuth callback per IP — it does a Discord token exchange + DB writes, so it's the
   // most expensive pre-auth endpoint. No-op until Upstash is configured; fails open.
   const rl = await rateLimit(`authcb:${clientIp(req)}`, { max: 20, windowSec: 60 });
-  if (!rl.ok) return NextResponse.redirect(new URL("/?error=busy", req.url));
+  if (!rl.ok) return NextResponse.redirect(new URL("/login?error=busy", req.url));
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const cookieState = req.cookies.get("oauth_state")?.value;
   if (!code || !state || state !== cookieState) {
-    return NextResponse.redirect(new URL("/?error=state", req.url));
+    return NextResponse.redirect(new URL("/login?error=state", req.url));
   }
   try {
     const token = await exchangeCode(code);
@@ -47,11 +47,11 @@ export async function GET(req) {
         serverOnlyOk = Object.keys(perms).some((gid) => set.has(gid));
       } catch { /* if we can't check, fall through to deny */ }
     }
-    if (!level && !serverOnlyOk) return NextResponse.redirect(new URL("/?error=denied", req.url));
+    if (!level && !serverOnlyOk) return NextResponse.redirect(new URL("/login?error=denied", req.url));
 
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
     return NextResponse.redirect(new URL(level ? "/dashboard?welcome=1" : "/dashboard/server?welcome=1", req.url));
   } catch (e) {
-    return NextResponse.redirect(new URL("/?error=oauth", req.url));
+    return NextResponse.redirect(new URL("/login?error=oauth", req.url));
   }
 }

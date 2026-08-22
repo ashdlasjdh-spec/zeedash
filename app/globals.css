@@ -9,14 +9,15 @@
   --line:#232329; --line-soft:#19191e;
   --text:#f4f4f6; --muted:#9a9aa6; --faint:#5e5e6a;
   --white:#ffffff;
-  --ok:#e8e8ea; --danger:#ff6b6b; --danger-soft:rgba(255,107,107,.14);
+  --ok:#e8e8ea; --danger:#ff5470; --danger-soft:rgba(255,84,112,.14);
   --success:#4ade80; --warning:#e0a53a;
-  /* Zee Hood signature accent — blurple, matched to the bot embeds + sites so
-     the whole product reads as one brand. Drives primary actions, active nav,
-     focus rings and links. */
-  --brand:#5865f2; --brand-2:#7c5cff; --brand-strong:#4752e0;
-  --brand-soft:rgba(88,101,242,.16); --brand-line:rgba(124,92,255,.45);
-  --brand-glow:rgba(88,101,242,.35);
+  /* ZHD signature accent — the red from the official logo, on black & white.
+     Matched to the bot embeds + sites so the whole product reads as one brand.
+     Drives primary actions, active nav, focus rings and links. Destructive
+     actions use --danger (a distinct pink-red) so they never blur into brand red. */
+  --brand:#e01f1f; --brand-2:#ff3b30; --brand-strong:#b0161a;
+  --brand-soft:rgba(224,31,31,.15); --brand-line:rgba(255,59,48,.5);
+  --brand-glow:rgba(224,31,31,.42);
   --radius:16px; --radius-sm:11px;
   --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans:"Inter",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -70,18 +71,24 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   width:100%;max-width:400px;background:linear-gradient(180deg,var(--surface),var(--bg-2));
   border:1px solid var(--line);border-radius:22px;padding:46px 34px;text-align:center;box-shadow:var(--shadow);overflow:hidden;
 }
-/* Animated brand outline: a bright blurple comet travels around the card edge over
-   a faint always-on brand ring. --spin-angle is registered so the angle can be
-   smoothly interpolated (a plain custom property can't be animated). */
+/* Animated brand outline: a bright red comet travels around the card edge over
+   a faint always-on brand ring, with a white flash — echoing the ZHD logo's
+   red + white on black. --spin-angle is registered so the angle can be smoothly
+   interpolated (a plain custom property can't be animated). */
 @property --spin-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
 .login-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
   background:conic-gradient(from var(--spin-angle),
-    rgba(124,92,255,.22) 0deg, rgba(124,92,255,.22) 230deg,
+    rgba(224,31,31,.22) 0deg, rgba(224,31,31,.22) 230deg,
     var(--brand-2) 292deg, rgba(255,255,255,.95) 320deg, var(--brand) 344deg,
-    rgba(124,92,255,.22) 360deg);
+    rgba(224,31,31,.22) 360deg);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
   animation:spinBorder 4s linear infinite}
 @keyframes spinBorder{to{--spin-angle:360deg}}
+.brand-logo{width:104px;height:104px;object-fit:contain;margin:0 auto 18px;display:block;
+  filter:drop-shadow(0 10px 26px rgba(224,31,31,.34))}
+/* Small logo mark inline with the wordmark in the sidebar + mobile top bar. */
+.side-brand,.mtopbar .brand{display:flex;align-items:center;gap:9px}
+.side-logo{object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 3px 8px rgba(224,31,31,.4))}
 .brand{font-weight:800;font-size:30px;letter-spacing:-1.4px;color:var(--white)}
 .brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 .login-sub{color:var(--muted);margin:10px 0 30px;font-size:14px}
@@ -185,7 +192,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 /* multi-role chip picker */
 .chips-field{display:flex;flex-direction:column;gap:7px;min-width:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 6px 3px 9px;border-radius:7px;background:rgba(124,92,255,.16);color:#b9a7ff;font-size:12.5px;font-weight:600;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 6px 3px 9px;border-radius:7px;background:rgba(224,31,31,.16);color:#ff9a94;font-size:12.5px;font-weight:600;white-space:nowrap}
 .chip button{background:none;border:0;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0;opacity:.7}
 .chip button:hover{opacity:1}
 
@@ -200,7 +207,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .nav-ico{width:17px;height:17px;flex-shrink:0;opacity:.6;transition:opacity .18s,transform .2s cubic-bezier(.34,1.4,.5,1)}
 .navlink:hover{background:var(--surface-2);color:var(--text);padding-left:16px}
 .navlink:hover .nav-ico{opacity:1;transform:scale(1.12)}
-.navlink.active{background:linear-gradient(90deg,var(--brand-soft),rgba(88,101,242,.02));color:var(--white);font-weight:650}
+.navlink.active{background:linear-gradient(90deg,var(--brand-soft),rgba(224,31,31,.02));color:var(--white);font-weight:650}
 .navlink.active .nav-ico{opacity:1}
 .navlink.active::before{content:"";position:absolute;left:0;top:50%;width:3px;height:17px;border-radius:0 3px 3px 0;background:linear-gradient(var(--brand-2),var(--brand));transform:translateY(-50%);
   animation:barIn .3s cubic-bezier(.34,1.4,.5,1)}
@@ -241,13 +248,13 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .dpv-empty{color:var(--muted);font-size:13px}
 .dpv-msg{display:flex;gap:12px;align-items:flex-start}
 .dpv-ava{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-weight:800;color:#fff;
-  background:linear-gradient(135deg,#7c5cff,#5b4bd6);font-size:17px;line-height:1}
+  background:linear-gradient(135deg,#ff3b30,#b0161a);font-size:17px;line-height:1}
 .dpv-main{min-width:0;flex:1}
 .dpv-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .dpv-name{font-weight:600;color:var(--white);font-size:14.5px}
 .dpv-app{font-size:9.5px;font-weight:700;text-transform:uppercase;color:#fff;background:#5865F2;border-radius:4px;padding:1px 4px;line-height:1.5}
 .dpv-time{font-size:11px;color:var(--faint)}
-.dpv-embed{border-left:4px solid #7c5cff;background:var(--surface-2);border-radius:4px;padding:11px 15px;max-width:432px}
+.dpv-embed{border-left:4px solid #e01f1f;background:var(--surface-2);border-radius:4px;padding:11px 15px;max-width:432px}
 .dpv-embed-title{font-weight:700;color:var(--white);font-size:15px}
 .dpv-embed-desc{color:var(--text);font-size:14px;line-height:1.4;white-space:pre-wrap;margin-top:5px}
 .dpv-rows{display:flex;flex-direction:column;gap:7px;margin-top:9px}
@@ -522,7 +529,7 @@ td a:hover{border-color:var(--muted)}
 }
 .ov-hero::before{content:"";position:absolute;inset:0;
   background:radial-gradient(720px 320px at 82% -30%,var(--brand-soft),transparent 62%),
-    radial-gradient(560px 260px at 6% 130%,rgba(124,92,255,.10),transparent 60%);pointer-events:none}
+    radial-gradient(560px 260px at 6% 130%,rgba(224,31,31,.10),transparent 60%);pointer-events:none}
 .ov-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
   background:rgba(255,255,255,.1);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);

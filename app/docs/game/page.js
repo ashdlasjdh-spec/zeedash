@@ -112,10 +112,18 @@ export default function GameDocs() {
 
       <h2>Crew tags &amp; emojis</h2>
       <p>
-        Crew tags are the custom name tags that render next to a player, and emojis are custom images
-        tied to a player or crew. Both live in the Game portal, both are gated at co-founders, and both
-        have a <Link className="inl" href="/preview">preview</Link> so you can see exactly how a tag or
-        emoji will look before it goes live.
+        Crew tags are the custom, colored name tags that render above a player, and emojis are badges
+        pinned next to their name. Both live in the Game portal and both are gated at co-founders. They
+        each get a full walkthrough of their own:
+      </p>
+      <Tiles items={[
+        { icon: "tag", title: "Crew tags →", body: "Text, gradients, icons and animation, scoped per group or rank. See the Crew tags deep dive." },
+        { icon: "smile", title: "Emojis →", body: "Assign unicode emoji to a player with set / add / remove. See the Emojis deep dive." },
+      ]} />
+      <p>
+        Full guides: <Link className="inl" href="/docs/crew-tags">Crew tags</Link> ·{" "}
+        <Link className="inl" href="/docs/emojis">Emojis</Link>. You can also{" "}
+        <Link className="inl" href="/preview">preview</Link> either before it goes live.
       </p>
 
       <Pager prev={{ href: "/docs/access", title: "Access & roles" }} next={{ href: "/docs/moderation", title: "Moderation" }} />

@@ -83,7 +83,7 @@ function flatten(tags) {
   return out.sort((a, b) => a.group.localeCompare(b.group) || (a.rank ?? -1) - (b.rank ?? -1));
 }
 
-const EMPTY = { groupId: "", name: "", colors: ["#7c5cff", "#22d3ee"], iconId: "", animated: true, dir: "diagonal", speed: 0.5, rank: "" };
+const EMPTY = { groupId: "", name: "", colors: ["#e01f1f", "#ff8a3d"], iconId: "", animated: true, dir: "diagonal", speed: 0.5, rank: "" };
 
 export default function TagForm() {
   const [f, setF] = useState(EMPTY);

@@ -100,14 +100,14 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
     <>
       {/* Mobile-only top bar with a hamburger; hidden on desktop via CSS. */}
       <div className="mtopbar">
-        <div className="brand">zhd<span>.lol</span></div>
+        <div className="brand"><img className="side-logo" src="/zhd-logo.png" alt="" width="24" height="24" />zhd<span>.lol</span></div>
         <button className={`hamb ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>
           <span /><span /><span />
         </button>
       </div>
       {open && <div className="side-backdrop" onClick={() => setOpen(false)} />}
       <aside className={`side ${open ? "open" : ""}`}>
-        <div className="brand side-brand">zhd<span>.lol</span></div>
+        <div className="brand side-brand"><img className="side-logo" src="/zhd-logo.png" alt="" width="26" height="26" />zhd<span>.lol</span></div>
 
       {/* Portal switcher — only shown when the user can reach BOTH portals. Server-only Discord
           admins never see the Game tab; Game-only staff never see the Server tab. */}

@@ -3,7 +3,7 @@
 const C = {
   bg: "#0a0a0c", surface: "#141418", surface3: "#1b1b20",
   line: "#232329", text: "#f4f4f6", muted: "#9a9aa6", faint: "#5e5e6a",
-  brand: "#5865f2", brand2: "#7c5cff", good: "#4ade80", warn: "#e0a53a", bad: "#ef5f6b",
+  brand: "#e01f1f", brand2: "#ff3b30", good: "#4ade80", warn: "#e0a53a", bad: "#ef5f6b",
 };
 
 function defs() {

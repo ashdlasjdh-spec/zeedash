@@ -9,7 +9,7 @@ export default function MessageBuilder() {
   const sp = useSearchParams();
   const guildParam = sp.get("guild") || "";
   const guilds = useGuilds();
-  const [f, setF] = useState({ channel: "", content: "", title: "", description: "", color: "#7c5cff", image: "", footer: "" });
+  const [f, setF] = useState({ channel: "", content: "", title: "", description: "", color: "#e01f1f", image: "", footer: "" });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -64,7 +64,7 @@ export default function MessageBuilder() {
         <div style={{ marginTop: 12 }}><label>Embed title</label><input value={f.title} onChange={(e) => up("title", e.target.value)} placeholder="Announcement" /></div>
         <div style={{ marginTop: 12 }}><label>Embed description</label><textarea rows={4} value={f.description} onChange={(e) => up("description", e.target.value)} placeholder="Write the body…" /></div>
         <div className="grid g2" style={{ marginTop: 12, gap: 12 }}>
-          <div><label>Color</label><input value={f.color} onChange={(e) => up("color", e.target.value)} placeholder="#7c5cff" /></div>
+          <div><label>Color</label><input value={f.color} onChange={(e) => up("color", e.target.value)} placeholder="#e01f1f" /></div>
           <div><label>Footer</label><input value={f.footer} onChange={(e) => up("footer", e.target.value)} placeholder="Footer text" /></div>
         </div>
         <div style={{ marginTop: 12 }}><label>Image URL</label><input className="mono" value={f.image} onChange={(e) => up("image", e.target.value)} placeholder="https://…" /></div>
@@ -79,7 +79,7 @@ export default function MessageBuilder() {
         <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>Preview</div>
         {f.content && <div style={{ marginBottom: 8, whiteSpace: "pre-wrap" }}>{f.content}</div>}
         {hasEmbed ? (
-          <div style={{ borderLeft: `4px solid ${/^#[0-9a-fA-F]{6}$/.test(f.color) ? f.color : "#7c5cff"}`, background: "var(--surface-2)", borderRadius: 6, padding: "12px 14px" }}>
+          <div style={{ borderLeft: `4px solid ${/^#[0-9a-fA-F]{6}$/.test(f.color) ? f.color : "#e01f1f"}`, background: "var(--surface-2)", borderRadius: 6, padding: "12px 14px" }}>
             {f.title && <div style={{ fontWeight: 800, marginBottom: 6 }}>{f.title}</div>}
             {f.description && <div style={{ fontSize: 14, whiteSpace: "pre-wrap", color: "var(--text)" }}>{f.description}</div>}
             {f.image && /^https?:\/\//.test(f.image) && <img src={f.image} alt="" style={{ maxWidth: "100%", borderRadius: 6, marginTop: 10 }} />}

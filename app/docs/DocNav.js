@@ -19,6 +19,16 @@ const GROUPS = [
     ],
   },
   {
+    label: "Deep dives",
+    links: [
+      ["/docs/crew-tags", "Crew tags"],
+      ["/docs/emojis", "Emojis"],
+      ["/docs/levels", "Levels & XP"],
+      ["/docs/tickets", "Tickets"],
+      ["/docs/stats", "Stats pipeline"],
+    ],
+  },
+  {
     label: "Under the hood",
     links: [
       ["/docs/architecture", "How it works"],

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // the kinds their perms unlock (an "administrator" manual perm, or Discord admin, unlocks all of them).
 const KIND_FEATURE = { message: "message-builder", buttonpanel: "button-roles", ticketpanel: "tickets", reactionseed: "reaction-roles", setnick: "customize" };
 
-const DEFAULT_EMBED_COLOR = 0x7c5cff; // brand fallback when no valid #hex is given
+const DEFAULT_EMBED_COLOR = 0xe01f1f; // brand fallback when no valid #hex is given
 
 // Build a Discord embed object from the Message Builder payload (mirrors the bot's buildMessagePayload).
 function buildEmbed(p) {
