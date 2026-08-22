@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Avatar from "./Avatar";
+import { peekCache, setCache } from "@/lib/clientCache";
 
 const SCOPE = "Zee Hood Game";
 
@@ -18,10 +19,14 @@ export default function BansDashboard({ canBulk = false }) {
   const [resolved, setResolved] = useState(null); // { userId, username, displayName, avatar, active, historyCount }
   const [resolving, setResolving] = useState(false);
 
-  const [bans, setBans] = useState(null);
+  // Seed from the client cache so hopping back to Bans shows the last list
+  // instantly instead of flashing empty while the first fetch lands.
+  const [bans, setBans] = useState(() => peekCache("bans") ?? null);
   const [loadingBans, setLoadingBans] = useState(false);
   const [search, setSearch] = useState("");
-  const sigRef = useRef(""); // last list signature — skip no-op re-renders during polling
+  const sigRef = useRef(
+    (peekCache("bans") || []).map((b) => `${b.userId}:${b.username}:${b.reason}`).join("|")
+  ); // last list signature — skip no-op re-renders during polling
 
   // live resolve the target as you type (debounced, cancellable, latest-wins)
   const deb = useRef();
@@ -61,6 +66,7 @@ export default function BansDashboard({ canBulk = false }) {
         // re-render (and jump the scroll / reload avatars) when nothing moved.
         const sig = next.map((b) => `${b.userId}:${b.username}:${b.reason}`).join("|");
         if (sig !== sigRef.current) { sigRef.current = sig; setBans(next); }
+        setCache("bans", next);
       } else if (!silent) setToast({ bad: true, msg: d.error });
     } catch (e) { if (!silent) setToast({ bad: true, msg: e.message }); }
     if (!silent) setLoadingBans(false);

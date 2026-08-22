@@ -731,5 +731,11 @@ td a:hover{border-color:var(--muted)}
 .skeleton-chart{height:220px;border-radius:12px;border:1px solid var(--line-soft);
   background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-3) 37%,var(--surface-2) 63%);
   background-size:400% 100%;animation:sk 1.2s ease-in-out infinite}
+/* Inline shimmer bar for skeleton table rows (no row border/height — the cell
+   keeps normal table layout, only the bar shimmers). */
+tr.skeleton-row{height:auto;border:0;background:none;animation:none}
+.skeleton-bar{display:block;height:14px;border-radius:7px;
+  background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-3) 37%,var(--surface-2) 63%);
+  background-size:400% 100%;animation:sk 1.2s ease-in-out infinite}
 @keyframes sk{0%{background-position:100% 0}100%{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){.skeleton-row,.skeleton-chart{animation:none}}
+@media (prefers-reduced-motion:reduce){.skeleton-row,.skeleton-chart,.skeleton-bar{animation:none}}
