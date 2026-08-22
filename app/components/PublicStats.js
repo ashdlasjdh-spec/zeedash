@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useCachedResource } from "@/lib/clientCache";
+import { AreaChart, Spark } from "./chart";
 
 function fmt(n) {
   if (n == null) return "—";
@@ -11,6 +12,18 @@ function fmt(n) {
 function initials(name) {
   return (name || "?").replace(/[^A-Za-z0-9 ]/g, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
 }
+function Delta({ cur, prev }) {
+  if (!prev || prev <= 0) return null;
+  const p = Math.round(((cur - prev) / prev) * 100);
+  if (!p) return null;
+  return <span className={`ps-delta ${p > 0 ? "up" : "down"}`}>{p > 0 ? "+" : ""}{p}%</span>;
+}
+// Metrics for the activity chart toggle — mirrors the staff Server Analytics page.
+const METRICS = [
+  { k: "messages", label: "Messages", acc: (s) => s.messages, color: "#5b8cff" },
+  { k: "reactions", label: "Reactions", acc: (s) => s.reactions, color: "#a78bfa" },
+  { k: "voice", label: "Voice hours", acc: (s) => Math.round((s.voiceMinutes / 60) * 10) / 10, color: "#34d399" },
+];
 
 export default function PublicStats() {
   const { data, loading } = useCachedResource("public-stats", () =>
@@ -21,6 +34,7 @@ export default function PublicStats() {
   const [sel, setSel] = useState(null); // selected guild for the detail modal
   const [detail, setDetail] = useState(null); // full stats for the selected guild
   const [detailErr, setDetailErr] = useState(false);
+  const [metric, setMetric] = useState("messages"); // active chart metric
 
   // Close the modal on Escape.
   useEffect(() => {
@@ -100,46 +114,79 @@ export default function PublicStats() {
               </div>
             </div>
 
-            <div className="ps-modal-stats ps-stats-4">
-              <div className="ps-ms"><b>{fmt(detail?.totals?.members ?? sel.members)}</b><span>Members</span></div>
-              <div className="ps-ms"><b>{fmt(detail?.totals?.messages ?? sel.messages30d)}</b><span>Messages / 30d</span></div>
-              <div className="ps-ms"><b>{detail ? fmt(detail.totals.reactions) : "…"}</b><span>Reactions / 30d</span></div>
-              <div className="ps-ms"><b>{detail ? fmt(detail.totals.voiceMinutes) : "…"}</b><span>Voice mins / 30d</span></div>
-            </div>
+            {(() => {
+              const t = detail?.totals || {};
+              const pv = detail?.prev || {};
+              const series = detail?.series || [];
+              const cards = [
+                { l: "Members", n: t.members ?? sel.members, spark: null, color: "#e0563b" },
+                { l: "Messages", n: t.messages ?? sel.messages30d, prev: pv.messages, spark: series.map((s) => s.messages), color: "#5b8cff" },
+                { l: "Reactions", n: detail ? t.reactions : null, prev: pv.reactions, spark: series.map((s) => s.reactions), color: "#a78bfa" },
+                { l: "Voice hours", n: detail ? Math.round((t.voiceMinutes || 0) / 60) : null, prev: Math.round((pv.voiceMinutes || 0) / 60), spark: series.map((s) => s.voiceMinutes / 60), color: "#34d399" },
+              ];
+              const m = METRICS.find((x) => x.k === metric) || METRICS[0];
+              return (
+                <>
+                  <div className="ps-astats">
+                    {cards.map((c) => (
+                      <div className="ps-astat" key={c.l}>
+                        <div className="ps-astat-l">{c.l}</div>
+                        <div className="ps-astat-n">{c.n == null ? "…" : fmt(c.n)}{c.prev != null && c.n != null && <Delta cur={c.n} prev={c.prev} />}</div>
+                        {c.spark && c.spark.some((v) => v > 0) && <div className="ps-astat-spark"><Spark vals={c.spark} color={c.color} /></div>}
+                      </div>
+                    ))}
+                  </div>
 
-            {/* 14-day activity chart */}
-            <div className="ps-sec-t">Activity · last 14 days</div>
-            <div className="ps-chart">
-              {detail
-                ? (detail.series.length
-                    ? (() => {
-                        const max = Math.max(1, ...detail.series.map((s) => s.m));
-                        return detail.series.map((s, i) => (
-                          <div className="ps-bar-wrap" key={i} title={`${s.d}: ${s.m.toLocaleString()} msgs`}>
-                            <div className="ps-bar" style={{ height: `${Math.max(3, (s.m / max) * 100)}%` }} />
-                          </div>
-                        ));
-                      })()
-                    : <div className="ps-muted">No activity recorded yet.</div>)
-                : <div className="ps-muted">Loading…</div>}
-            </div>
+                  {/* activity chart with metric toggle */}
+                  <div className="ps-sec-row">
+                    <div className="ps-sec-t" style={{ margin: 0 }}>Activity · last 30 days</div>
+                    <div className="ps-metric-toggle">
+                      {METRICS.map((x) => (
+                        <button key={x.k} className={metric === x.k ? "on" : ""} onClick={() => setMetric(x.k)}>{x.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="ps-areawrap">
+                    {detail
+                      ? (series.length ? <AreaChart series={series} label={m.label.toLowerCase()} accessor={m.acc} color={m.color} /> : <div className="ps-muted">No activity recorded yet.</div>)
+                      : <div className="ps-muted">Loading chart…</div>}
+                  </div>
 
-            {/* top members leaderboard */}
-            <div className="ps-sec-t">Top members · 30 days</div>
-            <div className="ps-board">
-              {detail
-                ? (detail.leaderboard.length
-                    ? detail.leaderboard.map((m) => (
-                        <div className="ps-board-row" key={m.rank}>
-                          <span className={`ps-rank ${m.rank <= 3 ? "top" : ""}`}>{m.rank}</span>
-                          <span className="ps-board-name" title={m.name}>{m.name}</span>
-                          <span className="ps-board-n">{fmt(m.messages)} msgs</span>
-                        </div>
-                      ))
-                    : <div className="ps-muted">No member activity yet.</div>)
-                : <div className="ps-muted">Loading leaderboard…</div>}
-              {detailErr && <div className="ps-muted">Stats are unavailable right now.</div>}
-            </div>
+                  {/* top members leaderboard */}
+                  <div className="ps-sec-t">Top members · 30 days</div>
+                  <div className="ps-board">
+                    {detail
+                      ? (detail.leaderboard.length
+                          ? detail.leaderboard.map((r) => (
+                              <div className="ps-board-row" key={r.rank}>
+                                <span className={`ps-rank ${r.rank <= 3 ? "top" : ""}`}>{r.rank}</span>
+                                <span className="ps-board-name" title={r.name}>{r.name}</span>
+                                <span className="ps-board-n">{fmt(r.messages)} msgs</span>
+                              </div>
+                            ))
+                          : <div className="ps-muted">No member activity yet.</div>)
+                      : <div className="ps-muted">Loading leaderboard…</div>}
+                  </div>
+
+                  {/* top channels */}
+                  <div className="ps-sec-t">Top channels · 30 days</div>
+                  <div className="ps-board">
+                    {detail
+                      ? ((detail.channels || []).length
+                          ? detail.channels.map((c, i) => (
+                              <div className="ps-board-row" key={i}>
+                                <span className="ps-rank">{i + 1}</span>
+                                <span className="ps-board-name" title={c.name}>#{c.name}</span>
+                                <span className="ps-board-n">{fmt(c.messages)} msgs</span>
+                              </div>
+                            ))
+                          : <div className="ps-muted">No channel data yet.</div>)
+                      : <div className="ps-muted">Loading channels…</div>}
+                    {detailErr && <div className="ps-muted">Stats are unavailable right now.</div>}
+                  </div>
+                </>
+              );
+            })()}
 
             <a className="ps-join" href={detail?.invite || sel.invite || "https://discord.gg/zhd"} target="_blank" rel="noopener noreferrer">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
