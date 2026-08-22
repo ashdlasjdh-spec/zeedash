@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { getLivePlayers } from "@/lib/gamestats";
+import { resolveGuildInfo } from "@/lib/discord";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -49,14 +50,19 @@ export async function GET() {
       getLivePlayers().catch(() => null),
     ]);
 
-    const guilds = rows.map((g) => ({
-      id: g.guild_id,
-      name: g.guild_name || "Unknown server",
-      icon: g.guild_icon ? `https://cdn.discordapp.com/icons/${g.guild_id}/${g.guild_icon}.png?size=80` : null,
-      members: g.members == null ? null : Number(g.members),
-      messages30d: Number(g.messages_30d || 0),
-      invite: inviteFor(g.guild_id),
-    }));
+    // Fresh name/icon straight from Discord (falls back to the stored values if the lookup fails).
+    const live = await resolveGuildInfo(rows.map((g) => g.guild_id)).catch(() => ({}));
+    const guilds = rows.map((g) => {
+      const li = live[String(g.guild_id)] || null;
+      return {
+        id: g.guild_id,
+        name: li?.name || g.guild_name || "Unknown server",
+        icon: li?.icon || (g.guild_icon ? `https://cdn.discordapp.com/icons/${g.guild_id}/${g.guild_icon}.png?size=96` : null),
+        members: g.members == null ? null : Number(g.members),
+        messages30d: Number(g.messages_30d || 0),
+        invite: inviteFor(g.guild_id),
+      };
+    });
 
     const totals = {
       servers: guilds.length,

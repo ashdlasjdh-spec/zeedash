@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { grantsFor, grantsForSession, canGroup, canGroupS, canGroupScoped, canGroupAny, canConfig, canWhitelist, canWhitelistS, canBan, canBanS, canPurge, canManageGrants, canManageGrantsS, canAccessServerSection } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import Sidebar from "../components/Sidebar";
+import GameMovedGate from "../components/GameMovedGate";
 import Topbar from "../components/Topbar";
 import CommandPalette from "../components/CommandPalette";
 
@@ -62,6 +63,7 @@ export default async function DashLayout({ children }) {
         <Sidebar user={user} grants={grants} canGroup={canGroupS(user)} canGroupScoped={scopedGroup} canBan={canBanS(user)} canConfig={canConfig(lvl)} isCofounderPlus={canWhitelistS(user)} canPurge={canPurge(user.id)} gameAccess={!!user.gameAccess} serverAccess={serverAccess} />
         <main className="main">{children}</main>
       </div>
+      <GameMovedGate superOwner={!!user.isOwner} />
     </>
   );
 }

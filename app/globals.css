@@ -786,3 +786,20 @@ tr.skeleton-row{height:auto;border:0;background:none;animation:none}
 .ra-item-perms{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .ra-grp{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:700;margin:4px 0 6px}
 .nav-sep{height:1px;background:var(--line-soft);margin:10px 12px}
+
+/* ============ game-management "moved" gate (non-super-owners) ============ */
+.moved-overlay{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:22px;
+  background:rgba(4,4,6,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:fade .18s ease}
+.moved-card{width:100%;max-width:440px;text-align:center;border-radius:22px;padding:38px 30px;
+  border:1px solid var(--brand-line);
+  background:radial-gradient(120% 140% at 50% -10%,rgba(224,31,31,.18),transparent 60%),linear-gradient(180deg,var(--surface),var(--bg-2));
+  box-shadow:0 50px 100px -30px rgba(0,0,0,.85)}
+.moved-ic{width:60px;height:60px;margin:0 auto 18px;border-radius:16px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--brand-2),var(--brand));box-shadow:0 14px 30px -12px var(--brand-glow)}
+.moved-card h2{font-size:23px;font-weight:820;letter-spacing:-.5px;color:var(--white);margin:0 0 10px}
+.moved-card p{color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 24px}
+.moved-btn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:12px;font-weight:750;font-size:15px;color:#fff;
+  background:linear-gradient(135deg,var(--brand-2),var(--brand));box-shadow:0 12px 28px -12px var(--brand-glow);text-decoration:none}
+.moved-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.moved-alt{display:inline-block;margin-top:16px;color:var(--muted);font-size:13px;text-decoration:none}
+.moved-alt:hover{color:var(--text)}

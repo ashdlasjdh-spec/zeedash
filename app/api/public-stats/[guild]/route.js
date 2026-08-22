@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { resolveAvatars } from "@/lib/discord";
+import { resolveAvatars, resolveGuildInfo } from "@/lib/discord";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -40,10 +40,13 @@ export async function GET(_req, { params }) {
          where guild_id=$1 and day >= current_date - interval '29 days' and username is not null
          group by username order by m desc limit 10`, [guild]),
     ]);
-    const avatars = await resolveAvatars(board.map((r) => r.user_id)).catch(() => ({}));
-
-    const name = meta[0]?.name || GUILD_LABELS[guild] || guild;
-    const icon = meta[0]?.icon ? `https://cdn.discordapp.com/icons/${guild}/${meta[0].icon}.png?size=96` : null;
+    const [avatars, live] = await Promise.all([
+      resolveAvatars(board.map((r) => r.user_id)).catch(() => ({})),
+      resolveGuildInfo([guild]).catch(() => ({})),
+    ]);
+    const li = live[guild] || null;
+    const name = li?.name || meta[0]?.name || GUILD_LABELS[guild] || guild;
+    const icon = li?.icon || (meta[0]?.icon ? `https://cdn.discordapp.com/icons/${guild}/${meta[0].icon}.png?size=96` : null);
     return NextResponse.json({
       id: guild, name, icon, invite: `https://discord.gg/${GUILD_INVITES[guild] || "zhd"}`, days: 30,
       totals: { members: members[0]?.members ?? null, messages: N(totals[0]?.messages), reactions: N(totals[0]?.reactions), voiceMinutes: N(totals[0]?.voice) },
