@@ -18,6 +18,7 @@ export default async function Login({ searchParams }) {
         <a className="btn" href="/api/auth/login">Continue with Discord</a>
         {msg && <div className="err">{msg}</div>}
         <div className="muted" style={{ marginTop: 18, fontSize: 12.5, display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+          <a className="muted" href="/docs">Docs</a>·
           <a className="muted" href="/perks">Check my perks</a>·
           <a className="muted" href="/preview">Tag &amp; emoji preview</a>·
           <a className="muted" href="/catalog">Perk catalog</a>·

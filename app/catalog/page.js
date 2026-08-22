@@ -43,7 +43,7 @@ export default function Catalog() {
       ))}
 
       <div style={{ textAlign: "center", marginTop: 30, fontSize: 13 }}>
-        <a href="/" className="muted">← zhd.lol</a> · <a href="/perks" className="muted">check my perks</a> · <a href="/preview" className="muted">tag &amp; emoji preview</a> · <a href="/status" className="muted">status</a>
+        <a href="/" className="muted">← zhd.lol</a> · <a href="/docs" className="muted">docs</a> · <a href="/perks" className="muted">check my perks</a> · <a href="/preview" className="muted">tag &amp; emoji preview</a> · <a href="/status" className="muted">status</a>
       </div>
     </div>
   );
