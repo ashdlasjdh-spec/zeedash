@@ -18,6 +18,17 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // The public landing is session-aware (logged-in vs not), so it must never be served from a
+        // shared/edge cache — otherwise a stale copy (e.g. the old login page that redirected to
+        // /dashboard) can linger after a deploy. force-dynamic already sets this; pin it explicitly.
+        source: "/",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/login",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
