@@ -27,8 +27,8 @@
   background: linear-gradient(180deg, var(--surface), var(--bg));
 }
 .docs-rail .brand { font-size: 25px; letter-spacing: -1.2px; }
-.docs-rail-brand { display: flex; align-items: center; gap: 9px; }
-.docs-rail-brand img { object-fit: contain; mix-blend-mode: screen; }
+.docs-rail-brand { display: flex; align-items: center; }
+.docs-rail-brand img { object-fit: contain; margin-right: 9px; }
 .docs-rail .brand span {
   background: linear-gradient(135deg, var(--brand-2), var(--brand));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;

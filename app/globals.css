@@ -84,14 +84,14 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
   animation:spinBorder 4s linear infinite}
 @keyframes spinBorder{to{--spin-angle:360deg}}
-/* The logo art sits on a black square; `mix-blend-mode:screen` blends that black
-   into the dark surface behind it so the box disappears and only the red/white
-   mark shows — clean, no ugly background block. */
+/* The logo is a transparent PNG (black box removed), so it drops onto any surface. */
 .brand-logo{width:104px;height:104px;object-fit:contain;margin:0 auto 18px;display:block;
-  mix-blend-mode:screen;filter:drop-shadow(0 8px 22px rgba(224,31,31,.34))}
-/* Small logo mark inline with the wordmark in the sidebar + mobile top bar. */
-.side-brand,.mtopbar .brand{display:flex;align-items:center;gap:9px}
-.side-logo{object-fit:contain;flex:0 0 auto;mix-blend-mode:screen}
+  filter:drop-shadow(0 8px 22px rgba(224,31,31,.34))}
+/* Small logo mark inline with the wordmark in the sidebar + mobile top bar. No flex
+   `gap` here — gap would also push the "zhd" and ".lol" wordmark halves apart; the
+   logo gets its spacing from margin instead so the wordmark stays tight. */
+.side-brand,.mtopbar .brand{display:flex;align-items:center}
+.side-logo{object-fit:contain;flex:0 0 auto;margin-right:8px}
 .brand{font-weight:800;font-size:30px;letter-spacing:-1.4px;color:var(--white)}
 .brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 .login-sub{color:var(--muted);margin:10px 0 30px;font-size:14px}
