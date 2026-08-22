@@ -25,6 +25,8 @@ const GROUPS = [
       ["/docs/emojis", "Emojis"],
       ["/docs/levels", "Levels & XP"],
       ["/docs/tickets", "Tickets"],
+      ["/docs/security", "Security features"],
+      ["/docs/automation", "Automation & roles"],
       ["/docs/stats", "Stats pipeline"],
     ],
   },

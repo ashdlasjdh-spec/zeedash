@@ -62,7 +62,7 @@ export default function StatsDocs() {
         actually active right now.
       </Callout>
 
-      <Pager prev={{ href: "/docs/tickets", title: "Tickets" }} next={{ href: "/docs/architecture", title: "How it works" }} />
+      <Pager prev={{ href: "/docs/tickets", title: "Tickets" }} next={{ href: "/docs/security", title: "Security features" }} />
     </>
   );
 }

@@ -71,7 +71,7 @@ const PRESETS = [
 
 export default function PublicPreview() {
   const [name, setName] = useState("CREW");
-  const [colors, setColors] = useState(["#7c5cff", "#4ade80"]);
+  const [colors, setColors] = useState(["#e01f1f", "#ff8a3d"]);
   const [animated, setAnimated] = useState(true);
   const [dir, setDir] = useState("diagonal");
   const [speed, setSpeed] = useState(0.5);

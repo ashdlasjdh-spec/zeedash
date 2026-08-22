@@ -73,6 +73,7 @@ export default function ArchitectureDocs() {
       <SpecTable
         head={["Page", "Purpose"]}
         rows={[
+          [<Link className="inl" href="/">Front page</Link>, "The public landing page with live community stats."],
           [<Link className="inl" href="/catalog">Catalog</Link>, "Browse every grantable item in the game."],
           [<Link className="inl" href="/perks">My perks</Link>, "A player checks what they currently have."],
           [<Link className="inl" href="/preview">Preview</Link>, "See how a crew tag or emoji will render before it goes live."],

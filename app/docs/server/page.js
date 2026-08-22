@@ -90,6 +90,10 @@ export default function ServerDocs() {
         <strong>Antinuke</strong> and <strong>Antiraid</strong> only appear for the server owner or its
         antinuke admins — they&apos;re hidden from everyone else, even other staff.
       </Callout>
+      <p>
+        Want the mechanics? See the <Link className="inl" href="/docs/security">Security features</Link>{" "}
+        deep dive — how automod, antiraid, antinuke, honeypot and fake permissions each work.
+      </p>
 
       <h3>Automation</h3>
       <SpecTable head={["Feature", "What it does"]} rows={[
@@ -99,6 +103,11 @@ export default function ServerDocs() {
         ["Ping on Join", "Ping a channel or role when someone joins."],
         ["Tracking", "Track member and message activity."],
       ]} />
+      <p>
+        How each of these fires is covered in the{" "}
+        <Link className="inl" href="/docs/automation">Automation &amp; roles</Link> deep dive — autorole,
+        reaction/button roles, autoresponders, welcome/goodbye, starboard, sticky, bump and VoiceMaster.
+      </p>
 
       <h3>Utility</h3>
       <SpecTable head={["Feature", "What it does"]} rows={[

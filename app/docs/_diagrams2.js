@@ -47,6 +47,32 @@ export function VFlow({ steps, accentLast = true }) {
   );
 }
 
+// Compact horizontal flow: items = ["trigger", "step", "result"]. The last box is
+// accented as the outcome. Scales to fit; good for 2–4 short boxes.
+export function MiniFlow({ items }) {
+  const bw = 158, gap = 30, h = 66, pad = 8;
+  const w = items.length * bw + (items.length - 1) * gap + pad * 2;
+  return (
+    <svg viewBox={`0 0 ${w} ${h + pad * 2}`} width="100%" role="img" aria-label="Flow" style={{ maxWidth: "100%" }}>
+      {baseDefs()}
+      {items.map((it, i) => {
+        const x = pad + i * (bw + gap);
+        const last = i === items.length - 1;
+        const label = typeof it === "string" ? it : it.t;
+        const sub = typeof it === "string" ? null : it.s;
+        return (
+          <g key={i}>
+            <rect x={x} y={pad} width={bw} height={h} rx="12" fill={last ? "url(#d2-brand)" : C.surface} stroke={last ? "none" : C.line} strokeWidth="1.3" />
+            <text x={x + bw / 2} y={pad + (sub ? h / 2 - 4 : h / 2 + 5)} textAnchor="middle" fill={last ? "#fff" : C.text} fontSize="12.5" fontWeight="720">{label}</text>
+            {sub && <text x={x + bw / 2} y={pad + h / 2 + 13} textAnchor="middle" fill={last ? "rgba(255,255,255,.85)" : C.muted} fontSize="10.5">{sub}</text>}
+            {i < items.length - 1 && <path d={`M${x + bw} ${pad + h / 2} H${x + bw + gap}`} stroke={C.brand2} strokeWidth="1.8" markerEnd="url(#d2-arr)" fill="none" />}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 // Anatomy of a rendered crew tag — a real gradient tag with labelled callouts.
 export function CrewTagAnatomy() {
   return (
