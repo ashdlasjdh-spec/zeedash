@@ -17,7 +17,7 @@ export default async function Login({ searchParams }) {
   return (
     <div className="login-wrap">
       <div className="login-card">
-        <img className="brand-logo" src="/zhd-logo.png" alt="ZHD" width={110} height={110} />
+        <img className="brand-logo" src="/zhd-mark.png" alt="ZHD" width={110} height={110} />
         <div className="brand">zhd<span>.lol</span></div>
         <div className="login-sub">Zee [MACRO!] staff control panel</div>
         <a className="btn" href="/api/auth/login">Continue with Discord</a>

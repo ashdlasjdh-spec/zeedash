@@ -100,14 +100,14 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
     <>
       {/* Mobile-only top bar with a hamburger; hidden on desktop via CSS. */}
       <div className="mtopbar">
-        <Link href="/" className="brand" onClick={() => setOpen(false)}><img className="side-logo" src="/zhd-logo.png" alt="" width="24" height="24" />zhd<span>.lol</span></Link>
+        <Link href="/" className="brand" onClick={() => setOpen(false)}><img className="side-logo" src="/zhd-mark.png" alt="" width="24" height="24" />zhd<span>.lol</span></Link>
         <button className={`hamb ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>
           <span /><span /><span />
         </button>
       </div>
       {open && <div className="side-backdrop" onClick={() => setOpen(false)} />}
       <aside className={`side ${open ? "open" : ""}`}>
-        <Link href="/" className="brand side-brand" onClick={() => setOpen(false)} title="Back to zhd.lol home"><img className="side-logo" src="/zhd-logo.png" alt="" width="26" height="26" />zhd<span>.lol</span></Link>
+        <Link href="/" className="brand side-brand" onClick={() => setOpen(false)} title="Back to zhd.lol home"><img className="side-logo" src="/zhd-mark.png" alt="" width="26" height="26" />zhd<span>.lol</span></Link>
 
       {/* Portal switcher — only shown when the user can reach BOTH portals. Server-only Discord
           admins never see the Game tab; Game-only staff never see the Server tab. */}

@@ -15,7 +15,7 @@ export default function DocsLayout({ children }) {
     <div className="docs">
       <aside className="docs-rail">
         <Link href="/docs" className="brand docs-rail-brand" style={{ textDecoration: "none" }}>
-          <img src="/zhd-logo.png" alt="" width="30" height="30" />zhd<span>.lol</span>
+          <img src="/zhd-mark.png" alt="" width="30" height="30" />zhd<span>.lol</span>
         </Link>
         <div className="docs-rail-tag">Documentation</div>
         <DocNav />

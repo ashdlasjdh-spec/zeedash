@@ -33,7 +33,7 @@ export default async function Landing() {
       {/* top bar */}
       <header className="land-top">
         <div className="land-inner">
-          <Link href="/" className="land-brand"><img src="/zhd-logo.png" alt="" width="30" height="30" />zhd<span>.lol</span></Link>
+          <Link href="/" className="land-brand"><img src="/zhd-mark.png" alt="" width="30" height="30" />zhd<span>.lol</span></Link>
           <nav className="land-nav">
             <a className="link" href="#stats">Community</a>
             <Link className="link" href="/docs">Docs</Link>
@@ -48,7 +48,7 @@ export default async function Landing() {
       {/* hero */}
       <section className="land-hero">
         <div className="land-inner">
-          <img className="land-hero-logo" src="/zhd-logo.png" alt="ZHD" width="132" height="132" />
+          <img className="land-hero-logo" src="/zhd-mark.png" alt="ZHD" width="132" height="132" />
           <div className="land-hero-kicker">Welcome to Zee Hood</div>
           <h1>zhd<span className="r">.lol</span></h1>
           <p>
@@ -124,7 +124,7 @@ export default async function Landing() {
       {/* footer */}
       <footer className="land-foot">
         <div className="land-inner">
-          <Link href="/" className="land-brand"><img src="/zhd-logo.png" alt="" width="26" height="26" />zhd<span>.lol</span></Link>
+          <Link href="/" className="land-brand"><img src="/zhd-mark.png" alt="" width="26" height="26" />zhd<span>.lol</span></Link>
           <div className="land-foot-links">
             <a href={GAME_URL} target="_blank" rel="noopener noreferrer">Play</a>
             <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>
