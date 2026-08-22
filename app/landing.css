@@ -40,7 +40,6 @@
 .land-hero > * { position: relative; z-index: 1; }
 .land-hero-logo {
   width: 132px; height: 132px; object-fit: contain; margin: 0 auto 22px; display: block;
-  filter: drop-shadow(0 16px 38px rgba(224,31,31,.4));
 }
 .land-hero-kicker {
   font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
