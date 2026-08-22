@@ -241,3 +241,22 @@
 .hero-stat { flex: 1; min-width: 130px; border: 1px solid var(--line); border-radius: 13px; padding: 15px 17px; background: var(--surface); }
 .hero-stat b { display: block; font-size: 26px; font-weight: 820; color: var(--white); letter-spacing: -.5px; }
 .hero-stat span { font-size: 12.5px; color: var(--muted); }
+
+/* ---- interactive diagrams ---- */
+.dgm { width: 100%; }
+.dgm-node { cursor: pointer; }
+.dgm-node:focus { outline: none; }
+.dgm-node rect, .dgm-node text { transition: opacity .12s ease; }
+.dgm-node:hover { opacity: 0.92; }
+.dgm-hot { cursor: pointer; }
+.dgm-cap {
+  margin: 14px auto 0; max-width: 460px; min-height: 44px;
+  border: 1px solid var(--line); border-radius: 11px; padding: 11px 14px;
+  background: var(--surface-2); display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.dgm-cap.on { border-color: var(--brand-line); background: var(--brand-soft); }
+.dgm-cap-t { font-size: 13.5px; font-weight: 750; color: var(--white); }
+.dgm-cap-b { font-size: 12.8px; line-height: 1.5; color: #cdcdd6; }
+.dgm-cap-hint { font-size: 12.5px; color: var(--faint); display: flex; align-items: center; gap: 7px; }
+.dgm-cap-hint::before { content: "👆"; font-size: 13px; }

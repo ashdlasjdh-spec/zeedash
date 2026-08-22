@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel } from "@/lib/permissions";
+import { canGroup, canBan, canWhitelist, canManageGrants, canPurge, grantsFor, labelForLevel, isSuperOwner } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { query } from "@/lib/db";
 import LiveClock from "../components/LiveClock";
@@ -136,6 +136,21 @@ export default async function Overview({ searchParams }) {
           </div>
         ))}
       </div>
+
+      {/* SUPER OWNER — role access to the community servers */}
+      {isSuperOwner(user.id) && (
+        <>
+          <div className="ov-sec-h">Super owner <span className="ov-line" /></div>
+          <Link className="ov-super" href="/dashboard/role-access">
+            <span className="ov-super-ico"><Icon name="shield" /></span>
+            <span style={{ minWidth: 0, flex: 1 }}>
+              <div className="ov-a-t">Role access</div>
+              <div className="ov-a-s">Give a Discord role site capabilities for the community servers — members with that role get the access automatically.</div>
+            </span>
+            <span className="ov-a-arrow">→</span>
+          </Link>
+        </>
+      )}
 
       {/* QUICK ACTIONS */}
       {actions.length > 0 && (

@@ -17,7 +17,9 @@ const PUBLIC_GUILD_IDS = [
 // community invite. Codes only (no https://discord.gg/ prefix).
 const DEFAULT_INVITE = "zhd";
 const GUILD_INVITES = {
-  // "1447037325380157452": "yourcode",
+  "1447037325380157452": "zhd",
+  "1496219608800170004": "zhdboard",
+  "1494327144829026354": "zhdhof",
 };
 const inviteFor = (id) => `https://discord.gg/${GUILD_INVITES[id] || DEFAULT_INVITE}`;
 
