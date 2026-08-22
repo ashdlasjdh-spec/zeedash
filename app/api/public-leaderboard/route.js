@@ -1,10 +1,11 @@
 import { query } from "@/lib/db";
+import { resolveAvatars } from "@/lib/discord";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 // Public community-wide leaderboard: the most active members across ALL the allow-listed servers
-// over the last 30 days, aggregated per user. Edge-cached.
+// over the last 30 days, aggregated per user (with Discord avatars). Edge-cached.
 const PUBLIC_GUILD_IDS = ["1447037325380157452", "1496219608800170004", "1494327144829026354"];
 
 export async function GET() {
@@ -18,7 +19,8 @@ export async function GET() {
        limit 15`,
       [PUBLIC_GUILD_IDS],
     );
-    const leaderboard = rows.map((r, i) => ({ rank: i + 1, name: r.username, messages: Number(r.m) || 0 }));
+    const avatars = await resolveAvatars(rows.map((r) => r.user_id)).catch(() => ({}));
+    const leaderboard = rows.map((r, i) => ({ rank: i + 1, id: r.user_id, name: r.username, avatar: avatars[String(r.user_id)] || null, messages: Number(r.m) || 0 }));
     return NextResponse.json({ leaderboard }, { headers: { "cache-control": "public, s-maxage=120, stale-while-revalidate=600" } });
   } catch (e) {
     return NextResponse.json({ leaderboard: [], error: e.message }, { headers: { "cache-control": "no-store" } });

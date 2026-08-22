@@ -7,6 +7,10 @@ function fmt(n) {
   if (n >= 1_000) return (n / 1_000).toFixed(n >= 10_000 ? 0 : 1) + "k";
   return String(n);
 }
+function Avatar({ src, name, size = 30 }) {
+  if (src) return <img className="lb-av" src={src} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" />;
+  return <span className="lb-av lb-av-fb" style={{ width: size, height: size }}>{(name || "?").trim()[0]?.toUpperCase() || "?"}</span>;
+}
 
 export default function PublicLeaderboard() {
   const { data, loading } = useCachedResource("public-leaderboard", () =>
@@ -23,6 +27,7 @@ export default function PublicLeaderboard() {
         : board.map((m) => (
             <div className={`lb-row ${m.rank <= 3 ? "lb-top" : ""}`} key={m.rank}>
               <span className={`lb-rank r${m.rank <= 3 ? m.rank : ""}`}>{m.rank}</span>
+              <Avatar src={m.avatar} name={m.name} />
               <span className="lb-name" title={m.name}>{m.name}</span>
               <span className="lb-n">{fmt(m.messages)} <span className="lb-unit">msgs</span></span>
             </div>

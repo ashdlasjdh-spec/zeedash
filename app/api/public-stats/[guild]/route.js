@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { resolveAvatars } from "@/lib/discord";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -35,10 +36,11 @@ export async function GET(_req, { params }) {
          where guild_id=$1 and day >= current_date - interval '29 days'
          group by channel_id order by m desc limit 8`, [guild]),
       query(
-        `select username, sum(messages)::bigint m from member_stats
+        `select max(user_id) user_id, username, sum(messages)::bigint m from member_stats
          where guild_id=$1 and day >= current_date - interval '29 days' and username is not null
          group by username order by m desc limit 10`, [guild]),
     ]);
+    const avatars = await resolveAvatars(board.map((r) => r.user_id)).catch(() => ({}));
 
     const name = meta[0]?.name || GUILD_LABELS[guild] || guild;
     const icon = meta[0]?.icon ? `https://cdn.discordapp.com/icons/${guild}/${meta[0].icon}.png?size=96` : null;
@@ -48,7 +50,7 @@ export async function GET(_req, { params }) {
       prev: { messages: N(prev[0]?.messages), reactions: N(prev[0]?.reactions), voiceMinutes: N(prev[0]?.voice) },
       series: series.map((r) => ({ d: r.d, messages: N(r.msg), reactions: N(r.rx), voiceMinutes: N(r.vm) })),
       channels: channels.map((c) => ({ name: c.name || "unknown", messages: N(c.m) })),
-      leaderboard: board.map((r, i) => ({ rank: i + 1, name: r.username, messages: N(r.m) })),
+      leaderboard: board.map((r, i) => ({ rank: i + 1, id: r.user_id, name: r.username, avatar: avatars[String(r.user_id)] || null, messages: N(r.m) })),
     }, { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=300" } });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });

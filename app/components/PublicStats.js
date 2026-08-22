@@ -160,6 +160,9 @@ export default function PublicStats() {
                           ? detail.leaderboard.map((r) => (
                               <div className="ps-board-row" key={r.rank}>
                                 <span className={`ps-rank ${r.rank <= 3 ? "top" : ""}`}>{r.rank}</span>
+                                {r.avatar
+                                  ? <img className="lb-av" src={r.avatar} alt="" width="26" height="26" loading="lazy" referrerPolicy="no-referrer" />
+                                  : <span className="lb-av lb-av-fb" style={{ width: 26, height: 26 }}>{(r.name || "?").trim()[0]?.toUpperCase() || "?"}</span>}
                                 <span className="ps-board-name" title={r.name}>{r.name}</span>
                                 <span className="ps-board-n">{fmt(r.messages)} msgs</span>
                               </div>
