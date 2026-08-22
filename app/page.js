@@ -2,6 +2,7 @@ import Link from "next/link";
 import "./landing.css";
 import { getSession } from "@/lib/session";
 import PublicStats from "./components/PublicStats";
+import PublicLeaderboard from "./components/PublicLeaderboard";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -21,6 +22,8 @@ function FIcon({ name }) {
     play: <path d="M8 5v14l11-7L8 5Z" {...P} />,
     discord: <path d="M8 12h.01M16 12h.01M7.5 7.5C9 7 10.5 6.8 12 6.8s3 .2 4.5.7c1.7 2 2.5 4.6 2.5 7.5-1.3 1-2.7 1.7-4 2l-.9-1.6M8.4 15.4c-1.3-.3-2.7-1-4-2 0-2.9.8-5.5 2.5-7.5M8.5 17.5 7.5 19M15.5 17.5l1 1.5" {...P} />,
     book: <><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" {...P} /><path d="M19 3v16" {...P} /></>,
+    lock: <><rect x="5" y="11" width="14" height="10" rx="2" {...P} /><path d="M8 11V8a4 4 0 0 1 8 0v3" {...P} /></>,
+    grid: <><rect x="4" y="4" width="7" height="7" rx="1.5" {...P} /><rect x="13" y="4" width="7" height="7" rx="1.5" {...P} /><rect x="4" y="13" width="7" height="7" rx="1.5" {...P} /><rect x="13" y="13" width="7" height="7" rx="1.5" {...P} /></>,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -36,11 +39,12 @@ export default async function Landing() {
           <Link href="/" className="land-brand"><img src="/zhd-mark.png" alt="" width="30" height="30" />zhd<span>.lol</span></Link>
           <nav className="land-nav">
             <a className="link" href="#stats">Community</a>
+            <a className="link" href="#leaderboard">Leaderboard</a>
             <Link className="link" href="/docs">Docs</Link>
             <Link className="link" href="/catalog">Catalog</Link>
             {session
-              ? <Link className="land-btn" href="/dashboard">Open dashboard</Link>
-              : <Link className="land-btn" href="/login">Staff login</Link>}
+              ? <Link className="land-login" href="/dashboard"><FIcon name="grid" /> Dashboard</Link>
+              : <Link className="land-login" href="/login"><FIcon name="lock" /> Staff login</Link>}
           </nav>
         </div>
       </header>
@@ -71,6 +75,20 @@ export default async function Landing() {
             <p>Every server the bot runs in, updated automatically.</p>
           </div>
           <PublicStats />
+        </div>
+      </section>
+
+      {/* community leaderboard */}
+      <section className="land-sec" id="leaderboard">
+        <div className="land-inner">
+          <div className="land-sec-h">
+            <span className="kick">Leaderboard</span>
+            <h2>Most active members</h2>
+            <p>The top chatters across the community over the last 30 days.</p>
+          </div>
+          <div className="lb-wrap">
+            <PublicLeaderboard />
+          </div>
         </div>
       </section>
 

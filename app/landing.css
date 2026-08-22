@@ -194,3 +194,36 @@
 .ps-areawrap { border: 1px solid var(--line); border-radius: 13px; padding: 10px 8px 4px; background: var(--surface); overflow: hidden; }
 .ps-areawrap svg { width: 100%; height: auto; display: block; }
 @media (max-width: 460px) { .ps-astats { grid-template-columns: 1fr 1fr; } .ps-astat-n { font-size: 20px; } }
+
+/* refined top-right login / dashboard button — glassy pill, not a flat red block */
+.land-login {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 17px 9px 14px; border-radius: 999px;
+  font-weight: 700; font-size: 14px; letter-spacing: .1px; color: var(--white);
+  background: linear-gradient(180deg, rgba(255,59,48,.16), rgba(224,31,31,.10));
+  border: 1px solid var(--brand-line);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 8px 22px -14px var(--brand-glow);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease, background .16s ease;
+}
+.land-login svg { width: 16px; height: 16px; color: var(--brand-2); }
+.land-login:hover {
+  transform: translateY(-1px); border-color: var(--brand-2);
+  background: linear-gradient(180deg, rgba(255,59,48,.26), rgba(224,31,31,.16));
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 12px 28px -12px var(--brand-glow);
+}
+.land-login:active { transform: translateY(0); }
+
+/* community leaderboard */
+.lb-wrap { max-width: 620px; margin: 0 auto; border: 1px solid var(--line); border-radius: 18px; padding: 10px;
+  background: linear-gradient(180deg, var(--surface), var(--bg-2)); }
+.lb { display: flex; flex-direction: column; }
+.lb-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; }
+.lb-row:nth-child(odd) { background: rgba(255,255,255,.015); }
+.lb-top { background: var(--brand-soft) !important; border: 1px solid var(--brand-line); }
+.lb-rank { flex: 0 0 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+  font-size: 13px; font-weight: 850; color: var(--muted); background: var(--surface-3); }
+.lb-rank.r1 { color: #1a1400; background: linear-gradient(135deg, #ffe27a, #f5b021); }
+.lb-rank.r2 { color: #14161a; background: linear-gradient(135deg, #e6ecf3, #aab6c4); }
+.lb-rank.r3 { color: #1a0f06; background: linear-gradient(135deg, #f0b483, #cd7f43); }
+.lb-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-n { flex: 0 0 auto; font-size: 14px; font-weight: 750; color: var(--text); }
+.lb-unit { color: var(--muted); font-weight: 500; font-size: 12px; }
