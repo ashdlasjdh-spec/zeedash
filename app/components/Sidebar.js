@@ -70,10 +70,10 @@ const NAV = [
   { sec: "Moderation", needBan: true },
   { href: "/dashboard/bans", label: "Bans", needBan: true },
   { href: "/dashboard/lookup", label: "Lookup", needBan: true },
-  { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
 
   { sec: "Group", needGroupAny: true },
   { href: "/dashboard/group", label: "Group", needGroupAny: true },
+  { href: "/dashboard/analytics", label: "Analytics", needGroup: true },
 
   { sec: "Insights", needConfig: true },
   { href: "/dashboard/audit", label: "Audit Log", needConfig: true },

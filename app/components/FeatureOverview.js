@@ -6,17 +6,13 @@ import { useGuilds } from "./metaFields";
 
 // At-a-glance grid of every Server Management feature and whether it's ON for the selected guild,
 // each linking to its page. Reads /api/guild-settings (security features are stripped server-side
-// for anyone without security access, so they simply show as Off here).
-const GROUPS = [
-  { label: "Security", items: [["Fake Permissions", "fake-permissions"], ["Automod", "automod"], ["Antiraid", "antiraid"], ["Antinuke", "antinuke"], ["Honeypot", "honeypot"]] },
-  { label: "Automation", items: [["Autoresponder", "autoresponder"], ["Autoreact", "autoreact"], ["Autorole", "autorole"], ["Ping on Join", "pingonjoin"]] },
-  { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
-  { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"], ["Tickets", "tickets"]] },
-  { label: "Economy & Fun", items: [["Economy", "economy"], ["Booster Role", "boosterrole"], ["Giveaways", "giveaways"], ["Counter Channels", "counters"], ["Timers", "timers"]] },
-];
+// for anyone without security access, so they simply show as Off here). Feature list is the single
+// shared catalogue (lib/serverFeatures) — nothing is duplicated here.
+import { OVERVIEW_GROUPS as GROUPS, SECURITY_SLUGS as SEC_LIST } from "@/lib/serverFeatures";
+
 // feature slug in the store ↔ page slug (mostly identical).
 const STORE_KEY = { "button-roles": "buttonroles", "reaction-roles": "reactionroles", "fake-permissions": "fake-permissions" };
-const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
+const SECURITY_SLUGS = new Set(SEC_LIST);
 
 export default function FeatureOverview() {
   const sp = useSearchParams();
@@ -48,7 +44,7 @@ export default function FeatureOverview() {
     const key = STORE_KEY[slug] || slug;
     return !!settings?.[key]?.enabled;
   };
-  const enabledCount = settings ? GROUPS.flatMap((g) => g.items).filter(([, slug]) => canSee(slug) && isOn(slug)).length : 0;
+  const enabledCount = settings ? GROUPS.flatMap((g) => g.items).filter((i) => canSee(i.slug) && isOn(i.slug)).length : 0;
 
   return (
     <div className="card" style={{ marginBottom: 16 }}>
@@ -61,13 +57,13 @@ export default function FeatureOverview() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 18 }}>
         {GROUPS.map((grp) => {
-          const items = grp.items.filter(([, slug]) => canSee(slug));
+          const items = grp.items.filter((i) => canSee(i.slug));
           if (!items.length) return null; // e.g. a manual-permission user with nothing in this group
           return (
           <div key={grp.label}>
             <div className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700, marginBottom: 8 }}>{grp.label}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {items.map(([label, slug]) => {
+              {items.map(({ label, slug }) => {
                 const on = isOn(slug);
                 return (
                   <Link key={slug} href={`/dashboard/server/${slug}${q}`} className="fo-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--line)", textDecoration: "none", color: "inherit" }}>

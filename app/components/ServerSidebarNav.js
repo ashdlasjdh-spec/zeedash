@@ -4,27 +4,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import ServerPicker from "./ServerPicker";
 import { useGuilds } from "./metaFields";
+import { FEATURE_GROUPS as SECTIONS, TOP_LINKS as TOP, SECURITY_SLUGS as SEC_LIST } from "@/lib/serverFeatures";
 
 // Feature slugs that are only shown to a guild's owner / antinuke admins (or top staff).
-const SECURITY_SLUGS = new Set(["antinuke", "antiraid"]);
-
-// Top-level single links (icons come from the Sidebar ICON map via the Icon prop). `slug` (when set)
-// is the feature this link maps to, so it can be hidden when the user can't manage that feature.
-const TOP = [
-  { href: "/dashboard/server", label: "Overview" },
-  { href: "/dashboard/server/leaderboard", label: "Leaderboard" },
-  { href: "/dashboard/server/message-builder", label: "Message Builder", slug: "message-builder" },
-];
-// Collapsible sections (bleed/greed-style). [label, slug] — slug maps to /dashboard/server/<slug>.
-const SECTIONS = [
-  { label: "Settings", items: [["General", "settings-general"], ["Customize", "customize"], ["AutoPFP", "autopfp"], ["Restrict", "restrict"], ["Disable", "disable"]] },
-  { label: "Security", items: [["Fake Permissions", "fake-permissions"], ["Automod", "automod"], ["Antiraid", "antiraid"], ["Antinuke", "antinuke"], ["Honeypot", "honeypot"]] },
-  { label: "Automation", items: [["Autoresponder", "autoresponder"], ["Autoreact", "autoreact"], ["Autorole", "autorole"], ["Ping on Join", "pingonjoin"], ["Tracking", "tracking"]] },
-  { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
-  { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Aliases", "aliases"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"]] },
-  { label: "Economy & Fun", items: [["Economy", "economy"], ["Booster Role", "boosterrole"], ["Giveaways", "giveaways"], ["Counter Channels", "counters"], ["Timers", "timers"]] },
-];
-const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets", slug: "tickets" }];
+const SECURITY_SLUGS = new Set(SEC_LIST);
 
 export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false }) {
   const path = usePathname();
@@ -58,11 +41,11 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
     if (access.manage) return true;                 // Discord admin manages all non-security features
     return access.manageable.includes(slug);        // otherwise only what their manual perms unlock
   };
-  const visibleItems = (items) => items.filter(([, slug]) => canSee(slug));
+  const visibleItems = (items) => items.filter((i) => canSee(i.slug));
 
   const [open, setOpen] = useState(() => {
     const o = {};
-    for (const s of SECTIONS) o[s.label] = s.items.some(([, slug]) => path === `/dashboard/server/${slug}`);
+    for (const s of SECTIONS) o[s.label] = s.items.some((i) => path === `/dashboard/server/${i.slug}`);
     return o;
   });
   const toggle = (label) => setOpen((o) => ({ ...o, [label]: !o[label] }));
@@ -88,16 +71,15 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
           </button>
           {open[sec.label] && (
             <div className="nav-sub">
-              {items.map(([label, slug]) => {
-                const href = `/dashboard/server/${slug}`;
-                return <Link key={slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{label}</Link>;
+              {items.map((i) => {
+                const href = `/dashboard/server/${i.slug}`;
+                return <Link key={i.slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{i.label}</Link>;
               })}
             </div>
           )}
         </div>
         );
       })}
-      {BOTTOM.filter((n) => !n.slug || canSee(n.slug)).map((n) => link(n.href, n.label))}
       {superOwner && (
         <>
           <div className="nav-sep" />
