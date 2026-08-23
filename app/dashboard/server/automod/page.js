@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import PageHeader from "../../../components/PageHeader";
 import FeatureSettings from "../../../components/FeatureSettings";
 import AutomodRules from "../../../components/AutomodRules";
@@ -19,9 +17,8 @@ const FIELDS = [
 ];
 
 export default async function Page() {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="ban" title="Automod" subtitle="Edit the server's Discord AutoMod word rules, plus extra bot filters." />

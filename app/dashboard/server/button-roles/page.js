@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import PageHeader from "../../../components/PageHeader";
 import FeatureSettings from "../../../components/FeatureSettings";
 import PublishPanel from "../../../components/PublishPanel";
@@ -20,9 +18,8 @@ const FIELDS = [
 ];
 
 export default async function Page() {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="shield" title="Button Roles" subtitle="Self-assign roles by clicking buttons. Off until enabled." />

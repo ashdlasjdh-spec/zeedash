@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import PageHeader from "../../../components/PageHeader";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +24,8 @@ const NOTES = {
 };
 
 export default async function Page({ params }) {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   const slug = params.feature;
   const title = TITLES[slug] || slug;
   const note = NOTES[slug];

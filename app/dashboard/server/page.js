@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import ServerAnalytics from "../../components/ServerAnalytics";
 import FeatureOverview from "../../components/FeatureOverview";
 import SettingsBackup from "../../components/SettingsBackup";
@@ -8,9 +6,8 @@ import SettingsBackup from "../../components/SettingsBackup";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <ServerAnalytics userName={u.name} />

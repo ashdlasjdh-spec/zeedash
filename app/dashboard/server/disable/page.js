@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import PageHeader from "../../../components/PageHeader";
 import FeatureList from "../../../components/FeatureList";
 
@@ -10,9 +8,8 @@ const COMMANDS = ["makeembed", "editembed", "buttonpanel", "sendembed", "ticketp
 const COLS = [{ key: "command", label: "Command", type: "select", options: COMMANDS, flex: 1 }];
 
 export default async function Page() {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="gear" title="Disable" subtitle="Turn off specific bot commands in this server. Off until enabled." />

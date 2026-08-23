@@ -1,6 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
+import { serverSectionUser } from "@/lib/guards";
 import PageHeader from "../../../components/PageHeader";
 import FeatureList from "../../../components/FeatureList";
 
@@ -23,9 +21,8 @@ const COLS = [
 ];
 
 export default async function Page() {
-  const u = await getSession();
+  const u = await serverSectionUser();
   if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
   return (
     <div className="fullbleed">
       <PageHeader icon="shield" title="Fake Permissions" subtitle="Give roles bot-only permissions without real Discord admin. Off until enabled." />
