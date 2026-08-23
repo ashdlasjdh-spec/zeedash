@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useGuilds, useGuildMeta, MetaSelect, OptionMultiSelect } from "./metaFields";
 import Dropdown from "./Dropdown";
 import { cachedGuildSettings, loadGuildSettings, updateFeatureCache } from "@/lib/guildSettingsClient";
-import { MANUAL_PERMS, MANUAL_PERM_LABELS, FEATURE_PERM } from "@/lib/permissions";
+import { MANUAL_PERMS, MANUAL_PERM_LABELS, FEATURE_PERM, GROUP_ACTION_LABELS } from "@/lib/permissions";
 import { FEATURE_LABEL, GRANTABLE_FEATURE_SLUGS, PRESETS, presetSummary } from "@/lib/fakePerms";
 
 const PERM_OPTIONS = [...MANUAL_PERMS].map((p) => ({ value: p, label: MANUAL_PERM_LABELS[p] || p }));
@@ -60,6 +60,9 @@ export default function FakePermissions() {
   const [preview, setPreview] = useState("");
   const [copyRole, setCopyRole] = useState("");
   const [copyTo, setCopyTo] = useState("");
+  const [lookupId, setLookupId] = useState("");
+  const [lookup, setLookup] = useState(null);
+  const [lookupBusy, setLookupBusy] = useState(false);
 
   const roles = meta?.roles || [];
   const roleName = (id) => roles.find((r) => String(r.id) === String(id))?.name || id;
@@ -146,6 +149,19 @@ export default function FakePermissions() {
       setToast({ ok: true, msg: `Copied @${roleName(copyRole)} to ${gName}.` });
     } catch (e) { setToast({ ok: false, msg: e.message }); }
     setSaving(false);
+  };
+
+  const doLookup = async () => {
+    const id = lookupId.trim();
+    if (!/^\d{5,}$/.test(id)) { setLookup({ error: "Enter a valid Discord user ID." }); return; }
+    setLookupBusy(true); setLookup(null);
+    try {
+      const r = await fetch(`/api/resolve-access?guild=${guild}&user=${id}`);
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setLookup(j);
+    } catch (e) { setLookup({ error: e.message }); }
+    setLookupBusy(false);
   };
 
   if (!loading && !guild) return <div className="card"><p className="muted">No server available yet.</p></div>;
@@ -259,6 +275,37 @@ export default function FakePermissions() {
           </div>
         </div>
       )}
+
+      {/* What can this member do? */}
+      <div className="card">
+        <div style={{ fontWeight: 750, marginBottom: 8 }}>What can this member do?</div>
+        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>Paste a Discord user ID to see their resolved access in this server — fake permissions, features they can manage or view, Roblox group delegation, and staff level.</div>
+        <div className="row wl-form" style={{ alignItems: "flex-end" }}>
+          <div style={{ flex: 1, minWidth: 200 }}><label>Discord user ID</label>
+            <input className="mono" value={lookupId} onChange={(e) => setLookupId(e.target.value)} placeholder="183605754593411072" inputMode="numeric" onKeyDown={(e) => e.key === "Enter" && doLookup()} />
+          </div>
+          <button className="btn" style={{ width: "auto" }} disabled={lookupBusy} onClick={doLookup}>{lookupBusy ? "…" : "Look up"}</button>
+        </div>
+        {lookup?.error && <div className="toast bad" style={{ marginTop: 12 }}>{lookup.error}</div>}
+        {lookup && !lookup.error && lookup.isMember === false && <div className="toast" style={{ marginTop: 12 }}>That user isn&apos;t a member of this server.</div>}
+        {lookup && lookup.isMember && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontWeight: 700 }}>{lookup.member?.name || lookup.member?.id} <span className="pill" style={{ marginLeft: 6 }}>{lookup.roleName} ({lookup.level})</span></div>
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".04em", margin: "12px 0 4px" }}>Fake permissions</div>
+            <div className="ra-caps">{lookup.perms.length ? lookup.perms.map((p) => <span key={p} className="chip">{MANUAL_PERM_LABELS[p] || p}</span>) : <span className="muted">None</span>}</div>
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".04em", margin: "12px 0 4px" }}>Can manage ({lookup.manage.length})</div>
+            <div className="ra-caps">{lookup.manage.length ? lookup.manage.map((s2) => <span key={s2} className="chip">{FEATURE_LABEL[s2] || s2}</span>) : <span className="muted">None</span>}</div>
+            {lookup.view.length > 0 && <>
+              <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".04em", margin: "12px 0 4px" }}>View only</div>
+              <div className="ra-caps">{lookup.view.map((s2) => <span key={s2} className="chip">{FEATURE_LABEL[s2] || s2}</span>)}</div>
+            </>}
+            {lookup.group && <>
+              <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".04em", margin: "12px 0 4px" }}>Roblox group delegation</div>
+              <div className="ra-caps">{lookup.group.actions.map((a) => <span key={a} className="chip">{GROUP_ACTION_LABELS[a] || a}</span>)}{lookup.group.maxRank != null && <span className="chip" style={{ opacity: 0.85 }}>≤ rank {lookup.group.maxRank}</span>}</div>
+            </>}
+          </div>
+        )}
+      </div>
 
       {/* Audit trail */}
       <div className="card">
