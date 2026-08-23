@@ -5,6 +5,7 @@ import { applyGrant, PERK_FIELD } from "@/lib/grantEngine";
 import { listPerks } from "@/lib/perksApi";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError, unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -22,8 +23,8 @@ const buildWarn = (warns, errors) =>
 //                           dashboard abuser — pulls back every power/tool/gamepass/etc they gave.
 export async function POST(req) {
   const s = await getSession();
-  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  if (!canPurge(s.id)) return NextResponse.json({ error: "Only owners can remove all." }, { status: 403 });
+  if (!s) return unauthorized("Not signed in");
+  if (!canPurge(s.id)) return forbidden("Only owners can remove all.");
   const capped = await limited(`purge:${s.id}`, { max: 10, windowSec: 60 }); if (capped) return capped;
 
   const body = await req.json().catch(() => ({}));
@@ -31,7 +32,7 @@ export async function POST(req) {
   // ---- Mode 2: undo everything a specific granter handed out ----
   if (body.granter != null) {
     const g = String(body.granter).trim();
-    if (!g) return NextResponse.json({ error: "Enter the granter's Discord ID or name." }, { status: 400 });
+    if (!g) return badRequest("Enter the granter's Discord ID or name.");
     try {
       // Every grant that staff member logged (by id OR name), across all perk sections.
       const rows = await query(
@@ -67,14 +68,14 @@ export async function POST(req) {
       });
       return NextResponse.json({ ok: !errors.length, removed: { users: users.size, items }, warn: buildWarn(warns, errors), byGranter: g });
     } catch (e) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
+      return serverError(e.message);
     }
   }
 
   // ---- Mode 1: mass-remove one whole section ----
   const { category } = body;
   const field = PERK_FIELD[category];
-  if (!field) return NextResponse.json({ error: "Category can't be mass-removed." }, { status: 400 });
+  if (!field) return badRequest("Category can't be mass-removed.");
 
   try {
     const { perks } = await listPerks();
@@ -104,6 +105,6 @@ export async function POST(req) {
     });
     return NextResponse.json({ ok: !errors.length, removed: { users, items }, warn: buildWarn(warns, errors) });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

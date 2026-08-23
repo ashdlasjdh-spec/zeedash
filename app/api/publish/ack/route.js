@@ -1,6 +1,7 @@
 import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { badRequest, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req) {
   const bad = guardBot(req); if (bad) return bad;
   const { id, ok, result } = await req.json().catch(() => ({}));
-  if (!id) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  if (!id) return badRequest();
   try {
     await ensureSchema();
     await query(
@@ -17,6 +18,6 @@ export async function POST(req) {
     );
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

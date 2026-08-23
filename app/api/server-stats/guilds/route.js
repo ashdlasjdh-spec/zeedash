@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canAccessServerSection } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 // nothing here). Returns id, name and Discord icon (most-recently-active first).
 export async function GET() {
   const s = await getSession();
-  if (!s || !canAccessServerSection(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canAccessServerSection(s)) return forbidden();
   try {
     const ids = s.serverGuildIds || [];
     if (!ids.length) return NextResponse.json({ guilds: [] }, { headers: { "cache-control": "no-store" } });
@@ -21,6 +22,6 @@ export async function GET() {
       : await query(`${base} ${tail}`);
     return NextResponse.json({ guilds: rows.map((g) => ({ id: g.guild_id, name: g.name || g.guild_id, icon: g.icon || null })) }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

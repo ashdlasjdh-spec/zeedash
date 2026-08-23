@@ -1,6 +1,7 @@
 import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { badRequest, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function GET(req) {
   const kind = sp.get("kind") || "";
   const guild = sp.get("guild") || "";
   const id = sp.get("id") || "";
-  if (!KIND.test(kind)) return NextResponse.json({ error: "Bad kind" }, { status: 400 });
+  if (!KIND.test(kind)) return badRequest("Bad kind");
   try {
     await ensureSchema();
     let sql = "select guild_id, kind, item_id, data, expires_at from bot_state where kind = $1";
@@ -29,14 +30,14 @@ export async function GET(req) {
     const rows = await query(sql, params);
     return NextResponse.json({ rows }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }
 
 export async function POST(req) {
   const bad = guardBot(req); if (bad) return bad;
   const { guild, kind, id, data, ttlMs, remove } = await req.json().catch(() => ({}));
-  if (!guild || !KIND.test(String(kind || "")) || !id) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  if (!guild || !KIND.test(String(kind || "")) || !id) return badRequest();
   try {
     await ensureSchema();
     if (remove) {
@@ -53,6 +54,6 @@ export async function POST(req) {
     );
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

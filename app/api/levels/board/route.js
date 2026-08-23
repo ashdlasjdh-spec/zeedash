@@ -4,6 +4,7 @@ import { query, ensureSchema } from "@/lib/db";
 import { botAuthed } from "@/lib/botauth";
 import { levelFromXp } from "@/lib/levels";
 import { NextResponse } from "next/server";
+import { forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function GET(req) {
   const limit = Math.min(50, Math.max(1, Number(req.nextUrl.searchParams.get("limit")) || 25));
   if (!botAuthed(req)) {
     const s = await getSession();
-    if (!s || !canManageFeature(s, guild, "levels")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!s || !canManageFeature(s, guild, "levels")) return forbidden();
   }
   if (!guild) return NextResponse.json({ rows: [] });
   try {
@@ -27,6 +28,6 @@ export async function GET(req) {
     const out = rows.map((r) => ({ id: r.user_id, name: r.username || null, xp: Number(r.xp) || 0, level: levelFromXp(Number(r.xp) || 0) }));
     return NextResponse.json({ rows: out }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forbidden } from "@/lib/api";
 import { CATALOG } from "@/lib/catalog";
 import { botAuthed } from "@/lib/botauth";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 // (same secret the bot already uses); the data isn't sensitive but we keep the surface consistent.
 export async function GET(req) {
   if (!botAuthed(req)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
   return NextResponse.json({ catalog: CATALOG }, { headers: { "cache-control": "no-store" } });
 }

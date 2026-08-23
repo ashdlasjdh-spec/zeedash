@@ -3,6 +3,7 @@ import { query, logAudit, ensureSchema } from "@/lib/db";
 import { setConfig } from "@/lib/config";
 import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { serverError, unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -12,7 +13,7 @@ export const maxDuration = 300;
 // then drops the expiry row and logs an audit entry. Protected by CRON_SECRET: Vercel sends it
 // as `Authorization: Bearer <CRON_SECRET>`, so only the cron (or an owner with the secret) runs it.
 async function handle(req) {
-  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
+  if (!botAuthed(req)) return unauthorized("Forbidden");
 
   try {
     await ensureSchema();
@@ -57,7 +58,7 @@ async function handle(req) {
     }
     return NextResponse.json({ ok: true, checked: due.length, revoked, errors: errors.slice(0, 10) });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }
 

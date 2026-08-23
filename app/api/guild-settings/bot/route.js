@@ -1,6 +1,7 @@
 import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { badRequest, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function GET(req) {
     for (const r of rows) settings[r.feature] = { enabled: true, config: r.config || {} };
     return NextResponse.json({ settings }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }
 
@@ -28,7 +29,7 @@ export async function POST(req) {
   const bad = guardBot(req); if (bad) return bad;
   const { guild, feature, key, add, remove } = await req.json().catch(() => ({}));
   if (!guild || !FEATURE.test(String(feature || "")) || !/^[a-z_]{2,20}$/.test(String(key || ""))) {
-    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+    return badRequest();
   }
   try {
     await ensureSchema();
@@ -46,6 +47,6 @@ export async function POST(req) {
     );
     return NextResponse.json({ list });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

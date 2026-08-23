@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canReachGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ const top = (guild, days, col) =>
 export async function GET(req) {
   const s = await getSession();
   const guild = req.nextUrl.searchParams.get("guild") || "";
-  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canReachGuild(s, guild)) return forbidden();
 
   const days = Math.min(90, Math.max(7, parseInt(req.nextUrl.searchParams.get("days") || "30", 10) || 30));
   if (!guild) return NextResponse.json({ messages: [], reactions: [], voice: [] });
@@ -29,6 +30,6 @@ export async function GET(req) {
     const map = (rows, div) => rows.map((x) => ({ id: x.user_id, name: x.username || x.user_id, value: div ? Math.round((Number(x.v) / div) * 10) / 10 : Number(x.v) }));
     return NextResponse.json({ messages: map(m), reactions: map(r), voice: map(v, 60) });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

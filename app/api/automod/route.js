@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canGroup } from "@/lib/permissions";
 import { getAutomodRules, updateAutomodRule } from "@/lib/discord";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, notFound } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ const HAS_MENTION = new Set([5]);     // mention_total_limit
 // GET ?guild=X  -> the guild's Discord AutoMod rules with every editable field.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canGroup(s.level)) return forbidden();
   const guild = req.nextUrl.searchParams.get("guild") || "";
   if (!guild) return NextResponse.json({ rules: [] });
   const r = await getAutomodRules(guild);
@@ -42,15 +43,15 @@ export async function GET(req) {
 // Merges into the rule's existing metadata (never wipes untouched fields), then PATCHes Discord.
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canGroup(s.level)) return forbidden();
   const body = await req.json().catch(() => ({}));
   const { guild, ruleId } = body;
-  if (!guild || !ruleId) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  if (!guild || !ruleId) return badRequest();
 
   const r = await getAutomodRules(guild);
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
   const rule = r.rules.find((x) => String(x.id) === String(ruleId));
-  if (!rule) return NextResponse.json({ error: "Rule not found" }, { status: 404 });
+  if (!rule) return notFound("Rule not found");
 
   const t = rule.trigger_type;
   const md = { ...(rule.trigger_metadata || {}) };

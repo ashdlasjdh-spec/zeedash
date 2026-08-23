@@ -5,6 +5,7 @@ import { resolveUsername } from "@/lib/roblox";
 import { applyGrant } from "@/lib/grantEngine";
 import { query, logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, notFound } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -17,20 +18,20 @@ async function readBundles() {
 
 export async function GET() {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return forbidden();
   return NextResponse.json({ bundles: await readBundles() });
 }
 
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return forbidden();
   const body = await req.json().catch(() => ({}));
 
   if (body.action === "save") {
     const name = String(body.name || "").trim();
     const items = (Array.isArray(body.items) ? body.items : []).filter((i) => i && i.category && i.key);
-    if (!name) return NextResponse.json({ error: "Bundle needs a name." }, { status: 400 });
-    if (!items.length) return NextResponse.json({ error: "Add at least one item to the bundle." }, { status: 400 });
+    if (!name) return badRequest("Bundle needs a name.");
+    if (!items.length) return badRequest("Add at least one item to the bundle.");
     const bundles = await readBundles();
     const idx = bundles.findIndex((b) => b.name.toLowerCase() === name.toLowerCase());
     if (idx >= 0) bundles[idx] = { name, items }; else bundles.push({ name, items });
@@ -48,12 +49,12 @@ export async function POST(req) {
   if (body.action === "apply") {
     const name = String(body.name || "").trim().toLowerCase();
     const username = String(body.username || "").trim();
-    if (!username) return NextResponse.json({ error: "Enter a player." }, { status: 400 });
+    if (!username) return badRequest("Enter a player.");
     const bundle = (await readBundles()).find((b) => b.name.toLowerCase() === name);
-    if (!bundle) return NextResponse.json({ error: "No such bundle." }, { status: 404 });
+    if (!bundle) return notFound("No such bundle.");
 
     let user = await resolveUsername(username).catch(() => null);
-    if (!user) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+    if (!user) return notFound("No such Roblox user.");
 
     let done = 0;
     const skipped = [], errors = [];
@@ -69,5 +70,5 @@ export async function POST(req) {
     return NextResponse.json({ ok: !errors.length, done, skipped, errors, user });
   }
 
-  return NextResponse.json({ error: "Unknown action." }, { status: 400 });
+  return badRequest("Unknown action.");
 }

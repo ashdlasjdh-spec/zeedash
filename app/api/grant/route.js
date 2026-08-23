@@ -5,6 +5,7 @@ import { findItem } from "@/lib/catalog";
 import { applyGrant } from "@/lib/grantEngine";
 import { logAudit, query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError, unauthorized } from "@/lib/api";
 
 // Format a whole number of seconds as the largest exact unit (1w / 1d / 1h / 1m / 1s).
 function humanDur(sec) {
@@ -28,12 +29,12 @@ function rateLimited(key, max, windowMs) {
 
 export async function POST(req) {
   const s = await getSession();
-  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!s) return unauthorized("Not signed in");
   if (rateLimited(`grant:${s.id}`, 60, 10_000)) return NextResponse.json({ error: "Slow down — too many grant actions." }, { status: 429 });
   const { category, key, username, action = "grant", seconds } = await req.json();
-  if (!category || !key || !username) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  if (!canCat(s, category)) return NextResponse.json({ error: "Your role can't grant this" }, { status: 403 });
-  if (!findItem(category, key)) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
+  if (!category || !key || !username) return badRequest("Missing fields");
+  if (!canCat(s, category)) return forbidden("Your role can't grant this");
+  if (!findItem(category, key)) return badRequest("Unknown item");
 
   const user = await resolveUsername(username);
   if (!user) return NextResponse.json({ error: `No Roblox user "${username}"` }, { status: 404 });
@@ -66,6 +67,6 @@ export async function POST(req) {
     });
     return NextResponse.json({ ok: true, target: user, warn, expiresIn });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ const cache = new Map(); // userId -> { url, at }
 const TTL = 60 * 60 * 1000;
 
 export async function GET(req) {
-  if (!(await getSession())) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!(await getSession())) return unauthorized("Not signed in");
 
   const ids = (new URL(req.url).searchParams.get("ids") || "")
     .split(",").map((s) => s.trim()).filter((s) => /^\d+$/.test(s)).slice(0, 100);

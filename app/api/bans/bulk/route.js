@@ -5,6 +5,7 @@ import { resolveUsername } from "@/lib/roblox";
 import { getConfig } from "@/lib/config";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -32,22 +33,22 @@ async function setRestriction(url, key, gameJoinRestriction) {
 // entry (not one per user) and posts no per-user webhooks to avoid flooding the ban channel.
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canBulkBan(s.level)) return NextResponse.json({ error: "Bulk ban/unban is co owners+ only." }, { status: 403 });
+  if (!s || !canBulkBan(s.level)) return forbidden("Bulk ban/unban is co owners+ only.");
   const capped = await limited(`bulkban:${s.id}`, { max: 10, windowSec: 60 }); if (capped) return capped;
 
   const { users, action = "ban", reason } = await req.json();
   const isBan = action === "ban";
   const reasonText = String(reason || "").trim();
-  if (isBan && !reasonText) return NextResponse.json({ error: "A reason is required to ban." }, { status: 400 });
+  if (isBan && !reasonText) return badRequest("A reason is required to ban.");
 
   const list = [...new Set((Array.isArray(users) ? users : String(users || "").split(/[\s,]+/)).map((u) => String(u).trim()).filter(Boolean))];
-  if (!list.length) return NextResponse.json({ error: "No players provided." }, { status: 400 });
-  if (list.length > 500) return NextResponse.json({ error: "Max 500 players at once." }, { status: 400 });
+  if (!list.length) return badRequest("No players provided.");
+  if (list.length > 500) return badRequest("Max 500 players at once.");
 
   const c = await getConfig();
   const key = c.banApiKey || c.apiKey;
   const universeId = c.universeId;
-  if (!key || !universeId) return NextResponse.json({ error: "Bans not configured (API key + universe id)." }, { status: 500 });
+  if (!key || !universeId) return serverError("Bans not configured (API key + universe id).");
 
   const gjr = isBan
     ? { active: true, privateReason: reasonText, displayReason: reasonText, excludeAltAccounts: false }

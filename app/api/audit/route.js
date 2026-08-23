@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canConfig } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 // both the Overview snapshot (no params) and the full Audit Log page.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return forbidden();
 
   const sp = req.nextUrl.searchParams;
   const actor = (sp.get("actor") || "").trim();
@@ -42,6 +43,6 @@ export async function GET(req) {
     return NextResponse.json({ log: rows });
   } catch (e) {
     console.error("[audit]", e.message);
-    return NextResponse.json({ error: "Could not read the audit log." }, { status: 500 });
+    return serverError("Could not read the audit log.");
   }
 }

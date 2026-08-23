@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forbidden } from "@/lib/api";
 import { query } from "@/lib/db";
 import { getConfig } from "@/lib/config";
 import { botAuthed } from "@/lib/botauth";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 // what's up/down. Kept behind the secret so infra status isn't public.
 export async function GET(req) {
   if (!botAuthed(req)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
   const out = { db: false, openCloud: false };
   try { await query("select 1"); out.db = true; } catch {}

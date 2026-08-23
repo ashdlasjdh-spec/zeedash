@@ -1,6 +1,7 @@
 import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,6 @@ export async function GET(req) {
     );
     return NextResponse.json({ jobs: rows }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

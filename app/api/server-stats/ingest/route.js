@@ -1,17 +1,18 @@
 import { query, ensureSchema } from "@/lib/db";
 import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { badRequest, serverError, unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 // The bot POSTs activity deltas here every minute (Bearer CRON_SECRET). We add them onto today's
 // per-guild + per-channel rows. Deltas (not totals) so a bot restart never double-counts.
 export async function POST(req) {
-  if (!botAuthed(req)) return NextResponse.json({ error: "Forbidden" }, { status: 401 });
+  if (!botAuthed(req)) return unauthorized("Forbidden");
   let body;
-  try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad JSON" }, { status: 400 }); }
+  try { body = await req.json(); } catch { return badRequest("Bad JSON"); }
   const { guildId, guildName, guildIcon = null, messages = 0, reactions = 0, voiceMinutes = 0, members = null, channels = [], users = [] } = body || {};
-  if (!guildId) return NextResponse.json({ error: "guildId required" }, { status: 400 });
+  if (!guildId) return badRequest("guildId required");
 
   try {
     await ensureSchema();
@@ -56,6 +57,6 @@ export async function POST(req) {
     }
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

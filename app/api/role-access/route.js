@@ -3,6 +3,7 @@ import { isSuperOwner, SITE_CAPS } from "@/lib/permissions";
 import { getGuildMeta } from "@/lib/discord";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ const GUILD_LABELS = {
 
 async function guard() {
   const s = await getSession();
-  if (!s || !isSuperOwner(s.id)) return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  if (!s || !isSuperOwner(s.id)) return { error: forbidden() };
   return { session: s };
 }
 
@@ -53,7 +54,7 @@ export async function GET(req) {
       return NextResponse.json({ guilds });
     }
 
-    if (!SITE_ROLE_GUILDS.includes(guild)) return NextResponse.json({ error: "That server isn't managed here." }, { status: 400 });
+    if (!SITE_ROLE_GUILDS.includes(guild)) return badRequest("That server isn't managed here.");
     const meta = await getGuildMeta(guild);
     if (meta?.error) return NextResponse.json({ error: `Couldn't load roles (${meta.error}).` }, { status: meta.status || 500 });
     const rows = await query("select config from guild_settings where guild_id=$1 and feature='role-access'", [guild]);
@@ -61,7 +62,7 @@ export async function GET(req) {
     const items = rawItems.map((it) => ({ role: String(it.role), caps: (Array.isArray(it.caps) ? it.caps : []).filter((c) => SITE_CAPS.includes(c)) }));
     return NextResponse.json({ roles: meta.roles || [], items });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }
 
@@ -70,8 +71,8 @@ export async function POST(req) {
   const g = await guard();
   if (g.error) return g.error;
   const { guild, items } = await req.json().catch(() => ({}));
-  if (!guild || !SITE_ROLE_GUILDS.includes(String(guild))) return NextResponse.json({ error: "Bad server." }, { status: 400 });
-  if (!Array.isArray(items)) return NextResponse.json({ error: "Bad items." }, { status: 400 });
+  if (!guild || !SITE_ROLE_GUILDS.includes(String(guild))) return badRequest("Bad server.");
+  if (!Array.isArray(items)) return badRequest("Bad items.");
 
   const clean = [];
   for (const it of items) {
@@ -93,6 +94,6 @@ export async function POST(req) {
     );
     return NextResponse.json({ ok: true, items: clean });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

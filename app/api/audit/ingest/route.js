@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 import { logAudit } from "@/lib/db";
 import { botAuthed } from "@/lib/botauth";
 
@@ -8,10 +9,10 @@ export const dynamic = "force-dynamic";
 // so they show up in the dashboard's audit log AND the moderation analytics, alongside site actions.
 export async function POST(req) {
   if (!botAuthed(req)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
   const b = await req.json().catch(() => ({}));
-  if (!b.action) return NextResponse.json({ error: "Missing action" }, { status: 400 });
+  if (!b.action) return badRequest("Missing action");
   try {
     await logAudit({
       actorId: b.actorId || null,
@@ -24,6 +25,6 @@ export async function POST(req) {
     });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

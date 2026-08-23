@@ -4,6 +4,7 @@ import { resolveUsername, cacheGetMany, cachePut } from "@/lib/roblox";
 import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, notFound, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 // Allow time to sit through a rate-limit window and retry (see the retry loop below).
@@ -44,10 +45,10 @@ function rateLimited(key, max, windowMs) {
 // GET /api/bans?user=X   -> resolve one target (avatar, id, ban status, history)
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canBanS(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canBanS(s)) return forbidden();
   if (rateLimited(`get:${s.id}`, 50, 10_000)) return NextResponse.json({ error: "Slow down — too many requests." }, { status: 429 });
   const { key, universeId } = banConfig(await getConfig());
-  if (!key || !universeId) return NextResponse.json({ error: "Bans not configured (API key + universe id)." }, { status: 500 });
+  if (!key || !universeId) return serverError("Bans not configured (API key + universe id).");
 
   let user = req.nextUrl.searchParams.get("user");
   const caseId = req.nextUrl.searchParams.get("case");
@@ -57,9 +58,9 @@ export async function GET(req) {
   if (caseId && !user) {
     let row;
     try { const rows = await query("select target from audit_log where category='ban' and detail like $1 order by created_at desc limit 1", [`%[${caseId}]%`]); row = rows[0]; } catch {}
-    if (!row) return NextResponse.json({ error: "No case with that id." }, { status: 404 });
+    if (!row) return notFound("No case with that id.");
     user = (String(row.target).match(/\((\d+)\)/) || [])[1];
-    if (!user) return NextResponse.json({ error: "That case has no user id." }, { status: 404 });
+    if (!user) return notFound("That case has no user id.");
   }
 
   // ---- single-target lookup (live resolve while typing / full lookup page) ----
@@ -68,7 +69,7 @@ export async function GET(req) {
     // or the "resolve as you type" card just goes blank.
     let t = null;
     try { t = await resolveUsername(user); } catch { return NextResponse.json({ error: "Lookup rate-limited — try again." }, { status: 503 }); }
-    if (!t) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+    if (!t) return notFound("No such Roblox user.");
 
     // Ban status and history are independent — fetch them in parallel. The avatar is resolved
     // client-side via <Avatar/>, so we deliberately skip the slow thumbnails call here.
@@ -124,7 +125,7 @@ export async function GET(req) {
     }
   } catch (e) {
     console.error("[bans] scan failed:", e);
-    return NextResponse.json({ error: "Scan failed — see server logs." }, { status: 500 });
+    return serverError("Scan failed — see server logs.");
   }
 
   // Resolve usernames, persisting them across scans in a module cache. This keeps names stable
@@ -204,7 +205,7 @@ async function headshotUrl(userId) {
 export async function POST(req) {
   try {
     const s = await getSession();
-    if (!s || !canBanS(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!s || !canBanS(s)) return forbidden();
     if (rateLimited(`post:${s.id}`, 15, 60_000)) return NextResponse.json({ error: "Slow down — too many actions." }, { status: 429 });
 
     const { user: input, reason, duration, evidence, action = "ban" } = await req.json();
@@ -218,7 +219,7 @@ export async function POST(req) {
     const { apiKey, universeId, banApiKey } = await getConfig();
     const banKey = banApiKey || apiKey;
     if (!banKey || !universeId) {
-      return NextResponse.json({ error: "Ban not configured: set a Bans API key in Settings + a universe id." }, { status: 500 });
+      return serverError("Ban not configured: set a Bans API key in Settings + a universe id.");
     }
 
     // Resolve once; retry once on a flaky/rate-limited lookup before giving up.
@@ -232,7 +233,7 @@ export async function POST(req) {
       // numeric id — the frontend sends the already-resolved id, so a valid target NEVER fails
       // with "No such Roblox user". Applies to every action (ban/unban/kick/warn).
       const idOnly = String(input).trim();
-      if (!/^\d+$/.test(idOnly)) return NextResponse.json({ error: "No such Roblox user." }, { status: 404 });
+      if (!/^\d+$/.test(idOnly)) return notFound("No such Roblox user.");
       const cached = nameCache.get(idOnly);
       target = { userId: idOnly, username: cached?.username || idOnly, displayName: cached?.displayName || cached?.username || idOnly };
     }
@@ -336,6 +337,6 @@ export async function POST(req) {
     return NextResponse.json({ ok: true, action, user: target, caseId, webhook, note: publishNote || undefined });
   } catch (e) {
     console.error("[bans] POST failed:", e);
-    return NextResponse.json({ error: "Action failed — see server logs." }, { status: 500 });
+    return serverError("Action failed — see server logs.");
   }
 }

@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { canReachGuild } from "@/lib/permissions";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,8 @@ export async function GET(req) {
   const s = await getSession();
   const guild = req.nextUrl.searchParams.get("guild") || "";
   const kind = req.nextUrl.searchParams.get("kind") || "";
-  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (!/^[a-z]{2,20}$/.test(kind)) return NextResponse.json({ error: "Bad kind" }, { status: 400 });
+  if (!s || !canReachGuild(s, guild)) return forbidden();
+  if (!/^[a-z]{2,20}$/.test(kind)) return badRequest("Bad kind");
   try {
     await ensureSchema();
     const rows = await query(
@@ -26,6 +27,6 @@ export async function GET(req) {
       { headers: { "cache-control": "no-store" } },
     );
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

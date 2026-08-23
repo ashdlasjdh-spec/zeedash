@@ -3,6 +3,7 @@ import { canReachGuild, isSecurityFeature, canManageFeature } from "@/lib/permis
 import { canManageSecurity } from "@/lib/guildaccess";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ const FEATURE = /^[a-z0-9_-]{2,40}$/;
 export async function GET(req) {
   const s = await getSession();
   const guild = req.nextUrl.searchParams.get("guild") || "";
-  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canReachGuild(s, guild)) return forbidden();
   if (!guild) return NextResponse.json({ settings: {} });
   try {
     await ensureSchema();
@@ -33,21 +34,21 @@ export async function GET(req) {
     }
     return NextResponse.json({ settings });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }
 
 export async function POST(req) {
   const s = await getSession();
   const { guild, feature, enabled, config } = await req.json().catch(() => ({}));
-  if (!s || !canReachGuild(s, guild)) return NextResponse.json({ error: "You don't manage that server." }, { status: 403 });
-  if (!guild || !FEATURE.test(String(feature || ""))) return NextResponse.json({ error: "Bad guild/feature." }, { status: 400 });
+  if (!s || !canReachGuild(s, guild)) return forbidden("You don't manage that server.");
+  if (!guild || !FEATURE.test(String(feature || ""))) return badRequest("Bad guild/feature.");
   if (isSecurityFeature(feature)) {
     if (!(await canManageSecurity(s, guild))) {
-      return NextResponse.json({ error: "Only the server owner or an antinuke admin can change this." }, { status: 403 });
+      return forbidden("Only the server owner or an antinuke admin can change this.");
     }
   } else if (!canManageFeature(s, guild, feature)) {
-    return NextResponse.json({ error: "You don't have permission to change this feature." }, { status: 403 });
+    return forbidden("You don't have permission to change this feature.");
   }
   const en = typeof enabled === "boolean" ? enabled : null;
   const cfg = config == null ? null : JSON.stringify(config);
@@ -65,6 +66,6 @@ export async function POST(req) {
     const rows = await query("select enabled, config from guild_settings where guild_id=$1 and feature=$2", [String(guild), String(feature)]);
     return NextResponse.json({ ok: true, enabled: !!rows[0]?.enabled, config: rows[0]?.config || {} });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

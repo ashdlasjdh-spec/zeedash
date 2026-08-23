@@ -2,6 +2,7 @@ import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { levelFromXp, xpForNext } from "@/lib/levels";
 import { NextResponse } from "next/server";
+import { badRequest, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export async function GET(req) {
   const sp = req.nextUrl.searchParams;
   const guild = sp.get("guild") || "";
   const user = sp.get("user") || "";
-  if (!guild || !/^\d{5,}$/.test(user)) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  if (!guild || !/^\d{5,}$/.test(user)) return badRequest();
   try {
     await ensureSchema();
     const rows = await query("select xp from member_levels where guild_id=$1 and user_id=$2", [guild, user]);
@@ -30,6 +31,6 @@ export async function GET(req) {
       found: true, xp, level, into, need, rank: (pos[0]?.c || 0) + 1, total: total[0]?.c || 0,
     }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

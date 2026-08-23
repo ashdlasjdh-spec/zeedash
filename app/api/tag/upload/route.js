@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { getConfig } from "@/lib/config";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,18 +39,18 @@ async function resolveDecalTexture(decalId, apiKey) {
 
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !can(s.level, "tag")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !can(s.level, "tag")) return forbidden();
 
   const { apiKey } = await getConfig();
   const creatorId = process.env.ROBLOX_CREATOR_ID;
-  if (!apiKey) return NextResponse.json({ error: "Open Cloud not configured (set API key in Settings)." }, { status: 500 });
-  if (!creatorId) return NextResponse.json({ error: "Server not configured (ROBLOX_CREATOR_ID — the Roblox user id that owns the API key)." }, { status: 500 });
+  if (!apiKey) return serverError("Open Cloud not configured (set API key in Settings).");
+  if (!creatorId) return serverError("Server not configured (ROBLOX_CREATOR_ID — the Roblox user id that owns the API key).");
 
   let form;
-  try { form = await req.formData(); } catch { return NextResponse.json({ error: "Expected multipart form." }, { status: 400 }); }
+  try { form = await req.formData(); } catch { return badRequest("Expected multipart form."); }
   const file = form.get("file");
-  if (!file || typeof file === "string") return NextResponse.json({ error: "No file provided." }, { status: 400 });
-  if (file.size > 5 * 1024 * 1024) return NextResponse.json({ error: "Image too large (5MB max)." }, { status: 400 });
+  if (!file || typeof file === "string") return badRequest("No file provided.");
+  if (file.size > 5 * 1024 * 1024) return badRequest("Image too large (5MB max).");
 
   const request = {
     assetType: "Decal",
@@ -71,7 +72,7 @@ export async function POST(req) {
 
   const op = await up.json();
   const opPath = op.path || (op.operationId ? `operations/${op.operationId}` : null);
-  if (!opPath) return NextResponse.json({ error: "No operation returned by Roblox." }, { status: 500 });
+  if (!opPath) return serverError("No operation returned by Roblox.");
 
   let assetId = null;
   for (let i = 0; i < 20; i++) {

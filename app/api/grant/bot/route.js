@@ -5,6 +5,7 @@ import { applyGrant } from "@/lib/grantEngine";
 import { logAudit, query, ensureSchema } from "@/lib/db";
 import { botAuthed } from "@/lib/botauth";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -21,12 +22,12 @@ function humanDur(sec) {
 // their level is re-checked here as defence-in-depth. Writes to the shared audit_log like the site.
 export async function POST(req) {
   if (!botAuthed(req)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
   const { category, key, username, action = "grant", seconds, actorName, actorId, actorLevel } = await req.json().catch(() => ({}));
-  if (!category || !key || !username) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  if (!can(Number(actorLevel) || 0, category)) return NextResponse.json({ error: "Your rank can't grant this category." }, { status: 403 });
-  if (!findItem(category, key)) return NextResponse.json({ error: "Unknown item" }, { status: 400 });
+  if (!category || !key || !username) return badRequest("Missing fields");
+  if (!can(Number(actorLevel) || 0, category)) return forbidden("Your rank can't grant this category.");
+  if (!findItem(category, key)) return badRequest("Unknown item");
 
   const user = await resolveUsername(username);
   if (!user) return NextResponse.json({ error: `No Roblox user "${username}"` }, { status: 404 });
@@ -57,6 +58,6 @@ export async function POST(req) {
     });
     return NextResponse.json({ ok: true, target: user, warn, expiresIn });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

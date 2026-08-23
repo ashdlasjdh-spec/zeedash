@@ -2,13 +2,14 @@ import { getSession } from "@/lib/session";
 import { canGroup } from "@/lib/permissions";
 import { getGuildMeta } from "@/lib/discord";
 import { NextResponse } from "next/server";
+import { forbidden } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 // The guild's channels (text / voice / categories) + roles — for the dashboard's dropdown pickers.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canGroup(s.level)) return forbidden();
   const guild = req.nextUrl.searchParams.get("guild") || "";
   if (!guild) return NextResponse.json({ text: [], voice: [], categories: [], roles: [] });
   const fresh = req.nextUrl.searchParams.get("fresh") === "1";

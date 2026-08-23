@@ -2,6 +2,7 @@ import { query, ensureSchema } from "@/lib/db";
 import { guardBot } from "@/lib/botauth";
 import { levelFromXp } from "@/lib/levels";
 import { NextResponse } from "next/server";
+import { badRequest, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function POST(req) {
   const bad = guardBot(req); if (bad) return bad;
   const { guild, user, xp, name } = await req.json().catch(() => ({}));
   const delta = Math.max(0, Math.min(1000, Math.round(Number(xp) || 0)));
-  if (!guild || !/^\d{5,}$/.test(String(user || "")) || !delta) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  if (!guild || !/^\d{5,}$/.test(String(user || "")) || !delta) return badRequest();
   const uname = name != null ? String(name).slice(0, 80) : null;
   try {
     await ensureSchema();
@@ -28,6 +29,6 @@ export async function POST(req) {
     const level = levelFromXp(newXp);
     return NextResponse.json({ xp: newXp, level, leveledUp: level > oldLevel });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

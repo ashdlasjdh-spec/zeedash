@@ -2,6 +2,7 @@ import { resolveUsername } from "@/lib/roblox";
 import { listPerks, listEmojis } from "@/lib/perksApi";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { NextResponse } from "next/server";
+import { badRequest, notFound } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,10 @@ export async function GET(req) {
   if (!rl.ok) return NextResponse.json({ error: "Slow down — try again in a moment." }, { status: 429, headers: { "retry-after": "20" } });
 
   const username = (new URL(req.url).searchParams.get("u") || "").trim();
-  if (!username) return NextResponse.json({ error: "Enter a Roblox username." }, { status: 400 });
+  if (!username) return badRequest("Enter a Roblox username.");
 
   const u = await resolveUsername(username).catch(() => null);
-  if (!u || !u.userId) return NextResponse.json({ error: "That Roblox user wasn't found." }, { status: 404 });
+  if (!u || !u.userId) return notFound("That Roblox user wasn't found.");
   const id = String(u.userId);
 
   const all = await getAllPerks();

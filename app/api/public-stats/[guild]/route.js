@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { resolveAvatars, resolveGuildInfo } from "@/lib/discord";
 import { NextResponse } from "next/server";
+import { notFound, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ const N = (x) => Number(x || 0);
 
 export async function GET(_req, { params }) {
   const guild = String(params?.guild || "");
-  if (!PUBLIC_GUILD_IDS.includes(guild)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!PUBLIC_GUILD_IDS.includes(guild)) return notFound();
 
   try {
     const [meta, totals, prev, members, series, channels, board] = await Promise.all([
@@ -56,6 +57,6 @@ export async function GET(_req, { params }) {
       leaderboard: board.map((r, i) => ({ rank: i + 1, id: r.user_id, name: r.username, avatar: avatars[String(r.user_id)] || null, messages: N(r.m) })),
     }, { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=300" } });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

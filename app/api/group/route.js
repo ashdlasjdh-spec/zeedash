@@ -6,26 +6,27 @@ import { listGroupRoles, setRank, shiftRank, kickFromGroup, findMembership,
   listJoinRequests, acceptJoinRequest, declineJoinRequest, processAllRequests, shout } from "@/lib/robloxGroups";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const s = await getSession();
-  if (!s || (!canGroup(s.level) && !s.scopedGroup)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || (!canGroup(s.level) && !s.scopedGroup)) return forbidden();
   const { groupId } = await getConfig();
-  if (!groupId) return NextResponse.json({ error: "No group id set (Settings → Group ID)." }, { status: 400 });
+  if (!groupId) return badRequest("No group id set (Settings → Group ID).");
   try {
     const roles = await listGroupRoles(groupId);
     // `scoped` tells the UI to show only rank+kick (for the crew-leader / leaderboard-staff ranks).
     return NextResponse.json({ groupId, roles, scoped: s.scopedGroup && !canGroup(s.level) });
-  } catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+  } catch (e) { return serverError(e.message); }
 }
 
 export async function POST(req) {
   const s = await getSession();
-  if (!s || (!canGroup(s.level) && !s.scopedGroup)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || (!canGroup(s.level) && !s.scopedGroup)) return forbidden();
   const { groupId } = await getConfig();
-  if (!groupId) return NextResponse.json({ error: "No group id set." }, { status: 400 });
+  if (!groupId) return badRequest("No group id set.");
   const { action, username, roleId, userId, message } = await req.json();
 
   // Scoped users (e.g. Leaderboard HR): only lookup / rank / kick, and only for the
@@ -47,7 +48,7 @@ export async function POST(req) {
     if (action === "accept") { await acceptJoinRequest(groupId, userId); await log(s, "accept", { username: userId, userId }, "join request accepted"); return NextResponse.json({ ok: true }); }
     if (action === "decline") { await declineJoinRequest(groupId, userId); await log(s, "decline", { username: userId, userId }, "join request declined"); return NextResponse.json({ ok: true }); }
     if (action === "acceptAll" || action === "declineAll") {
-      if (!canGroupMass(s.level)) return NextResponse.json({ error: "Bulk accept/decline is overseer+ only." }, { status: 403 });
+      if (!canGroupMass(s.level)) return forbidden("Bulk accept/decline is overseer+ only.");
       const accept = action === "acceptAll";
       const r = await processAllRequests(groupId, accept);
       await log(s, action, { username: "—", userId: 0 }, `${r.ok}/${r.total} ${accept ? "accepted" : "declined"}`);
@@ -68,13 +69,13 @@ export async function POST(req) {
     if (action === "rank") {
       const roles = await listGroupRoles(groupId);
       const role = roles.find((r) => String(r.id) === String(roleId));
-      if (!role) return NextResponse.json({ error: "Unknown rank." }, { status: 400 });
+      if (!role) return badRequest("Unknown rank.");
       if (scoped && !scopeMatches(s.scope, role.name)) return NextResponse.json({ error: `You can only assign the ${scopeLabel(s.scope)} rank(s).` }, { status: 403 });
       if (cap) {
-        if (Number(role.rank) >= s.level) return NextResponse.json({ error: "You can only assign ranks below your own." }, { status: 403 });
+        if (Number(role.rank) >= s.level) return forbidden("You can only assign ranks below your own.");
         const cur = await findMembership(groupId, user.userId);
         const curRole = cur && roles.find((r) => String(r.id) === String(cur.roleId));
-        if (curRole && Number(curRole.rank) >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
+        if (curRole && Number(curRole.rank) >= s.level) return forbidden("That member is ranked at or above you.");
       }
       await setRank(groupId, user.userId, roleId);
       await log(s, "rank", user, `role ${roleId}`);
@@ -86,10 +87,10 @@ export async function POST(req) {
         const cur = await findMembership(groupId, user.userId);
         const curRole = cur && roles.find((r) => String(r.id) === String(cur.roleId));
         const curRank = Number(curRole?.rank) || 0;
-        if (curRank >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
+        if (curRank >= s.level) return forbidden("That member is ranked at or above you.");
         if (action === "promote") {
           const next = roles.filter((r) => Number(r.rank) > curRank).sort((a, b) => a.rank - b.rank)[0];
-          if (next && Number(next.rank) >= s.level) return NextResponse.json({ error: "That would promote them to your rank or above." }, { status: 403 });
+          if (next && Number(next.rank) >= s.level) return forbidden("That would promote them to your rank or above.");
         }
       }
       const r = await shiftRank(groupId, user.userId, action === "promote" ? 1 : -1);
@@ -101,13 +102,13 @@ export async function POST(req) {
       const m = await findMembership(groupId, user.userId);
       const role = m && roles.find((r) => String(r.id) === String(m.roleId));
       if (scoped && (!role || !scopeMatches(s.scope, role.name))) return NextResponse.json({ error: `You can only kick ${scopeLabel(s.scope)} members.` }, { status: 403 });
-      if (cap && role && Number(role.rank) >= s.level) return NextResponse.json({ error: "That member is ranked at or above you." }, { status: 403 });
+      if (cap && role && Number(role.rank) >= s.level) return forbidden("That member is ranked at or above you.");
       await kickFromGroup(groupId, user.userId);
       await log(s, "kick", user, "removed from group");
       return NextResponse.json({ ok: true, target: user });
     }
-    return NextResponse.json({ error: "Unknown action" }, { status: 400 });
-  } catch (e) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+    return badRequest("Unknown action");
+  } catch (e) { return serverError(e.message); }
 }
 
 // Best-effort audit — a logging hiccup must never fail the group action it records.

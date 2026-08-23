@@ -3,6 +3,7 @@ import { canConfig } from "@/lib/permissions";
 import { INTEGRATION_FIELDS, getIntegrations, setIntegration } from "@/lib/config";
 import { logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ const mask = (v) => (v ? (v.length > 12 ? v.slice(0, 4) + "…" + v.slice(-4) : 
 // secret values masked; POST saves any provided fields. The bot reads these via /api/integrations/bot.
 export async function GET() {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return forbidden();
   const { values, sources } = await getIntegrations();
   const fields = INTEGRATION_FIELDS.map((f) => ({
     env: f.env, label: f.label, group: f.group, secret: !!f.secret, placeholder: f.placeholder || "",
@@ -26,7 +27,7 @@ export async function GET() {
 
 export async function POST(req) {
   const s = await getSession();
-  if (!s || !canConfig(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canConfig(s.level)) return forbidden();
   const body = await req.json().catch(() => ({}));
   const updates = body && typeof body.updates === "object" ? body.updates : {};
   let n = 0;

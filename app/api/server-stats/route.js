@@ -2,13 +2,14 @@ import { getSession } from "@/lib/session";
 import { canAccessServerSection, canReachGuild } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 // Server analytics for the dashboard "Server" page. STRICTLY a Discord admin/owner of the guild.
 export async function GET(req) {
   const s = await getSession();
-  if (!s || !canAccessServerSection(s)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s || !canAccessServerSection(s)) return forbidden();
 
   const days = Math.min(90, Math.max(7, parseInt(req.nextUrl.searchParams.get("days") || "30", 10) || 30));
   let guild = req.nextUrl.searchParams.get("guild") || "";
@@ -22,7 +23,7 @@ export async function GET(req) {
     const guilds = await query(`${gBase} where guild_id = any($1::text[]) ${gTail}`, [ids]);
     if (!guild && guilds[0]) guild = guilds[0].guild_id;
     if (!guild) return NextResponse.json({ guilds: [], guild: null, days });
-    if (!canReachGuild(s, guild)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!canReachGuild(s, guild)) return forbidden();
 
     const [series, totals, prev, channels, latestMembers] = await Promise.all([
       query(
@@ -70,6 +71,6 @@ export async function GET(req) {
       channels: channels.map((c) => ({ id: c.channel_id, name: c.channel_name || c.channel_id, messages: Number(c.messages) })),
     });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

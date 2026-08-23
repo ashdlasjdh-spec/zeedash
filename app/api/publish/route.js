@@ -3,6 +3,7 @@ import { canManageFeature } from "@/lib/permissions";
 import { postChannelMessage, getGuildMeta } from "@/lib/discord";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,8 @@ export async function POST(req) {
   const s = await getSession();
   const { guild, kind, payload } = await req.json().catch(() => ({}));
   const feature = KIND_FEATURE[String(kind || "")];
-  if (!guild || !feature) return NextResponse.json({ error: "Bad guild/kind." }, { status: 400 });
-  if (!s || !canManageFeature(s, guild, feature)) return NextResponse.json({ error: "You don't have permission to do this in that server." }, { status: 403 });
+  if (!guild || !feature) return badRequest("Bad guild/kind.");
+  if (!s || !canManageFeature(s, guild, feature)) return forbidden("You don't have permission to do this in that server.");
 
   // Instant path: post the message straight to the channel from here.
   if (kind === "message") {
@@ -45,7 +46,7 @@ export async function POST(req) {
       const meta = await getGuildMeta(String(guild));
       const chans = meta && !meta.error ? [...(meta.text || []), ...(meta.voice || [])] : null;
       if (chans && !chans.some((c) => c.id === String(p.channel))) {
-        return NextResponse.json({ error: "Pick a channel in this server." }, { status: 400 });
+        return badRequest("Pick a channel in this server.");
       }
     } catch { /* couldn't verify — proceed */ }
     // Per-guild posting identity (custom name/avatar) from the Customize feature → post via webhook.
@@ -56,7 +57,7 @@ export async function POST(req) {
       if (cfg && (cfg.postName || cfg.postAvatar)) profile = { name: cfg.postName, avatarUrl: cfg.postAvatar };
     } catch { /* no custom profile — post as the bot */ }
     const res = await postChannelMessage(p.channel, { content: p.content, embed: buildEmbed(p), profile });
-    if (!res.ok) return NextResponse.json({ error: res.error }, { status: 400 });
+    if (!res.ok) return badRequest(res.error);
     return NextResponse.json({ ok: true, sent: true });
   }
 
@@ -71,6 +72,6 @@ export async function POST(req) {
     );
     return NextResponse.json({ ok: true, id: rows[0]?.id });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

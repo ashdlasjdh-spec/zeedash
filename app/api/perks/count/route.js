@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { badRequest, forbidden, serverError, unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,11 @@ const COL = { power: "powers", gamepass: "gamepasses", tool: "tools", shazam: "s
 // Cheap single COUNT/SUM over the perks table (no row payload), gated to whoever can grant it.
 export async function GET(req) {
   const s = await getSession();
-  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!s) return unauthorized("Not signed in");
   const category = req.nextUrl.searchParams.get("category") || "";
   const col = COL[category];
-  if (!col) return NextResponse.json({ error: "Unknown category" }, { status: 400 });
-  if (!can(s.level, category)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!col) return badRequest("Unknown category");
+  if (!can(s.level, category)) return forbidden();
   try {
     const r = await query(
       `select count(*) filter (where coalesce(array_length(${col}, 1), 0) > 0)::int players,
@@ -26,6 +27,6 @@ export async function GET(req) {
     );
     return NextResponse.json({ players: r[0]?.players || 0, total: r[0]?.total || 0 });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 }

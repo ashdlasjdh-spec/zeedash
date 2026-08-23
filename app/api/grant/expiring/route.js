@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { grantsFor, canGroup } from "@/lib/permissions";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { forbidden, serverError, unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -9,15 +10,15 @@ export const dynamic = "force-dynamic";
 // something (or manage the group), so they can see + manage what's pending.
 export async function GET() {
   const s = await getSession();
-  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  if (!grantsFor(s.level).length && !canGroup(s.level)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!s) return unauthorized("Not signed in");
+  if (!grantsFor(s.level).length && !canGroup(s.level)) return forbidden();
 
   let rows = [];
   try {
     await ensureSchema();
     rows = await query("select user_id, category, item_key, expires_at, granted_by from grant_expiry order by expires_at asc limit 500");
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return serverError(e.message);
   }
 
   // Best-effort username resolution (batched). Falls back to the raw id.

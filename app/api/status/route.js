@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 // (last_sweep_at — the bot pings it every ~15s) and the ban scan (bans_count / bans_scanned_at).
 export async function GET() {
   const s = await getSession();
-  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!s) return unauthorized("Not signed in");
 
   const cfg = {};
   try {
