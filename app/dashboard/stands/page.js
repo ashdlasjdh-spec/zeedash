@@ -1,17 +1,2 @@
-import { getSession } from "@/lib/session";
-import { can, canCat, canManageGrants, canPurge } from "@/lib/permissions";
-import { CATALOG } from "@/lib/catalog";
-import { redirect } from "next/navigation";
-import GrantForm from "../../components/GrantForm";
-import PageHeader from "../../components/PageHeader";
-
-export default async function Page() {
-  const user = await getSession();
-  if (!canCat(user, "stand")) redirect("/dashboard");
-  return (
-    <>
-      <PageHeader icon="star" title="Stands" subtitle="Give a stand to a player. Persists across sessions." />
-      <GrantForm category="stand" items={CATALOG.stand} canManage={canManageGrants(user.level)} canPurge={canPurge(user.id)} />
-    </>
-  );
-}
+import { categoryPage } from "@/app/components/categoryPage";
+export default categoryPage({ category: "stand", icon: "star", title: "Stands", subtitle: "Give a stand to a player. Persists across sessions." });
