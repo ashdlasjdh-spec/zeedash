@@ -1,8 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import PageHeader from "../../../components/PageHeader";
-import FeatureSettings from "../../../components/FeatureSettings";
+import { featurePage } from "@/app/components/featurePage";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +8,12 @@ const FIELDS = [
   { key: "embed", label: "Send as an embed", type: "bool" },
 ];
 
-export default async function Page() {
-  const u = await getSession();
-  if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
-  return (
-    <div className="fullbleed">
-      <PageHeader icon="users" title="Goodbye" subtitle="Post a message when a member leaves. Off until you enable it." />
-      <FeatureSettings feature="goodbye" title="Goodbye message" description="Posted to the chosen channel whenever someone leaves this server." fields={FIELDS} />
-    </div>
-  );
-}
+export default featurePage({
+  feature: "goodbye",
+  icon: "users",
+  title: "Goodbye",
+  settingsTitle: "Goodbye message",
+  subtitle: "Post a message when a member leaves. Off until you enable it.",
+  description: "Posted to the chosen channel whenever someone leaves this server.",
+  fields: FIELDS,
+});

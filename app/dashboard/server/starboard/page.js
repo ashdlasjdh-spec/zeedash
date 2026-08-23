@@ -1,8 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import PageHeader from "../../../components/PageHeader";
-import FeatureSettings from "../../../components/FeatureSettings";
+import { featurePage } from "@/app/components/featurePage";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +9,11 @@ const FIELDS = [
   { key: "selfstar", label: "Allow self-starring", type: "bool" },
 ];
 
-export default async function Page() {
-  const u = await getSession();
-  if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
-  return (
-    <div className="fullbleed">
-      <PageHeader icon="star" title="Starboard" subtitle="Highlight messages that get enough reactions. Off until enabled." />
-      <FeatureSettings feature="starboard" title="Starboard" description="Messages reaching the reaction threshold are reposted to the starboard channel." fields={FIELDS} />
-    </div>
-  );
-}
+export default featurePage({
+  feature: "starboard",
+  icon: "star",
+  title: "Starboard",
+  subtitle: "Highlight messages that get enough reactions. Off until enabled.",
+  description: "Messages reaching the reaction threshold are reposted to the starboard channel.",
+  fields: FIELDS,
+});

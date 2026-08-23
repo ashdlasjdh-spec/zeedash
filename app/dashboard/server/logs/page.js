@@ -1,8 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import PageHeader from "../../../components/PageHeader";
-import FeatureSettings from "../../../components/FeatureSettings";
+import { featurePage } from "@/app/components/featurePage";
 
 export const dynamic = "force-dynamic";
 
@@ -14,14 +10,12 @@ const FIELDS = [
   { key: "edits", label: "Log edited messages", type: "bool" },
 ];
 
-export default async function Page() {
-  const u = await getSession();
-  if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
-  return (
-    <div className="fullbleed">
-      <PageHeader icon="list" title="Logs" subtitle="Send server events to a log channel. Off until enabled." />
-      <FeatureSettings feature="logging" title="Server logging" description="Chosen events are posted to the log channel. Message logs need the Message Content intent." fields={FIELDS} />
-    </div>
-  );
-}
+export default featurePage({
+  feature: "logging",
+  icon: "list",
+  title: "Logs",
+  settingsTitle: "Server logging",
+  subtitle: "Send server events to a log channel. Off until enabled.",
+  description: "Chosen events are posted to the log channel. Message logs need the Message Content intent.",
+  fields: FIELDS,
+});

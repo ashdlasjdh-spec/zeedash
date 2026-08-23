@@ -1,8 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import PageHeader from "../../../components/PageHeader";
-import FeatureSettings from "../../../components/FeatureSettings";
+import { featurePage } from "@/app/components/featurePage";
 
 export const dynamic = "force-dynamic";
 
@@ -17,14 +13,11 @@ const FIELDS = [
   { key: "massAction", label: "Action during a raid", type: "select", options: ["ban", "kick"] },
 ];
 
-export default async function Page() {
-  const u = await getSession();
-  if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
-  return (
-    <div className="fullbleed">
-      <PageHeader icon="shield" title="Join Gate / Antiraid" subtitle="Auto-remove suspicious joins. Off until enabled — this kicks/bans, so configure carefully." />
-      <FeatureSettings feature="antiraid" title="Join Gate / Antiraid" description="Screens new members by account age, missing avatar, and mass-join rate. Bot needs Kick/Ban Members. Bots and admins are never actioned." fields={FIELDS} />
-    </div>
-  );
-}
+export default featurePage({
+  feature: "antiraid",
+  icon: "shield",
+  title: "Join Gate / Antiraid",
+  subtitle: "Auto-remove suspicious joins. Off until enabled — this kicks/bans, so configure carefully.",
+  description: "Screens new members by account age, missing avatar, and mass-join rate. Bot needs Kick/Ban Members. Bots and admins are never actioned.",
+  fields: FIELDS,
+});

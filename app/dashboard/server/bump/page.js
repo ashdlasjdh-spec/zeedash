@@ -1,8 +1,4 @@
-import { getSession } from "@/lib/session";
-import { canAccessServerSection } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import PageHeader from "../../../components/PageHeader";
-import FeatureSettings from "../../../components/FeatureSettings";
+import { featurePage } from "@/app/components/featurePage";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +7,12 @@ const FIELDS = [
   { key: "role", label: "Role to ping (optional)", type: "role", hint: "The bot watches for Disboard's /bump success, then reminds here 2 hours later." },
 ];
 
-export default async function Page() {
-  const u = await getSession();
-  if (!u) return null;
-  if (!canAccessServerSection(u)) redirect("/dashboard");
-  return (
-    <div className="fullbleed">
-      <PageHeader icon="clock" title="Bump Reminder" subtitle="Remind the server to /bump on Disboard. Off until enabled." />
-      <FeatureSettings feature="bump" title="Bump reminder" description="After a successful Disboard bump, the bot reminds you (optionally pinging a role) once the 2-hour cooldown is up." fields={FIELDS} />
-    </div>
-  );
-}
+export default featurePage({
+  feature: "bump",
+  icon: "clock",
+  title: "Bump Reminder",
+  settingsTitle: "Bump reminder",
+  subtitle: "Remind the server to /bump on Disboard. Off until enabled.",
+  description: "After a successful Disboard bump, the bot reminds you (optionally pinging a role) once the 2-hour cooldown is up.",
+  fields: FIELDS,
+});
