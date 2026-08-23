@@ -30,16 +30,17 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
     if (!g) { setAccess(null); return; } // no server resolved yet — stay optimistic (show all) until it loads
     fetch(`/api/guild-access?guild=${g}`)
       .then((r) => r.json())
-      .then((j) => { if (alive) setAccess({ manage: !!j.manage, security: !!j.security, manageable: Array.isArray(j.manageable) ? j.manageable : [] }); })
+      .then((j) => { if (alive) setAccess({ manage: !!j.manage, security: !!j.security, manageable: Array.isArray(j.manageable) ? j.manageable : [], viewable: Array.isArray(j.viewable) ? j.viewable : [] }); })
       .catch(() => {});
     return () => { alive = false; };
   }, [g]);
-  // Can the user see/manage a given feature slug in the selected guild?
+  // Can the user see (manage OR view-only) a given feature slug in the selected guild?
   const canSee = (slug) => {
     if (!access) return true;                       // still loading — optimistic
     if (SECURITY_SLUGS.has(slug)) return access.security;
+    if (slug === "fake-permissions") return access.security; // owner / super / antinuke admin only
     if (access.manage) return true;                 // Discord admin manages all non-security features
-    return access.manageable.includes(slug);        // otherwise only what their manual perms unlock
+    return access.viewable.includes(slug);          // otherwise what their perms / direct grants unlock (incl. view-only)
   };
   const visibleItems = (items) => items.filter((i) => canSee(i.slug));
 

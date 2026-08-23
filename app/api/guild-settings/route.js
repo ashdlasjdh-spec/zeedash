@@ -1,6 +1,8 @@
 import { getSession } from "@/lib/session";
-import { canReachGuild, isSecurityFeature, canManageFeature } from "@/lib/permissions";
+import { canReachGuild, isSecurityFeature, canManageFeature, canViewFeature, isFeatureReadOnly, grantChannelsFor } from "@/lib/permissions";
 import { canManageSecurity } from "@/lib/guildaccess";
+import { logAudit } from "@/lib/db";
+import { diffFakePerms, normalizeItems } from "@/lib/fakePerms";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { badRequest, forbidden, serverError } from "@/lib/api";
@@ -30,9 +32,12 @@ export async function GET(req) {
     for (const r of rows) {
       // Security features AND fake-permissions gate on security standing (owner / super / antinuke admin).
       const secGated = isSecurityFeature(r.feature) || r.feature === "fake-permissions";
-      const allowed = secGated ? security : canManageFeature(s, guild, r.feature);
-      if (!allowed) continue; // don't expose config for features this user can't manage
-      settings[r.feature] = { enabled: !!r.enabled, config: r.config || {} };
+      // A view-only feature grant may SEE (read-only) a feature it can't manage.
+      const allowed = secGated ? security : canViewFeature(s, guild, r.feature);
+      if (!allowed) continue; // don't expose config for features this user can't even view
+      const readOnly = !secGated && isFeatureReadOnly(s, guild, r.feature);
+      const channels = secGated ? [] : grantChannelsFor(s, guild, r.feature);
+      settings[r.feature] = { enabled: !!r.enabled, config: r.config || {}, readOnly, channels };
     }
     return NextResponse.json({ settings });
   } catch (e) {
@@ -53,10 +58,19 @@ export async function POST(req) {
   } else if (!canManageFeature(s, guild, feature)) {
     return forbidden("You don't have permission to change this feature.");
   }
+  // Sanitize the fake-permissions payload server-side (strip junk / non-grantable features / dup roles).
+  let outConfig = config;
+  if (feature === "fake-permissions" && config != null) outConfig = { ...config, items: normalizeItems(config.items) };
   const en = typeof enabled === "boolean" ? enabled : null;
-  const cfg = config == null ? null : JSON.stringify(config);
+  const cfg = outConfig == null ? null : JSON.stringify(outConfig);
   try {
     await ensureSchema();
+    // For fake-permissions, read the prior config first so we can audit exactly what changed per role.
+    let prevConfig = null;
+    if (feature === "fake-permissions" && config != null) {
+      const before = await query("select config from guild_settings where guild_id=$1 and feature=$2", [String(guild), String(feature)]);
+      prevConfig = before[0]?.config || {};
+    }
     await query(
       `insert into guild_settings (guild_id, feature, enabled, config, updated_by, updated_at)
        values ($1, $2, coalesce($3, false), coalesce($4::jsonb, '{}'::jsonb), $5, now())
@@ -66,6 +80,12 @@ export async function POST(req) {
          updated_by = $5, updated_at = now()`,
       [String(guild), String(feature), en, cfg, s.id],
     );
+    // Audit fake-permissions edits — who granted/revoked which perms & features on which role.
+    if (feature === "fake-permissions" && config != null) {
+      for (const line of diffFakePerms(prevConfig, outConfig)) {
+        logAudit({ actorId: s.id, actorName: s.name, action: "fake-permissions", category: "server", target: guild, detail: line }).catch(() => {});
+      }
+    }
     const rows = await query("select enabled, config from guild_settings where guild_id=$1 and feature=$2", [String(guild), String(feature)]);
     return NextResponse.json({ ok: true, enabled: !!rows[0]?.enabled, config: rows[0]?.config || {} });
   } catch (e) {

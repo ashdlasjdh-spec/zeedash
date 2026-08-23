@@ -46,6 +46,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [readOnly, setReadOnly] = useState(false);
 
   const guild = guildParam || guilds[0]?.id || "";
   const meta = useGuildMeta(guild, fieldsNeedMeta(fields));
@@ -53,7 +54,7 @@ export default function FeatureSettings({ feature, title, description, fields = 
   useEffect(() => {
     if (!guild) return;
     let alive = true;
-    const apply = (settings) => { const s = settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); };
+    const apply = (settings) => { const s = settings?.[feature] || {}; setEnabled(!!s.enabled); setConfig(s.config || {}); setReadOnly(!!s.readOnly); };
     // Instant paint from cache if we already have this guild's settings; otherwise show a skeleton.
     const cached = cachedGuildSettings(guild);
     if (cached) { apply(cached); setLoading(false); } else setLoading(true);
@@ -98,16 +99,17 @@ export default function FeatureSettings({ feature, title, description, fields = 
     <div className="card" style={previewMode ? { minWidth: 0 } : { maxWidth: 720 }}>
       <div className="between" style={{ gap: 14, alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>{title}{readOnly && <span className="pill" style={{ marginLeft: 8, verticalAlign: "middle" }}>View only</span>}</div>
           {description && <div className="muted" style={{ fontSize: 13, marginTop: 3 }}>{description}</div>}
         </div>
         <label className="switch" title={enabled ? "Enabled" : "Disabled"}>
-          <input type="checkbox" checked={enabled} onChange={(e) => toggle(e.target.checked)} />
+          <input type="checkbox" checked={enabled} disabled={readOnly} onChange={(e) => toggle(e.target.checked)} />
           <span className="switch-track"><span className="switch-thumb" /></span>
         </label>
       </div>
 
-      <div style={{ marginTop: 16, opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? "auto" : "none", display: "flex", flexDirection: "column", gap: 13 }}>
+      {readOnly && <div className="toast" style={{ marginTop: 14 }}>Your role can view this feature but not change it.</div>}
+      <div style={{ marginTop: 16, opacity: enabled && !readOnly ? 1 : 0.5, pointerEvents: enabled && !readOnly ? "auto" : "none", display: "flex", flexDirection: "column", gap: 13 }}>
         {fields.map((f) => (
           <div key={f.key}>
             <label>{f.label}</label>
@@ -131,9 +133,11 @@ export default function FeatureSettings({ feature, title, description, fields = 
         ))}
       </div>
 
+      {!readOnly && (
       <div className="row" style={{ marginTop: 18 }}>
         <button className="btn" style={{ width: "auto" }} disabled={saving || loading} onClick={save}>{saving ? "Saving…" : "Save"}</button>
       </div>
+      )}
       {toast && <div className={`toast ${toast.ok ? "ok" : "bad"}`}>{toast.msg}</div>}
     </div>
   );

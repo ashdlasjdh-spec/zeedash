@@ -6,7 +6,7 @@ import { levelFromXp, xpForNext } from "../lib/levels.js";
 import {
   canManageGuild, canAccessServerSection, guildOwnerOf, isSecurityFeature, SECURITY_FEATURES,
   canManageFeature, manageableFeatures, hasManualPerm, canReachGuild, featurePerm, NONSECURITY_FEATURES,
-  isSuperOwner, canPurge, hasFeatureGrant,
+  isSuperOwner, canPurge, hasFeatureGrant, canViewFeature, isFeatureReadOnly, viewableFeatures,
 } from "../lib/permissions.js";
 
 test("levelFromXp is monotonic and starts at 0", () => {
@@ -95,16 +95,20 @@ test("an antinuke admin (security standing) can manage fake-permissions, a plain
   assert.ok(canManageFeature({ isOwner: true }, "999", "fake-permissions"));
 });
 
-test("a direct per-feature grant unlocks exactly that feature, per guild, and never fake-permissions", () => {
-  const u = { serverPerms: {}, manualPerms: {}, featurePerms: { "111": ["tickets", "autorole"] }, serverGuildIds: ["111"] };
+test("a direct per-feature grant unlocks exactly that feature, per guild, with view vs manage", () => {
+  const u = { serverPerms: {}, manualPerms: {}, featureGrants: { "111": { tickets: { access: "manage", channels: [] }, autorole: { access: "view", channels: [] } } }, serverGuildIds: ["111"] };
   assert.ok(hasFeatureGrant(u, "111", "tickets"));
-  assert.ok(canManageFeature(u, "111", "tickets"), "granted feature is manageable");
-  assert.ok(canManageFeature(u, "111", "autorole"));
+  assert.ok(canManageFeature(u, "111", "tickets"), "manage grant is manageable");
+  // A view-only grant can VIEW but not MANAGE.
+  assert.ok(!canManageFeature(u, "111", "autorole"), "view grant is not manageable");
+  assert.ok(canViewFeature(u, "111", "autorole"), "view grant is viewable");
+  assert.ok(isFeatureReadOnly(u, "111", "autorole"), "view grant reads as read-only");
   assert.ok(!canManageFeature(u, "111", "welcome"), "a feature NOT granted stays locked");
   assert.ok(!canManageFeature(u, "222", "tickets"), "the grant does not leak to another guild");
-  assert.deepStrictEqual(new Set(manageableFeatures(u, "111")), new Set(["tickets", "autorole"]));
+  assert.deepStrictEqual(new Set(manageableFeatures(u, "111")), new Set(["tickets"]));
+  assert.deepStrictEqual(new Set(viewableFeatures(u, "111")), new Set(["tickets", "autorole"]));
   // Even if someone stuffed fake-permissions into a grant, it must never unlock (session strips it too).
-  const sneaky = { serverPerms: {}, featurePerms: { "111": ["fake-permissions"] }, serverGuildIds: ["111"] };
+  const sneaky = { serverPerms: {}, featureGrants: { "111": { "fake-permissions": { access: "manage", channels: [] } } }, serverGuildIds: ["111"] };
   assert.ok(!canManageFeature(sneaky, "111", "fake-permissions"));
 });
 
