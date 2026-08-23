@@ -20,6 +20,8 @@ export const GLYPHS = {
   trash: <><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" {...P} /></>,
   clock: <><circle cx="12" cy="12" r="9" {...P} /><path d="M12 7v5l3 2" {...P} /></>,
   activity: <path d="M3 12h4l2.5 7 4-15L16 12h5" {...P} />,
+  coin: <><circle cx="12" cy="12" r="9" {...P} /><path d="M12 7v10M9.5 9.2a2.2 2.2 0 0 1 2.5-1.2c1.4.2 2 1 2 1.8 0 1.9-4 1.3-4 3.2 0 .9.7 1.6 2 1.8a2.2 2.2 0 0 0 2.5-1.2" {...P} /></>,
+  gift: <><path d="M4 11h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z" {...P} /><path d="M3 7h18v4H3zM12 7v14" {...P} /><path d="M12 7S10.5 3.5 8.5 4 8 7 8 7h4Zm0 0s1.5-3.5 3.5-3 .5 3 .5 3h-4Z" {...P} /></>,
 };
 
 export default function Glyph({ name, size = 24 }) {

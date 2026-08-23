@@ -22,6 +22,7 @@ const SECTIONS = [
   { label: "Automation", items: [["Autoresponder", "autoresponder"], ["Autoreact", "autoreact"], ["Autorole", "autorole"], ["Ping on Join", "pingonjoin"], ["Tracking", "tracking"]] },
   { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
   { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Aliases", "aliases"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"]] },
+  { label: "Economy & Fun", items: [["Economy", "economy"], ["Booster Role", "boosterrole"], ["Giveaways", "giveaways"], ["Counter Channels", "counters"], ["Timers", "timers"]] },
 ];
 const BOTTOM = [{ href: "/dashboard/server/tickets", label: "Tickets", slug: "tickets" }];
 

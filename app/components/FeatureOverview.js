@@ -12,6 +12,7 @@ const GROUPS = [
   { label: "Automation", items: [["Autoresponder", "autoresponder"], ["Autoreact", "autoreact"], ["Autorole", "autorole"], ["Ping on Join", "pingonjoin"]] },
   { label: "Utility", items: [["Bump Reminder", "bump"], ["Button Roles", "button-roles"], ["Levels", "levels"], ["Reaction Roles", "reaction-roles"], ["Sticky Message", "sticky"]] },
   { label: "Server", items: [["Starboard", "starboard"], ["Welcome", "welcome"], ["Goodbye", "goodbye"], ["Logs", "logs"], ["VoiceMaster", "voicemaster"], ["Tickets", "tickets"]] },
+  { label: "Economy & Fun", items: [["Economy", "economy"], ["Booster Role", "boosterrole"], ["Giveaways", "giveaways"], ["Counter Channels", "counters"], ["Timers", "timers"]] },
 ];
 // feature slug in the store ↔ page slug (mostly identical).
 const STORE_KEY = { "button-roles": "buttonroles", "reaction-roles": "reactionroles", "fake-permissions": "fake-permissions" };
