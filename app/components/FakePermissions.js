@@ -74,6 +74,7 @@ export default function FakePermissions() {
     const its = (Array.isArray(s.config?.items) ? s.config.items : []).map((it) => ({
       role: String(it.role || ""),
       perms: String(it.perms || ""),
+      expires: Number(it.expires) > 0 ? Number(it.expires) : null,
       features: (Array.isArray(it.features) ? it.features : String(it.features || "").split(/[\s,]+/).filter(Boolean).map((x) => ({ slug: x, access: "manage" })))
         .map((f) => ({ slug: String(f.slug ?? f), access: f?.access === "view" ? "view" : "manage", channels: Array.isArray(f?.channels) ? f.channels.map(String) : [] }))
         .filter((f) => GRANTABLE_FEATURE_SLUGS.includes(f.slug)),
@@ -105,8 +106,12 @@ export default function FakePermissions() {
 
   const buildItems = (list) => list
     .filter((it) => String(it.role || "").match(/^\d{5,}$/))
-    .map((it) => ({ role: it.role, perms: it.perms, features: it.features.map((f) => ({ slug: f.slug, access: f.access, channels: f.channels || [] })) }))
+    .map((it) => ({ role: it.role, perms: it.perms, features: it.features.map((f) => ({ slug: f.slug, access: f.access, channels: f.channels || [] })), ...(it.expires ? { expires: it.expires } : {}) }))
     .filter((it) => it.perms || it.features.length);
+
+  // datetime-local <-> epoch ms (local time). Empty string clears the expiry.
+  const toLocalInput = (ms) => { if (!ms) return ""; const d = new Date(ms); const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const fromLocalInput = (v) => { const t = v ? new Date(v).getTime() : NaN; return Number.isFinite(t) ? t : null; };
 
   const persist = async (en, its, targetGuild = guild) => {
     const r = await fetch("/api/guild-settings", {
@@ -210,8 +215,12 @@ export default function FakePermissions() {
             <div key={i} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 14, background: "var(--surface-2)" }}>
               <div className="row" style={{ alignItems: "flex-end" }}>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <label>Role</label>
+                  <label>Role {it.expires && it.expires <= Date.now() && <span className="pill" style={{ background: "var(--danger-soft)", color: "var(--danger)", marginLeft: 6 }}>Expired</span>}</label>
                   <MetaSelect meta={meta} type="role" value={it.role} onChange={(v) => setRow(i, { role: v })} placeholder="Select a role…" />
+                </div>
+                <div style={{ minWidth: 210 }}>
+                  <label>Expires (optional)</label>
+                  <input type="datetime-local" value={toLocalInput(it.expires)} onChange={(e) => setRow(i, { expires: fromLocalInput(e.target.value) })} />
                 </div>
                 <button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} onClick={() => removeRow(i)}>Remove</button>
               </div>
