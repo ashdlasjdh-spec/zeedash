@@ -54,14 +54,23 @@ test("guild owner is recognised", () => {
   assert.ok(guildOwnerOf(owner, "111"));
 });
 
-test("Discord admin manages every non-security feature, and none of the security ones", () => {
+test("Discord admin manages every non-security feature except fake-permissions, and none of the security ones", () => {
   const admin = { serverPerms: { "111": { a: true, o: false } }, serverGuildIds: ["111"] };
-  for (const f of NONSECURITY_FEATURES) assert.ok(canManageFeature(admin, "111", f), `admin manages ${f}`);
+  // Fake permissions mints who the bot treats as admin, so it's server-owner (or super-owner) only —
+  // a plain Discord admin can manage everything else non-security, but not that.
+  for (const f of NONSECURITY_FEATURES) {
+    if (f === "fake-permissions") assert.ok(!canManageFeature(admin, "111", f), "admin can't manage fake-permissions");
+    else assert.ok(canManageFeature(admin, "111", f), `admin manages ${f}`);
+  }
   // canManageFeature never resolves security features — those go through the antinuke path.
   assert.ok(!canManageFeature(admin, "111", "antinuke"));
   assert.ok(!canManageFeature(admin, "111", "antiraid"));
-  // An admin's manageable set is exactly the non-security list.
-  assert.deepStrictEqual(new Set(manageableFeatures(admin, "111")), new Set(NONSECURITY_FEATURES));
+  // An admin's manageable set is the non-security list minus fake-permissions.
+  const expected = new Set(NONSECURITY_FEATURES.filter((f) => f !== "fake-permissions"));
+  assert.deepStrictEqual(new Set(manageableFeatures(admin, "111")), expected);
+  // The guild OWNER, however, can manage fake-permissions.
+  const owner = { serverPerms: { "111": { a: true, o: true } }, serverGuildIds: ["111"] };
+  assert.ok(canManageFeature(owner, "111", "fake-permissions"), "server owner manages fake-permissions");
 });
 
 test("manual 'administrator' perm == admin for non-security features, but not for fake-permissions itself", () => {
