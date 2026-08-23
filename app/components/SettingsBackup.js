@@ -56,9 +56,13 @@ export default function SettingsBackup() {
     <div className="card" style={{ marginTop: 16 }}>
       <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>Settings backup</div>
       <div className="muted" style={{ fontSize: 13, marginBottom: 14 }}>Export this server&apos;s whole feature config as a file, or import one to clone it onto another server. Only features you can manage are imported.</div>
-      <div className="row" style={{ gap: 10 }}>
-        <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !guild} onClick={exportSettings}>Export settings</button>
-        <label className="btn ghost" style={{ width: "auto", cursor: "pointer", opacity: busy || !guild ? 0.5 : 1 }}>
+      <div className="backup-actions">
+        <button className="backup-btn primary" disabled={busy || !guild} onClick={exportSettings}>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
+          Export settings
+        </button>
+        <label className={`backup-btn ${busy || !guild ? "is-disabled" : ""}`}>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14" /></svg>
           Import settings
           <input type="file" accept="application/json,.json" style={{ display: "none" }} disabled={busy || !guild} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; importSettings(f); }} />
         </label>

@@ -803,3 +803,16 @@ tr.skeleton-row{height:auto;border:0;background:none;animation:none}
 .moved-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .moved-alt{display:inline-block;margin-top:16px;color:var(--muted);font-size:13px;text-decoration:none}
 .moved-alt:hover{color:var(--text)}
+
+/* ============ settings backup (export / import) buttons ============ */
+.backup-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:2px}
+.backup-btn{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:700;letter-spacing:normal;text-transform:none;color:var(--text);
+  background:var(--surface-2);border:1px solid var(--line);transition:border-color .15s ease,background .15s ease,transform .15s ease,box-shadow .15s ease}
+.backup-btn svg{color:var(--brand-2)}
+.backup-btn:hover{transform:translateY(-1px);border-color:var(--brand-line);background:var(--surface-3)}
+.backup-btn.primary{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--brand-2),var(--brand));box-shadow:0 10px 24px -12px var(--brand-glow)}
+.backup-btn.primary svg{color:#fff}
+.backup-btn.primary:hover{filter:brightness(1.08);border-color:transparent}
+.backup-btn.is-disabled{opacity:.5;pointer-events:none}
+.backup-btn input{display:none}

@@ -119,7 +119,7 @@ export function AreaChart({ series, label = "messages", accessor = (s) => s.mess
         {line && <path d={line} fill="none" stroke={color} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" filter={`url(#${glowId})`} />}
         {pts.length > 0 && <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="3.5" fill={color} />}
         {xIdx.map((i) => (
-          <text key={i} x={pts[i].x} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--faint)">{series[i].label.split(" ")[1]}</text>
+          <text key={i} x={pts[i].x} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--faint)">{String(series[i]?.label || "").split(" ")[1] || ""}</text>
         ))}
         {hp && <>
           <line x1={hp.x} x2={hp.x} y1={pad.t} y2={base} stroke="rgba(255,255,255,.25)" strokeWidth="1" />
@@ -129,7 +129,7 @@ export function AreaChart({ series, label = "messages", accessor = (s) => s.mess
       {hp && (
         <div className="an-tip" style={{ left: `${(hi / Math.max(1, n - 1)) * 100}%`, top: `${(hp.y / H) * 100}%` }}>
           <div className="an-tip-v">{Number(vals[hi] || 0).toLocaleString()} <span>{label}</span></div>
-          <div className="an-tip-d">{series[hi].label}</div>
+          <div className="an-tip-d">{series[hi]?.label || ""}</div>
         </div>
       )}
     </div>

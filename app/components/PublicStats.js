@@ -117,7 +117,14 @@ export default function PublicStats() {
             {(() => {
               const t = detail?.totals || {};
               const pv = detail?.prev || {};
-              const series = detail?.series || [];
+              // AreaChart reads series[i].label ("Mon 12" style), so derive one from the date (the
+              // API only sends `d`). Parsed manually to avoid any timezone day-shift.
+              const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const series = (detail?.series || []).map((s) => {
+                const p = String(s.d || "").split("-");
+                const label = p.length === 3 ? `${MON[(+p[1] || 1) - 1]} ${+p[2] || 0}` : String(s.d || "");
+                return { ...s, label };
+              });
               const cards = [
                 { l: "Members", n: t.members ?? sel.members, spark: null, color: "#e0563b" },
                 { l: "Messages", n: t.messages ?? sel.messages30d, prev: pv.messages, spark: series.map((s) => s.messages), color: "#5b8cff" },
