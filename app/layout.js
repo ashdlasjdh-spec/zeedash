@@ -14,6 +14,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        {/* Apply the saved theme/density BEFORE first paint so there's no flash of the wrong theme. */}
+        <script dangerouslySetInnerHTML={{ __html: "(function(){try{var t=localStorage.getItem('zhd-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;var d=localStorage.getItem('zhd-density');if(d==='compact')document.documentElement.dataset.density=d;}catch(e){}})();" }} />
         {/* Warm up the TLS connection to Discord's CDN — avatars load from here on nearly every page
             (sidebar, topbar, activity feed, leaderboards), so preconnecting shaves their first paint. */}
         <link rel="preconnect" href="https://cdn.discordapp.com" />

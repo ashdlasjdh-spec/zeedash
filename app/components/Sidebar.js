@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { roleTone } from "@/lib/permissions";
 import ServerSidebarNav from "./ServerSidebarNav";
+import ThemeControls from "./ThemeControls";
 
 // Feather-style line icons (inner paths), keyed by label.
 const ICON = {
@@ -165,6 +166,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
         </div>
         <div><div className="who">{user.name}</div><span className={`role-pill role-t-${roleTone(user.level)}`}>{user.role}</span></div>
       </div>
+      <div style={{ marginTop: 10, display: "flex", justifyContent: "center" }}><ThemeControls /></div>
       <Link href="/docs" className="navlink" style={{ marginTop: 10, fontSize: 13 }} onClick={() => setOpen(false)}>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" /><path d="M19 3v16" /></svg>
         <span>Docs</span>

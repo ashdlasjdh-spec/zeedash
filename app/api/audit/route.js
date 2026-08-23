@@ -18,7 +18,8 @@ export async function GET(req) {
   const action = (sp.get("action") || "").trim();
   const category = (sp.get("category") || "").trim();
   const q = (sp.get("q") || "").trim();
-  const limit = Math.min(200, Math.max(1, Number(sp.get("limit")) || 50));
+  const cap = sp.get("export") === "1" ? 5000 : 200; // CSV export can pull a bigger slice
+  const limit = Math.min(cap, Math.max(1, Number(sp.get("limit")) || 50));
   const offset = Math.max(0, Number(sp.get("offset")) || 0);
 
   const where = [];
@@ -30,6 +31,11 @@ export async function GET(req) {
   if (action) { params.push(action); where.push(`action = $${params.length}`); }
   if (category) { params.push(category); where.push(`category = $${params.length}`); }
   if (q) { params.push(`%${q}%`); where.push(`(target ilike $${params.length} or item_key ilike $${params.length} or detail ilike $${params.length})`); }
+  // Date range (inclusive). `to` is bumped to end-of-day so a single date picks that whole day.
+  const from = (sp.get("from") || "").trim();
+  const to = (sp.get("to") || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(from)) { params.push(from); where.push(`created_at >= $${params.length}`); }
+  if (/^\d{4}-\d{2}-\d{2}/.test(to)) { params.push(to); where.push(`created_at < ($${params.length}::date + interval '1 day')`); }
   const wsql = where.length ? `where ${where.join(" and ")}` : "";
 
   params.push(limit); const lim = params.length;

@@ -3,9 +3,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Dropdown from "./Dropdown";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "./ProfileLinks";
 
-const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist"];
-const CATEGORIES = ["", "power", "stand", "car", "tool", "gamepass", "shazam", "startbr", "tag", "emoji", "ban", "granter"];
+const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist", "fake-permissions"];
+const CATEGORIES = ["", "power", "stand", "car", "tool", "gamepass", "shazam", "startbr", "tag", "emoji", "ban", "granter", "group", "server"];
 const PAGE = 50;
+
+// Build a CSV from audit rows (RFC-4180 quoting). Kept simple + dependency-free.
+function toCSV(rows) {
+  const cols = ["created_at", "actor_name", "actor_id", "action", "category", "item_key", "target", "detail"];
+  const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+}
 
 function fmt(v) {
   if (!v) return "—";
@@ -24,22 +31,31 @@ export default function AuditLog() {
   const [action, setAction] = useState("");
   const [category, setCategory] = useState("");
   const [q, setQ] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [rows, setRows] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(null);
   const deb = useRef();
 
+  const params = useCallback((extra = {}) => {
+    const p = new URLSearchParams();
+    if (actor.trim()) p.set("actor", actor.trim());
+    if (action) p.set("action", action);
+    if (category) p.set("category", category);
+    if (q.trim()) p.set("q", q.trim());
+    if (from) p.set("from", from);
+    if (to) p.set("to", to);
+    for (const [k, v] of Object.entries(extra)) p.set(k, String(v));
+    return p;
+  }, [actor, action, category, q, from, to]);
+
   const load = useCallback(async (offset = 0) => {
     setLoading(true); setErr(null);
     try {
-      const p = new URLSearchParams();
-      if (actor.trim()) p.set("actor", actor.trim());
-      if (action) p.set("action", action);
-      if (category) p.set("category", category);
-      if (q.trim()) p.set("q", q.trim());
-      p.set("limit", String(PAGE));
-      p.set("offset", String(offset));
+      const p = params({ limit: PAGE, offset });
       const r = await fetch(`/api/audit?${p}`);
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Failed");
@@ -48,7 +64,25 @@ export default function AuditLog() {
       setDone(log.length < PAGE);
     } catch (e) { setErr(e.message); }
     setLoading(false);
-  }, [actor, action, category, q]);
+  }, [params]);
+
+  const exportCSV = useCallback(async () => {
+    setExporting(true); setErr(null);
+    try {
+      const p = params({ export: 1, limit: 5000, offset: 0 });
+      const r = await fetch(`/api/audit?${p}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed");
+      const csv = toCSV(d.log || []);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setErr(e.message); }
+    setExporting(false);
+  }, [params]);
 
   // Debounce filter changes → reload from the top.
   useEffect(() => {
@@ -71,9 +105,16 @@ export default function AuditLog() {
             <Dropdown value={category} onChange={(e) => setCategory(e.target.value)} options={CATEGORIES.map((c) => ({ value: c, label: c || "All categories" }))} />
           </div>
         </div>
-        <div style={{ marginTop: 12 }}>
-          <label>Search target / item / detail</label>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="username, user ID, item name…" />
+        <div className="grid g3" style={{ gap: 12, marginTop: 12 }}>
+          <div><label>Search target / item / detail</label>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="username, user ID, item name…" /></div>
+          <div><label>From date</label><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div><label>To date</label><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+        </div>
+        <div className="row" style={{ marginTop: 12, justifyContent: "space-between" }}>
+          <button className="btn ghost" style={{ width: "auto" }} disabled={(actor || action || category || q || from || to) ? false : true}
+            onClick={() => { setActor(""); setAction(""); setCategory(""); setQ(""); setFrom(""); setTo(""); }}>Clear filters</button>
+          <button className="btn" style={{ width: "auto" }} disabled={exporting} onClick={exportCSV}>{exporting ? "Exporting…" : "Export CSV"}</button>
         </div>
         {err && <div className="toast bad">{err}</div>}
       </div>

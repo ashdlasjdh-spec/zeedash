@@ -22,8 +22,27 @@
   --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
   --sans:"Inter",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
   --shadow:0 12px 32px -20px rgba(0,0,0,.8);
+  /* animated border-stroke arc colours (parameterised so the light theme can darken them) */
+  --arc-a:rgba(255,255,255,.85); --arc-b:rgba(255,255,255,.2);
+  --sel-bg:rgba(255,255,255,.85); --sel-fg:#000;
   color-scheme:dark;
 }
+/* ---- Light theme (opt-in via data-theme="light"). Keeps the ZHD red; inverts the neutrals. ---- */
+:root[data-theme="light"]{
+  --bg:#f5f5f8; --bg-2:#ececf1; --surface:#ffffff; --surface-2:#f4f4f7; --surface-3:#e9e9ef;
+  --line:#e2e2e8; --line-soft:#ededf1;
+  --text:#17171c; --muted:#5b5b67; --faint:#9a9aa6;
+  --white:#0b0b0e;
+  --ok:#17171c; --danger:#d61f42; --danger-soft:rgba(214,31,66,.10);
+  --success:#12965a; --warning:#b3781d;
+  --brand-soft:rgba(224,31,31,.10); --brand-line:rgba(224,31,31,.45); --brand-glow:rgba(224,31,31,.28);
+  --shadow:0 14px 34px -24px rgba(20,20,40,.4);
+  --arc-a:rgba(0,0,0,.42); --arc-b:rgba(0,0,0,.1);
+  --sel-bg:var(--brand); --sel-fg:#fff;
+  color-scheme:light;
+}
+/* ---- Compact density (opt-in via data-density="compact"): tighter padding + slightly smaller text ---- */
+:root[data-density="compact"]{ --radius:12px; --radius-sm:9px; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg)}
 /* Global media/overflow guards: no image, video, or long unbroken string can push the layout wider
@@ -43,7 +62,7 @@ body{
 }
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;color:inherit}
-::selection{background:rgba(255,255,255,.85);color:#000}
+::selection{background:var(--sel-bg);color:var(--sel-fg)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:20px;border:2px solid var(--bg)}
 ::-webkit-scrollbar-thumb:hover{background:#2b2b33}
@@ -56,7 +75,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .card::after,.item::after,.btn.ghost::after,input::after{content:none}
 .strokeable::after,.card::after,.item::after,.btn.ghost::after,.ov-stat::after,.ov-action::after,.tb-user::after,.tb-search::after{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;
-  background:conic-gradient(from var(--sa),transparent 0 60%,rgba(255,255,255,.85) 76%,rgba(255,255,255,.2) 86%,transparent 94% 100%);
+  background:conic-gradient(from var(--sa),transparent 0 60%,var(--arc-a) 76%,var(--arc-b) 86%,transparent 94% 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
@@ -824,3 +843,18 @@ tr.skeleton-row{height:auto;border:0;background:none;animation:none}
 .backup-btn.primary:hover{filter:brightness(1.08);border-color:transparent}
 .backup-btn.is-disabled{opacity:.5;pointer-events:none}
 .backup-btn input{display:none}
+
+/* ============ compact density overrides ============ */
+:root[data-density="compact"] body{font-size:13px}
+:root[data-density="compact"] .card{padding:16px}
+:root[data-density="compact"] .main{padding:30px 36px}
+:root[data-density="compact"] th,:root[data-density="compact"] td{padding:8px 9px}
+:root[data-density="compact"] .row{gap:9px}
+@media(max-width:860px){ :root[data-density="compact"] .main{padding:16px 13px} }
+
+/* ============ theme / density controls ============ */
+.theme-controls{display:inline-flex;align-items:center;gap:3px;padding:4px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}
+.tc-btn{display:grid;place-items:center;width:30px;height:28px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--muted);transition:background .15s,color .15s,border-color .15s}
+.tc-btn:hover{color:var(--text);background:var(--surface-3)}
+.tc-btn.on{color:var(--white);background:var(--surface-3);border-color:var(--line)}
+.tc-sep{width:1px;height:18px;background:var(--line);margin:0 2px}
