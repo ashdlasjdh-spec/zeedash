@@ -31,7 +31,7 @@ export default function ServerDocs() {
         Flip it on, fill in the fields, and it saves. The Overview page summarises what&apos;s enabled at a
         glance.
       </p>
-      <Figure url="zhd.lol/dashboard/server/welcome" caption={<><b>A feature page.</b> One master toggle up top, feature settings below — the same pattern across all 30+ features.</>}>
+      <Figure url="zhd.lol/bot/welcome" caption={<><b>A feature page.</b> One master toggle up top, feature settings below — the same pattern across all 30+ features.</>}>
         <div className="mock">
           <div className="m-card">
             <div className="m-head">

@@ -45,7 +45,7 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
 
   const [open, setOpen] = useState(() => {
     const o = {};
-    for (const s of SECTIONS) o[s.label] = s.items.some((i) => path === `/dashboard/server/${i.slug}`);
+    for (const s of SECTIONS) o[s.label] = s.items.some((i) => path === `/bot/${i.slug}`);
     return o;
   });
   const toggle = (label) => setOpen((o) => ({ ...o, [label]: !o[label] }));
@@ -72,7 +72,7 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
           {open[sec.label] && (
             <div className="nav-sub">
               {items.map((i) => {
-                const href = `/dashboard/server/${i.slug}`;
+                const href = `/bot/${i.slug}`;
                 return <Link key={i.slug} className={`nav-sub-link ${active(href) ? "active" : ""}`} href={`${href}${q}`} onClick={onNavigate}>{i.label}</Link>;
               })}
             </div>
@@ -83,7 +83,7 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
       {superOwner && (
         <>
           <div className="nav-sep" />
-          <Link className={`navlink ${path === "/dashboard/server/role-access" ? "active" : ""}`} href="/dashboard/server/role-access" onClick={onNavigate}>
+          <Link className={`navlink ${path === "/bot/role-access" ? "active" : ""}`} href="/bot/role-access" onClick={onNavigate}>
             <Icon label="Security" /><span>Role Access</span>
           </Link>
         </>

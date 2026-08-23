@@ -135,7 +135,7 @@ export default function PagesReference() {
         The Server portal configures the Discord bot for the selected server. Three pages stand on their
         own; the rest are feature pages that all share one <strong>toggle-and-configure</strong> layout.
       </p>
-      <Figure url="zhd.lol/dashboard/server" caption={<><b>Overview.</b> A live summary of what&apos;s enabled for the selected server.</>}>
+      <Figure url="zhd.lol/bot" caption={<><b>Overview.</b> A live summary of what&apos;s enabled for the selected server.</>}>
         <div className="mock">
           <div className="m-card">
             <div className="m-head"><div className="m-title">Zee [MACRO!]</div><div className="m-sub">18 features on</div></div>
@@ -146,7 +146,7 @@ export default function PagesReference() {
           </div>
         </div>
       </Figure>
-      <Figure url="zhd.lol/dashboard/server/message-builder" caption={<><b>Message Builder.</b> Compose a rich embed with a live preview, then have the bot post it.</>}>
+      <Figure url="zhd.lol/bot/message-builder" caption={<><b>Message Builder.</b> Compose a rich embed with a live preview, then have the bot post it.</>}>
         <div className="mock">
           <div className="m-card">
             <div className="m-row" style={{ alignItems: "stretch", gap: 16 }}>
@@ -166,7 +166,7 @@ export default function PagesReference() {
         </div>
       </Figure>
       <p>
-        The <strong>Leaderboard</strong> (<code>/dashboard/server/leaderboard</code>) shows the server&apos;s XP
+        The <strong>Leaderboard</strong> (<code>/bot/leaderboard</code>) shows the server&apos;s XP
         rankings from the <Link className="inl" href="/docs/levels">Levels</Link> feature.
       </p>
       <h3>Feature pages — one pattern, many features</h3>
@@ -174,7 +174,7 @@ export default function PagesReference() {
         Every feature page works the same way: a master on/off toggle, then that feature&apos;s settings. Learn
         it once and you know them all.
       </p>
-      <Figure url="zhd.lol/dashboard/server/welcome" caption={<><b>The feature-page pattern.</b> Master toggle up top, settings below — identical across all 30+ features.</>}>
+      <Figure url="zhd.lol/bot/welcome" caption={<><b>The feature-page pattern.</b> Master toggle up top, settings below — identical across all 30+ features.</>}>
         <div className="mock">
           <div className="m-card">
             <div className="m-head"><div><div className="m-title">Welcome</div><div className="m-sub">Greet new members</div></div><span className="m-toggle"><i /></span></div>

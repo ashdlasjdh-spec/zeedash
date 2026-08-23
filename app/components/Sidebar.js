@@ -88,7 +88,7 @@ const NAV = [
 export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge, gameAccess = true, serverAccess = false }) {
   const canGroupAny = canGroup || canGroupScoped;
   const path = usePathname();
-  const portal = path.startsWith("/dashboard/server") ? "server" : "game";
+  const portal = path.startsWith("/bot") ? "server" : "game";
   const [open, setOpen] = useState(false);
   // Close the mobile drawer whenever the route changes.
   useEffect(() => { setOpen(false); }, [path]);
@@ -121,7 +121,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
             </svg>
             <span>Game</span>
           </Link>
-          <Link className={`sp ${portal === "server" ? "on" : ""}`} href="/dashboard/server" onClick={() => setOpen(false)} role="tab" aria-selected={portal === "server"}>
+          <Link className={`sp ${portal === "server" ? "on" : ""}`} href="/bot" onClick={() => setOpen(false)} role="tab" aria-selected={portal === "server"}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M20 14a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" />
             </svg>

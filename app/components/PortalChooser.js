@@ -24,7 +24,7 @@ export default function PortalChooser({ canServer = true }) {
             <span className="pc-c-t">Game Management</span>
             <span className="pc-c-s">Perks, grants, moderation, group &amp; crew tags</span>
           </button>
-          <button className="pc-card" onClick={() => canServer && go("/dashboard/server")} disabled={!canServer} title={canServer ? "" : "Management+ only"}>
+          <button className="pc-card" onClick={() => canServer && go("/bot")} disabled={!canServer} title={canServer ? "" : "Management+ only"}>
             <span className="pc-ico">💬</span>
             <span className="pc-c-t">Server Management</span>
             <span className="pc-c-s">Discord analytics &amp; member leaderboard</span>

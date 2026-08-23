@@ -66,7 +66,7 @@ export default function FeatureOverview() {
               {items.map(({ label, slug }) => {
                 const on = isOn(slug);
                 return (
-                  <Link key={slug} href={`/dashboard/server/${slug}${q}`} className="fo-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--line)", textDecoration: "none", color: "inherit" }}>
+                  <Link key={slug} href={`/bot/${slug}${q}`} className="fo-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--line)", textDecoration: "none", color: "inherit" }}>
                     <span style={{ fontSize: 13.5 }}>{label}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: on ? "rgba(74,222,128,.15)" : "var(--surface-2)", color: on ? "var(--success)" : "var(--muted)" }}>
                       {settings == null ? "…" : on ? "ON" : "OFF"}

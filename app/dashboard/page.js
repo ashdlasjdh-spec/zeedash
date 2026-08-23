@@ -63,7 +63,7 @@ export default async function Overview({ searchParams }) {
   const user = await getSession();
   if (!user) return null;
   // Server-only Discord admins have no Game access — send them straight to the Server section.
-  if (!user.gameAccess) redirect("/dashboard/server");
+  if (!user.gameAccess) redirect("/bot");
   const lvl = user.level;
   const seesActivity = canGroupS(user);
   const showChooser = (searchParams?.welcome ?? "") === "1";
@@ -141,7 +141,7 @@ export default async function Overview({ searchParams }) {
       {isSuperOwner(user.id) && (
         <>
           <div className="ov-sec-h">Super owner <span className="ov-line" /></div>
-          <Link className="ov-super" href="/dashboard/server/role-access">
+          <Link className="ov-super" href="/bot/role-access">
             <span className="ov-super-ico"><Icon name="shield" /></span>
             <span style={{ minWidth: 0, flex: 1 }}>
               <div className="ov-a-t">Role access</div>

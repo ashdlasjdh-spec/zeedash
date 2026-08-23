@@ -50,7 +50,7 @@ export async function GET(req) {
     if (!level && !serverOnlyOk) return NextResponse.redirect(new URL("/login?error=denied", req.url));
 
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
-    return NextResponse.redirect(new URL(level ? "/dashboard?welcome=1" : "/dashboard/server?welcome=1", req.url));
+    return NextResponse.redirect(new URL(level ? "/dashboard?welcome=1" : "/bot?welcome=1", req.url));
   } catch (e) {
     return NextResponse.redirect(new URL("/login?error=oauth", req.url));
   }

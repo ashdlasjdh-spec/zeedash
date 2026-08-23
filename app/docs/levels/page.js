@@ -43,7 +43,7 @@ export default function LevelsDocs() {
         ]}
       />
 
-      <Figure url="zhd.lol/dashboard/server/levels" caption={<><b>Levels settings.</b> Toggle it on, set the XP range and message, and map levels to role rewards.</>}>
+      <Figure url="zhd.lol/bot/levels" caption={<><b>Levels settings.</b> Toggle it on, set the XP range and message, and map levels to role rewards.</>}>
         <div className="mock">
           <div className="m-card">
             <div className="m-head"><div><div className="m-title">Levels</div><div className="m-sub">Reward activity with XP</div></div><span className="m-toggle"><i /></span></div>

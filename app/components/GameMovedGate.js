@@ -3,13 +3,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // Game management on zhd.lol is now super-owner-only — everyone else gets a blurred
-// "moved" notice pointing at the new home. Only covers the GAME portal; the Server
-// portal (/dashboard/server/*) stays usable for Discord admins.
+// "moved" notice pointing at the new home. Only covers the GAME portal (/dashboard/*);
+// the bot dashboard (/bot/*) has its own layout and stays usable for Discord admins.
 const NEW_HOME = "https://zhd.erased.dev";
 
 export default function GameMovedGate({ superOwner = false }) {
   const path = usePathname() || "";
-  const onGamePage = path.startsWith("/dashboard") && !path.startsWith("/dashboard/server");
+  const onGamePage = path.startsWith("/dashboard");
   if (superOwner || !onGamePage) return null;
 
   return (
@@ -26,7 +26,7 @@ export default function GameMovedGate({ superOwner = false }) {
           Go to zhd.erased.dev
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
         </a>
-        <Link className="moved-alt" href="/dashboard/server">Manage a Discord server instead →</Link>
+        <Link className="moved-alt" href="/bot">Manage a Discord server instead →</Link>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export default async function DashLayout({ children }) {
   if (canBanS(user)) mod.push({ label: "Bans", href: "/dashboard/bans" }, { label: "Lookup", href: "/dashboard/lookup" });
   if (groupAny) mod.push({ label: "Group", href: "/dashboard/group" });
   if (canGroupS(user)) mod.push({ label: "Analytics", href: "/dashboard/analytics" });
-  if (serverAccess) mod.push({ label: "Server", href: "/dashboard/server" });
+  if (serverAccess) mod.push({ label: "Server", href: "/bot" });
   if (canConfig(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
