@@ -6,7 +6,7 @@ import { levelFromXp, xpForNext } from "../lib/levels.js";
 import {
   canManageGuild, canAccessServerSection, guildOwnerOf, isSecurityFeature, SECURITY_FEATURES,
   canManageFeature, manageableFeatures, hasManualPerm, canReachGuild, featurePerm, NONSECURITY_FEATURES,
-  isSuperOwner, canPurge,
+  isSuperOwner, canPurge, hasFeatureGrant,
 } from "../lib/permissions.js";
 
 test("levelFromXp is monotonic and starts at 0", () => {
@@ -86,6 +86,28 @@ test("manual 'administrator' perm == admin for non-security features, but not fo
   assert.ok(!canManageFeature(u, "111", "antinuke"));
 });
 
+test("an antinuke admin (security standing) can manage fake-permissions, a plain admin cannot", () => {
+  const antinukeAdmin = { serverPerms: {}, securityGuildIds: ["111"], serverGuildIds: ["111"] };
+  assert.ok(canManageFeature(antinukeAdmin, "111", "fake-permissions"), "antinuke admin manages fake-permissions");
+  const plainAdmin = { serverPerms: { "111": { a: true, o: false } }, serverGuildIds: ["111"] };
+  assert.ok(!canManageFeature(plainAdmin, "111", "fake-permissions"), "plain admin cannot");
+  // A super owner manages it everywhere.
+  assert.ok(canManageFeature({ isOwner: true }, "999", "fake-permissions"));
+});
+
+test("a direct per-feature grant unlocks exactly that feature, per guild, and never fake-permissions", () => {
+  const u = { serverPerms: {}, manualPerms: {}, featurePerms: { "111": ["tickets", "autorole"] }, serverGuildIds: ["111"] };
+  assert.ok(hasFeatureGrant(u, "111", "tickets"));
+  assert.ok(canManageFeature(u, "111", "tickets"), "granted feature is manageable");
+  assert.ok(canManageFeature(u, "111", "autorole"));
+  assert.ok(!canManageFeature(u, "111", "welcome"), "a feature NOT granted stays locked");
+  assert.ok(!canManageFeature(u, "222", "tickets"), "the grant does not leak to another guild");
+  assert.deepStrictEqual(new Set(manageableFeatures(u, "111")), new Set(["tickets", "autorole"]));
+  // Even if someone stuffed fake-permissions into a grant, it must never unlock (session strips it too).
+  const sneaky = { serverPerms: {}, featurePerms: { "111": ["fake-permissions"] }, serverGuildIds: ["111"] };
+  assert.ok(!canManageFeature(sneaky, "111", "fake-permissions"));
+});
+
 test("a narrow manual perm unlocks only its features", () => {
   const roles = { serverPerms: {}, manualPerms: { "111": ["manage_roles"] }, serverGuildIds: ["111"] };
   assert.ok(hasManualPerm(roles, "111", "manage_roles"));
@@ -93,16 +115,20 @@ test("a narrow manual perm unlocks only its features", () => {
   assert.ok(canManageFeature(roles, "111", "autorole"), "manage_roles unlocks autorole");
   assert.ok(canManageFeature(roles, "111", "button-roles"), "manage_roles unlocks button-roles");
   assert.ok(canManageFeature(roles, "111", "reaction-roles"), "manage_roles unlocks reaction-roles");
-  assert.ok(!canManageFeature(roles, "111", "welcome"), "manage_roles does NOT unlock welcome (needs administrator)");
+  assert.ok(!canManageFeature(roles, "111", "welcome"), "manage_roles does NOT unlock welcome (needs manage_guild)");
   assert.ok(!canManageFeature(roles, "111", "automod"), "manage_roles does NOT unlock automod (needs manage_messages)");
-  // Its manageable set is exactly the role-management features.
-  assert.deepStrictEqual(new Set(manageableFeatures(roles, "111")), new Set(["autorole", "button-roles", "reaction-roles"]));
+  // Its manageable set is exactly the role-management features (autorole/button-roles/reaction-roles + boosterrole).
+  assert.deepStrictEqual(new Set(manageableFeatures(roles, "111")), new Set(["autorole", "button-roles", "reaction-roles", "boosterrole"]));
 });
 
-test("feature -> permission mapping: named ones map, everything else needs administrator", () => {
+test("feature -> permission mapping: named ones map, unmapped core config needs administrator", () => {
   assert.strictEqual(featurePerm("automod"), "manage_messages");
   assert.strictEqual(featurePerm("autorole"), "manage_roles");
-  assert.strictEqual(featurePerm("welcome"), "administrator");
+  assert.strictEqual(featurePerm("tickets"), "manage_channels");
+  assert.strictEqual(featurePerm("welcome"), "manage_guild");
+  assert.strictEqual(featurePerm("honeypot"), "ban_members");
+  // Core config left unmapped still falls back to administrator.
+  assert.strictEqual(featurePerm("settings-general"), "administrator");
   assert.strictEqual(featurePerm("not-a-real-feature"), "administrator");
 });
 

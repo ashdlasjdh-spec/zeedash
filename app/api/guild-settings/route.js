@@ -24,11 +24,13 @@ export async function GET(req) {
   if (!guild) return NextResponse.json({ settings: {} });
   try {
     await ensureSchema();
-    const security = await canManageSecurity(s, guild); // one authoritative check, reused for both security rows
+    const security = await canManageSecurity(s, guild); // one authoritative check, reused for both security rows + fake-permissions
     const rows = await query("select feature, enabled, config from guild_settings where guild_id=$1", [guild]);
     const settings = {};
     for (const r of rows) {
-      const allowed = isSecurityFeature(r.feature) ? security : canManageFeature(s, guild, r.feature);
+      // Security features AND fake-permissions gate on security standing (owner / super / antinuke admin).
+      const secGated = isSecurityFeature(r.feature) || r.feature === "fake-permissions";
+      const allowed = secGated ? security : canManageFeature(s, guild, r.feature);
       if (!allowed) continue; // don't expose config for features this user can't manage
       settings[r.feature] = { enabled: !!r.enabled, config: r.config || {} };
     }
@@ -43,7 +45,8 @@ export async function POST(req) {
   const { guild, feature, enabled, config } = await req.json().catch(() => ({}));
   if (!s || !canReachGuild(s, guild)) return forbidden("You don't manage that server.");
   if (!guild || !FEATURE.test(String(feature || ""))) return badRequest("Bad guild/feature.");
-  if (isSecurityFeature(feature)) {
+  // Security features and fake-permissions both require security standing (owner / super / antinuke admin).
+  if (isSecurityFeature(feature) || feature === "fake-permissions") {
     if (!(await canManageSecurity(s, guild))) {
       return forbidden("Only the server owner or an antinuke admin can change this.");
     }
