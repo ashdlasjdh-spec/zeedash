@@ -16,7 +16,7 @@ export default async function Page() {
       <PageHeader
         icon="shield"
         title="Role access"
-        subtitle="Super-owner only. Grant a Discord role site capabilities for the community servers — members with that role get the access automatically."
+        subtitle="Super-owner only. Delegate Roblox group management to a Discord role — pick which group actions it can run and the highest rank it may assign people to. Members with that role get the access automatically."
       />
       <RoleAccess />
     </>

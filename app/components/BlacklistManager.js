@@ -51,8 +51,8 @@ export default function BlacklistManager() {
       <div className="muted" style={{ fontSize: 13, margin: "4px 0 14px" }}>
         Block a Discord user from the dashboard entirely — they can't sign in or use any page, regardless of their roles. Paste their <b>Discord user ID</b>.
       </div>
-      <div className="row" style={{ gap: 8 }}>
-        <div style={{ flex: "0 0 auto", minWidth: 200 }}><label>Discord user ID</label>
+      <div className="row wl-form" style={{ gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 190 }}><label>Discord user ID</label>
           <input value={discordId} onChange={(e) => setDiscordId(e.target.value)} placeholder="e.g. 183605754593411072" inputMode="numeric" /></div>
         <div style={{ flex: 1, minWidth: 180 }}><label>Note (optional)</label>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why they're blocked" /></div>

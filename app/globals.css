@@ -518,6 +518,10 @@ td a:hover{border-color:var(--muted)}
   .dd-btn{padding:12px 13px}                 /* easier-tap dropdowns */
   .dd-opt{padding:12px}
   .ph-actions{width:100%}
+  /* Whitelist / blacklist add-forms: stack every field full-width (beats the inline
+     flex/min-width the fields carry) so nothing is cramped or clipped on a phone. */
+  .wl-form > div{flex:1 1 100% !important;min-width:0 !important;width:100%}
+  .wl-form input,.wl-form .dd,.wl-form .dd-btn{width:100%}
 }
 /* ============================================================
    OVERVIEW  (dashboard landing)

@@ -4,7 +4,12 @@ import Avatar from "./Avatar";
 import Dropdown from "./Dropdown";
 import { scopeMatches } from "@/lib/permissions";
 
-export default function GroupPanel({ scoped = false, scope = [], capLevel = null }) {
+export default function GroupPanel({ scoped = false, scope = [], capLevel = null, delegated = null }) {
+  // A delegated (Role-Access) role may only run the actions it was granted; everyone else (full
+  // managers) may run all of them. `allow` unifies the two so the UI hides what the API would reject.
+  const allow = (a) => (delegated ? delegated.actions.includes(a) : true);
+  const ceil = delegated && delegated.maxRank != null ? Number(delegated.maxRank) : null;
+  const showRequests = !scoped && (!delegated || delegated.actions.some((a) => ["accept", "decline", "acceptAll", "declineAll"].includes(a)));
   const [roles, setRoles] = useState([]); const [groupId, setGid] = useState("");
   const [username, setU] = useState(""); const [status, setStatus] = useState(null);
   const [roleId, setRoleId] = useState(""); const [busy, setB] = useState(false);
@@ -69,15 +74,15 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
   if (err) return <div className="card"><div className="toast bad">{err}</div></div>;
   return (
     <div className="stack" style={{ gap: 16 }}>
-      {!scoped && (<>
+      {showRequests && (<>
       {/* Join requests */}
       <div className="card">
         <div className="between">
           <div><div style={{ fontWeight: 700, fontSize: 15 }}>Join requests</div><div className="muted" style={{ fontSize: 13 }}>Pending people waiting to join the group.</div></div>
           <div style={{ display: "flex", gap: 8 }}>
             {reqs && reqs.length > 0 && <>
-              <button className="btn" style={{ width: "auto" }} disabled={loadingReqs} onClick={() => handleAll(true)}>Accept all</button>
-              <button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} disabled={loadingReqs} onClick={() => handleAll(false)}>Decline all</button>
+              {allow("acceptAll") && <button className="btn" style={{ width: "auto" }} disabled={loadingReqs} onClick={() => handleAll(true)}>Accept all</button>}
+              {allow("declineAll") && <button className="btn ghost" style={{ width: "auto", color: "var(--danger)" }} disabled={loadingReqs} onClick={() => handleAll(false)}>Decline all</button>}
             </>}
             <button className="btn ghost" style={{ width: "auto" }} disabled={loadingReqs} onClick={loadReqs}>{loadingReqs ? "Loading…" : reqs ? "Refresh" : "Load"}</button>
           </div>
@@ -91,8 +96,8 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
                   <span>{r.username} <span className="muted mono" style={{ fontWeight: 400 }}>({r.userId})</span></span>
                 </a>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn" style={{ width: "auto", padding: "7px 14px" }} onClick={() => handleReq(r.userId, true)}>Accept</button>
-                  <button className="btn ghost" style={{ width: "auto", padding: "7px 14px", color: "var(--danger)" }} onClick={() => handleReq(r.userId, false)}>Decline</button>
+                  {allow("accept") && <button className="btn" style={{ width: "auto", padding: "7px 14px" }} onClick={() => handleReq(r.userId, true)}>Accept</button>}
+                  {allow("decline") && <button className="btn ghost" style={{ width: "auto", padding: "7px 14px", color: "var(--danger)" }} onClick={() => handleReq(r.userId, false)}>Decline</button>}
                 </div>
               </div>
             ))}
@@ -121,32 +126,34 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
                 <div className="muted" style={{ fontSize: 12 }}>{status.inGroup ? "In the group" : status.pending ? "Pending join request" : "Not in the group"}</div>
               </div>
             </div>
-            {status.pending && (
+            {status.pending && allow("accept") && (
               <div className="row" style={{ marginTop: 12, gap: 10 }}>
                 <button className="btn" style={{ width: "auto" }} disabled={busy} onClick={acceptTarget}>Accept join request</button>
               </div>
             )}
             <div className="grid g2" style={{ marginTop: 14 }}>
+              {allow("rank") && (
               <div><label>Set rank</label>
                 <Dropdown value={roleId} onChange={(e) => setRoleId(e.target.value)} placeholder="Choose a role…"
-                  options={roles.filter((r) => (!scoped || scopeMatches(scope, r.name)) && (capLevel == null || Number(r.rank) < capLevel)).map((r) => ({ value: r.id, label: `${r.rank} — ${r.name}` }))} />
+                  options={roles.filter((r) => (!scoped || scopeMatches(scope, r.name)) && (capLevel == null || Number(r.rank) < capLevel) && (ceil == null || Number(r.rank) <= ceil)).map((r) => ({ value: r.id, label: `${r.rank} — ${r.name}` }))} />
               </div>
+              )}
               <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
-                <button className="btn" style={{ width: "auto" }} disabled={busy || !roleId} onClick={() => act("rank")}>Change rank</button>
-                <button className="btn danger" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("kick")}>Kick</button>
+                {allow("rank") && <button className="btn" style={{ width: "auto" }} disabled={busy || !roleId} onClick={() => act("rank")}>Change rank</button>}
+                {allow("kick") && <button className="btn danger" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("kick")}>Kick</button>}
               </div>
             </div>
-            {!scoped && (
+            {!scoped && (allow("demote") || allow("promote")) && (
             <div className="row" style={{ marginTop: 12, gap: 10 }}>
-              <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("demote")}>◄ Demote</button>
-              <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("promote")}>Promote ►</button>
+              {allow("demote") && <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("demote")}>◄ Demote</button>}
+              {allow("promote") && <button className="btn ghost" style={{ width: "auto" }} disabled={busy || !status.inGroup} onClick={() => act("promote")}>Promote ►</button>}
             </div>
             )}
           </>
         )}
       </div>
 
-      {!scoped && (<>
+      {!scoped && allow("shout") && (<>
       {/* Group shout */}
       <div className="card">
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>Group shout</div>
