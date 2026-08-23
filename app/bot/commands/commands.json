@@ -1,0 +1,2523 @@
+{
+  "generatedAt": "2026-08-23T15:44:50.613Z",
+  "prefix": ".",
+  "total": 203,
+  "categories": [
+    {
+      "name": "Moderation",
+      "emoji": "🔨",
+      "commands": [
+        {
+          "name": "nick",
+          "description": "Set or clear a Discord member's nickname. Usage: nick <@member> [name].",
+          "aliases": [
+            "nickname",
+            "setnick"
+          ],
+          "usage": ".nick <member> [name]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "add",
+          "description": "Add a user or role to the current ticket (to help train). Usage: add <@user|@role|id>.",
+          "aliases": [
+            "ticketadd"
+          ],
+          "usage": ".add <target>",
+          "level": "Lvl 12",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "remove",
+          "description": "Remove a user or role from the current ticket. Usage: remove <@user|@role|id>.",
+          "aliases": [
+            "ticketremove"
+          ],
+          "usage": ".remove <target>",
+          "level": "Lvl 12",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "note",
+          "description": "Staff notes on a user. Usage: note <add|list|clear> <user> [text].",
+          "aliases": [],
+          "usage": ".note <action> <user> [text]",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "announce",
+          "description": "Post an announcement embed to a channel.",
+          "aliases": [],
+          "usage": ".announce <channel> <message>",
+          "level": "Lvl 245",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "manage",
+          "description": "Open the member-management panel (promote/demote/rank/exile) for a user.",
+          "aliases": [],
+          "usage": ".manage <user>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "warn",
+          "description": "Warn a user with a reason (saved).",
+          "aliases": [],
+          "usage": ".warn <user> <reason>",
+          "level": "Lvl 238",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "warnings",
+          "description": "List a user's warnings.",
+          "aliases": [
+            "warns"
+          ],
+          "usage": ".warnings <user>",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "delwarn",
+          "description": "Remove a warning by its number. Usage: delwarn <user> <number>.",
+          "aliases": [],
+          "usage": ".delwarn <user> <number>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "purge",
+          "description": "Bulk-delete recent messages in this channel (1–100, under 14 days old).",
+          "aliases": [
+            "clear",
+            "clean"
+          ],
+          "usage": ".purge <count>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "timeout",
+          "description": "Timeout a Discord member (native timeout). Usage: timeout <@member> <minutes> [reason].",
+          "aliases": [
+            "to"
+          ],
+          "usage": ".timeout <member> <minutes> [reason]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "untimeout",
+          "description": "Remove a native timeout from a Discord member.",
+          "aliases": [
+            "unto"
+          ],
+          "usage": ".untimeout <member>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "poll",
+          "description": "Create a reaction poll. Usage: poll Question | Option A | Option B ...",
+          "aliases": [],
+          "usage": ".poll <text>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "serverinfo",
+          "description": "Show Discord server stats.",
+          "aliases": [
+            "guildinfo"
+          ],
+          "usage": ".serverinfo",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "setlog",
+          "description": "Set or disable the audit-log channel. Usage: setlog <#channel|id|off>.",
+          "aliases": [],
+          "usage": ".setlog <channel>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "setwelcome",
+          "description": "Set the welcome channel (and optional message/style) — new members get a welcome here.",
+          "aliases": [],
+          "usage": ".setwelcome <channel> [message] [style]",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "wipeuser",
+          "description": "Owner-only: WIPE all of a Roblox user's data — perks, powers, datastores, DB. Irreversible.",
+          "aliases": [],
+          "usage": ".wipeuser <user>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "relog",
+          "description": "Re-authenticate the Roblox cookie (refresh the session).",
+          "aliases": [],
+          "usage": ".relog",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "blacklist",
+          "description": "Block/unblock a Discord user from the bot. Usage: blacklist <add|remove|list> [user].",
+          "aliases": [],
+          "usage": ".blacklist <action> [user]",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "uptime",
+          "description": "Show how long the bot has been online and its latency.",
+          "aliases": [],
+          "usage": ".uptime",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "clearwarns",
+          "description": "Remove ALL of a user's warnings at once.",
+          "aliases": [
+            "clearwarnings"
+          ],
+          "usage": ".clearwarns <user>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "warntop",
+          "description": "Leaderboard of the most-warned users.",
+          "aliases": [
+            "topwarns"
+          ],
+          "usage": ".warntop [count]",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "lock",
+          "description": "Lock a channel so @everyone can no longer send messages.",
+          "aliases": [],
+          "usage": ".lock [channel] [reason]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unlock",
+          "description": "Unlock a previously locked channel.",
+          "aliases": [],
+          "usage": ".unlock [channel]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "slowmode",
+          "description": "Set a channel slowmode. Usage: slowmode <seconds 0–21600> [channel].",
+          "aliases": [
+            "slow"
+          ],
+          "usage": ".slowmode <seconds> [channel]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "ban",
+          "description": "Ban a member from this Discord server. Usage: ban <@member|id> [reason].",
+          "aliases": [
+            "discordban"
+          ],
+          "usage": ".ban <member> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "softban",
+          "description": "Ban then immediately unban to clear a member’s recent messages. Usage: softban <@member> [reason].",
+          "aliases": [],
+          "usage": ".softban <member> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "kick",
+          "description": "Kick a member from this Discord server. Usage: kick <@member> [reason].",
+          "aliases": [],
+          "usage": ".kick <member> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unbanuser",
+          "description": "Unban a user from this Discord server by ID. Usage: unbanuser <id>.",
+          "aliases": [
+            "discordunban"
+          ],
+          "usage": ".unbanuser <id>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "role",
+          "description": "Give or remove a role. Usage: role <@member> <@role|name>.",
+          "aliases": [
+            "r"
+          ],
+          "usage": ".role <member> <role>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "strip",
+          "description": "Remove all of a member's roles. Usage: strip <@member>.",
+          "aliases": [],
+          "usage": ".strip <member>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "lockdown",
+          "description": "Lock every text channel (deny @everyone sending). Usage: lockdown.",
+          "aliases": [],
+          "usage": ".lockdown",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unlockdown",
+          "description": "Lift a server lockdown (restore @everyone sending). Usage: unlockdown.",
+          "aliases": [],
+          "usage": ".unlockdown",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "hide",
+          "description": "Hide a channel from @everyone. Usage: hide [#channel].",
+          "aliases": [],
+          "usage": ".hide [channel]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "unhide",
+          "description": "Reveal a hidden channel to @everyone. Usage: unhide [#channel].",
+          "aliases": [],
+          "usage": ".unhide [channel]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "nuke",
+          "description": "Clone this channel and delete the original to wipe all messages. Usage: nuke.",
+          "aliases": [],
+          "usage": ".nuke",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "imute",
+          "description": "Stop a member posting images/links server-wide (Image Muted role). Usage: imute <@member>.",
+          "aliases": [],
+          "usage": ".imute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "iunmute",
+          "description": "Remove a member's image mute. Usage: iunmute <@member>.",
+          "aliases": [],
+          "usage": ".iunmute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rmute",
+          "description": "Stop a member adding reactions server-wide (Reaction Muted role). Usage: rmute <@member>.",
+          "aliases": [],
+          "usage": ".rmute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "runmute",
+          "description": "Remove a member's reaction mute. Usage: runmute <@member>.",
+          "aliases": [],
+          "usage": ".runmute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "moveall",
+          "description": "Move everyone from your voice channel to another. Usage: moveall <voice channel id>.",
+          "aliases": [],
+          "usage": ".moveall <channel>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolecreate",
+          "description": "Create a role. Usage: rolecreate <name> [#hex].",
+          "aliases": [
+            "createrole"
+          ],
+          "usage": ".rolecreate <name> [color]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roledelete",
+          "description": "Delete a role. Usage: roledelete <@role|name>.",
+          "aliases": [
+            "deleterole"
+          ],
+          "usage": ".roledelete <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolecolor",
+          "description": "Change a role’s colour. Usage: rolecolor <@role> <#hex>.",
+          "aliases": [
+            "rolecolour"
+          ],
+          "usage": ".rolecolor <role> <color>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolerename",
+          "description": "Rename a role. Usage: rolerename <@role> <new name>.",
+          "aliases": [],
+          "usage": ".rolerename <role> <name>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolehoist",
+          "description": "Toggle whether a role is shown separately. Usage: rolehoist <@role>.",
+          "aliases": [],
+          "usage": ".rolehoist <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolementionable",
+          "description": "Toggle whether a role can be @mentioned. Usage: rolementionable <@role>.",
+          "aliases": [
+            "rolemention"
+          ],
+          "usage": ".rolementionable <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roleall",
+          "description": "Give a role to all members (slow on big servers). Usage: roleall <@role>.",
+          "aliases": [
+            "rall"
+          ],
+          "usage": ".roleall <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolehumans",
+          "description": "Give a role to all humans (slow on big servers). Usage: rolehumans <@role>.",
+          "aliases": [],
+          "usage": ".rolehumans <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rolebots",
+          "description": "Give a role to all bots (slow on big servers). Usage: rolebots <@role>.",
+          "aliases": [],
+          "usage": ".rolebots <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "pin",
+          "description": "Pin a message. Usage: pin <message link or ID>.",
+          "aliases": [],
+          "usage": ".pin <message>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "unpin",
+          "description": "Unpin a message. Usage: unpin <message link or ID>.",
+          "aliases": [],
+          "usage": ".unpin <message>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "topic",
+          "description": "Set this channel’s topic. Usage: topic <text> (blank clears).",
+          "aliases": [],
+          "usage": ".topic [text]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "renamechannel",
+          "description": "Rename this channel. Usage: renamechannel <name>.",
+          "aliases": [
+            "setname"
+          ],
+          "usage": ".renamechannel <name>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "purgebots",
+          "description": "Delete recent bot messages here. Usage: purgebots [count].",
+          "aliases": [
+            "botclear",
+            "cleanup"
+          ],
+          "usage": ".purgebots [count]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "vckick",
+          "description": "Disconnect a member from voice. Usage: vckick <@member>.",
+          "aliases": [
+            "voicekick"
+          ],
+          "usage": ".vckick <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "vcmute",
+          "description": "Server-mute a member in voice. Usage: vcmute <@member>.",
+          "aliases": [
+            "voicemute"
+          ],
+          "usage": ".vcmute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "vcunmute",
+          "description": "Remove a voice server-mute. Usage: vcunmute <@member>.",
+          "aliases": [
+            "voiceunmute"
+          ],
+          "usage": ".vcunmute <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "deafen",
+          "description": "Server-deafen a member in voice. Usage: deafen <@member>.",
+          "aliases": [],
+          "usage": ".deafen <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "undeafen",
+          "description": "Remove a voice server-deafen. Usage: undeafen <@member>.",
+          "aliases": [],
+          "usage": ".undeafen <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "setupmute",
+          "description": "Create/repair the three mute roles — Muted (text), Image Muted, Reaction Muted — across every channel. Usage: setupmute.",
+          "aliases": [
+            "muterole",
+            "setupmuted"
+          ],
+          "usage": ".setupmute",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "mute",
+          "description": "Give a member the Muted role (optionally for a time). Usage: mute <@member> [time] [reason].",
+          "aliases": [
+            "textmute"
+          ],
+          "usage": ".mute <member> [time] [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unmute",
+          "description": "Remove the Muted role from a member. Usage: unmute <@member>.",
+          "aliases": [],
+          "usage": ".unmute <member>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unmuteall",
+          "description": "Remove the Muted role from everyone who has it. Usage: unmuteall.",
+          "aliases": [],
+          "usage": ".unmuteall",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "jail",
+          "description": "Strip a member's roles and confine them to the jail channel. Usage: jail <@member> [reason].",
+          "aliases": [],
+          "usage": ".jail <member> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unjail",
+          "description": "Release a jailed member and restore their previous roles. Usage: unjail <@member>.",
+          "aliases": [],
+          "usage": ".unjail <member>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "tempban",
+          "description": "Ban a member and automatically unban them after a duration. Usage: tempban <@member> <time> [reason].",
+          "aliases": [],
+          "usage": ".tempban <member> <time> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "hardban",
+          "description": "Ban a member and re-ban them automatically if they ever rejoin. Usage: hardban <@member|id> [reason].",
+          "aliases": [
+            "forceban"
+          ],
+          "usage": ".hardban <member> [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unhardban",
+          "description": "Lift a hardban so the user may rejoin. Usage: unhardban <id>.",
+          "aliases": [
+            "unforceban"
+          ],
+          "usage": ".unhardban <id>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "setup",
+          "description": "One-shot moderation setup: a case-log channel, a Jailed role and a private #jail channel. Usage: setup.",
+          "aliases": [
+            "modsetup",
+            "setupjail",
+            "jailsetup"
+          ],
+          "usage": ".setup",
+          "level": "Owner",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "vcsetup",
+          "description": "Set up VoiceMaster: a category + a \"Join to Create\" voice channel. Joining it spins up a personal temp channel. Usage: vcsetup.",
+          "aliases": [
+            "voicesetup",
+            "vmsetup",
+            "setupvc"
+          ],
+          "usage": ".vcsetup",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "bind",
+          "description": "Mark roles as \"staff\" so antinuke/stripstaff recognise them. Usage: bind staff <@role> | bind staff list.",
+          "aliases": [],
+          "usage": ".bind <staff|stafflist>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "staff",
+              "description": "Toggle a role as a staff role (re-run to unset). Omit the role to see nothing — use bind stafflist."
+            },
+            {
+              "name": "stafflist",
+              "description": "List the bound staff roles."
+            }
+          ]
+        },
+        {
+          "name": "stripstaff",
+          "description": "Remove all bound staff roles from a member. Usage: stripstaff <@member>.",
+          "aliases": [],
+          "usage": ".stripstaff <member>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "shh",
+          "description": "Quickly time a member out (default 10 minutes). Usage: shh <@member> [minutes] [reason].",
+          "aliases": [
+            "shush"
+          ],
+          "usage": ".shh <member> [minutes] [reason]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "recentban",
+          "description": "Ban the N most-recently-joined members (raid cleanup). Usage: recentban <amount> [reason].",
+          "aliases": [],
+          "usage": ".recentban <amount> [reason]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "raid",
+          "description": "Mass kick/ban members who joined within a recent window. Usage: raid <minutes> <kick|ban> [reason].",
+          "aliases": [],
+          "usage": ".raid <window> <action> [reason]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Roblox Group",
+      "emoji": "👥",
+      "commands": [
+        {
+          "name": "groupinfo",
+          "description": "Show information about the managed group.",
+          "aliases": [],
+          "usage": ".groupinfo",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "ranks",
+          "description": "List every rank (role) in the group.",
+          "aliases": [],
+          "usage": ".ranks [order]",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "userinfo",
+          "description": "Detailed profile: userId, rank, account age and more.",
+          "aliases": [
+            "whois",
+            "search",
+            "profile"
+          ],
+          "usage": ".userinfo <user>",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "pending",
+          "description": "List pending join requests.",
+          "aliases": [],
+          "usage": ".pending",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "setrank",
+          "description": "Move a user to a specific rank (name or number).",
+          "aliases": [],
+          "usage": ".setrank <user> <rank>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "promote",
+          "description": "Promote a user by one rank.",
+          "aliases": [],
+          "usage": ".promote <user>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "demote",
+          "description": "Demote a user by one rank.",
+          "aliases": [],
+          "usage": ".demote <user>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "exile",
+          "description": "Remove (kick) a single user from the Roblox group.",
+          "aliases": [
+            "groupkick",
+            "gkick"
+          ],
+          "usage": ".exile <user> [reason]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "accept",
+          "description": "Accept a single join request.",
+          "aliases": [],
+          "usage": ".accept <user>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "decline",
+          "description": "Decline a single join request.",
+          "aliases": [],
+          "usage": ".decline <user>",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "lbaccept",
+          "description": "Accept a user into the group and rank them Leaderboard Staff (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".lbaccept <user>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "lbkick",
+          "description": "Kick a member from the group — only if they are Leaderboard Staff (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".lbkick <user> [reason]",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "crewaccept",
+          "description": "Accept a user into the group and rank them Crew Leader (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".crewaccept <user>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "crewkick",
+          "description": "Kick a member from the group — only if they are Crew Leader (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".crewkick <user> [reason]",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "staraccept",
+          "description": "Accept a user into the group and rank them Stars (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".staraccept <user>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "starkick",
+          "description": "Kick a member from the group — only if they are Stars (Leaderboard HR only).",
+          "aliases": [],
+          "usage": ".starkick <user> [reason]",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "invite",
+          "description": "Get the bot's link to add it to another server (then run /setup there).",
+          "aliases": [
+            "addbot",
+            "botinvite"
+          ],
+          "usage": ".invite",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "shout",
+          "description": "Post a group shout (empty message clears it).",
+          "aliases": [],
+          "usage": ".shout [message]",
+          "level": "Lvl 242",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "kickrank",
+          "description": "Kick EVERY user on a given rank. Irreversible.",
+          "aliases": [],
+          "usage": ".kickrank <rank>",
+          "level": "Lvl 248",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "acceptall",
+          "description": "Accept ALL pending join requests.",
+          "aliases": [],
+          "usage": ".acceptall",
+          "level": "Lvl 248",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "declineall",
+          "description": "Decline ALL pending join requests.",
+          "aliases": [],
+          "usage": ".declineall",
+          "level": "Lvl 248",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Game & Grants",
+      "emoji": "🎮",
+      "commands": [
+        {
+          "name": "give",
+          "description": "Grant in-game perks to a user — /give <category> user items (comma-separate for bulk).",
+          "aliases": [],
+          "usage": ".give <power|stand|car|tool|gamepass|shazam|startbr|emoji|bundle>",
+          "level": "Lvl 247",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "power",
+              "description": "Grant power(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "stand",
+              "description": "Grant stand(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "car",
+              "description": "Grant car(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "tool",
+              "description": "Grant tool(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "gamepass",
+              "description": "Grant gamepass(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "shazam",
+              "description": "Grant shazam(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "startbr",
+              "description": "Grant startbr(s) to a user — comma-separate for multiple."
+            },
+            {
+              "name": "emoji",
+              "description": "Give custom emoji(s) to a user (co founders+). e.g. items: 😀⭐🔥"
+            },
+            {
+              "name": "bundle",
+              "description": "Apply a preset grant bundle to a user (co owners+)."
+            }
+          ]
+        },
+        {
+          "name": "revoke",
+          "description": "Revoke in-game perks from a user — /revoke <category> user items (comma-separate for bulk).",
+          "aliases": [],
+          "usage": ".revoke <power|stand|car|tool|gamepass|shazam|startbr|emoji>",
+          "level": "Lvl 247",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "power",
+              "description": "Revoke power(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "stand",
+              "description": "Revoke stand(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "car",
+              "description": "Revoke car(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "tool",
+              "description": "Revoke tool(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "gamepass",
+              "description": "Revoke gamepass(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "shazam",
+              "description": "Revoke shazam(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "startbr",
+              "description": "Revoke startbr(s) from a user — comma-separate for multiple."
+            },
+            {
+              "name": "emoji",
+              "description": "Remove ALL of a user's custom emojis (co founders+)."
+            }
+          ]
+        },
+        {
+          "name": "antinuke",
+          "description": "Manage the antinuke whitelist & admins (server owner only).",
+          "aliases": [],
+          "usage": ".antinuke <whitelist|admin|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "whitelist",
+              "description": "Add/remove a user on the antinuke whitelist (bot never actions them)."
+            },
+            {
+              "name": "admin",
+              "description": "Add/remove an antinuke admin (exempt + trusted)."
+            },
+            {
+              "name": "list",
+              "description": "Show the antinuke whitelist & admins."
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "Live health of the bot, dashboard, database, perks API, and Roblox Open Cloud.",
+          "aliases": [],
+          "usage": ".status",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "sync",
+          "description": "Push the shared DB to the game datastores (co founders+). Use after a universe swap.",
+          "aliases": [],
+          "usage": ".sync",
+          "level": "Lvl 254",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "gameban",
+          "description": "Ban a player from the Roblox game (mod+).",
+          "aliases": [],
+          "usage": ".gameban <user> <reason> [duration]",
+          "level": "Lvl 238",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unban",
+          "description": "Unban a player from the Roblox game (mod+).",
+          "aliases": [],
+          "usage": ".unban <user>",
+          "level": "Lvl 238",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "checkban",
+          "description": "Check whether a player is banned from the Roblox game (mod+).",
+          "aliases": [],
+          "usage": ".checkban <user>",
+          "level": "Lvl 238",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "unbanall",
+          "description": "Unban EVERY banned user from this Discord server (co founders+).",
+          "aliases": [
+            "massunban"
+          ],
+          "usage": ".unbanall [reason]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rank",
+          "description": "Show your (or a member’s) level, XP and rank.",
+          "aliases": [
+            "xp"
+          ],
+          "usage": ".rank [member]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "levels",
+          "description": "Show the server’s XP leaderboard (top 10).",
+          "aliases": [
+            "leveltop",
+            "xptop"
+          ],
+          "usage": ".levels",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "reactionsync",
+          "description": "Add the configured reaction-role emojis to their messages (Administrators only).",
+          "aliases": [],
+          "usage": ".reactionsync",
+          "level": "Admin",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Info & Lookup",
+      "emoji": "📖",
+      "commands": [
+        {
+          "name": "ping",
+          "description": "Check the bot latency.",
+          "aliases": [],
+          "usage": ".ping",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "botinfo",
+          "description": "Show bot uptime and the linked Roblox account.",
+          "aliases": [
+            "stats"
+          ],
+          "usage": ".botinfo",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "mylevel",
+          "description": "Show your (or another member’s) staff permission level in this bot.",
+          "aliases": [
+            "mylvl"
+          ],
+          "usage": ".mylevel [member]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "members",
+          "description": "List members of a rank (name or number).",
+          "aliases": [],
+          "usage": ".members <rank> [page]",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "wall",
+          "description": "Show recent group wall posts.",
+          "aliases": [],
+          "usage": ".wall [count]",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "deletewall",
+          "description": "Delete a single wall post by its ID.",
+          "aliases": [],
+          "usage": ".deletewall <postid>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "clearwalluser",
+          "description": "Delete all wall posts by one user.",
+          "aliases": [],
+          "usage": ".clearwalluser <user>",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "clearwall",
+          "description": "Delete EVERY post on the group wall. Irreversible.",
+          "aliases": [],
+          "usage": ".clearwall",
+          "level": "Lvl 248",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "audit",
+          "description": "Show recent group audit-log entries.",
+          "aliases": [],
+          "usage": ".audit [count]",
+          "level": "Lvl 242",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "funds",
+          "description": "Show the group Robux balance.",
+          "aliases": [],
+          "usage": ".funds",
+          "level": "Lvl 249",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roleinfo",
+          "description": "Show details about a group rank.",
+          "aliases": [],
+          "usage": ".roleinfo <rank>",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "avatar",
+          "description": "Show a user's full Roblox avatar.",
+          "aliases": [
+            "av",
+            "pfp"
+          ],
+          "usage": ".avatar <user>",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "snipe",
+          "description": "Get a LIVE link to join the game a member is playing (auto-updates as they move servers).",
+          "aliases": [
+            "join",
+            "joinlink",
+            "follow"
+          ],
+          "usage": ".snipe <user>",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "membercount",
+          "description": "Live group + Discord member counts (auto-updates).",
+          "aliases": [
+            "mc",
+            "count",
+            "members-count"
+          ],
+          "usage": ".membercount",
+          "level": "Lvl 234",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "game",
+          "description": "Get the group's game link.",
+          "aliases": [
+            "gameinfo",
+            "experience",
+            "exp"
+          ],
+          "usage": ".game",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "groups",
+          "description": "List every group a user is in, with their rank in each.",
+          "aliases": [
+            "usergroups"
+          ],
+          "usage": ".groups <user>",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "badges",
+          "description": "Show a user's most recently earned badges.",
+          "aliases": [],
+          "usage": ".badges <user> [count]",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "suggest",
+          "description": "Submit a suggestion (posts with up / down votes).",
+          "aliases": [
+            "suggestion",
+            "idea"
+          ],
+          "usage": ".suggest <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "setsuggest",
+          "description": "Set or disable the channel where suggestions are posted. Usage: setsuggest <#channel|id|off>.",
+          "aliases": [],
+          "usage": ".setsuggest <channel>",
+          "level": "Owner",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "friends",
+          "description": "List a user's Roblox friends (button-paginated).",
+          "aliases": [
+            "friendslist"
+          ],
+          "usage": ".friends <user>",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "checkgroup",
+          "description": "Check a user's rank in ANY Roblox group (by ID or link).",
+          "aliases": [
+            "groupcheck"
+          ],
+          "usage": ".checkgroup <group> <user>",
+          "level": "Lvl 234",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "servericon",
+          "description": "Show this Discord server’s icon (and banner, if set).",
+          "aliases": [
+            "icon",
+            "serverbanner"
+          ],
+          "usage": ".servericon",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Fun & Utility",
+      "emoji": "🎲",
+      "commands": [
+        {
+          "name": "banner",
+          "description": "Show a member's Discord banner. Usage: banner [@member].",
+          "aliases": [
+            "userbanner"
+          ],
+          "usage": ".banner [member]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "channelinfo",
+          "description": "Show details about a channel. Usage: channelinfo [#channel].",
+          "aliases": [
+            "ci",
+            "cinfo"
+          ],
+          "usage": ".channelinfo [channel]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "boosters",
+          "description": "List the members currently boosting this server.",
+          "aliases": [
+            "boosts",
+            "boosterlist"
+          ],
+          "usage": ".boosters",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "invites",
+          "description": "Show a member's invite count. Usage: invites [@member].",
+          "aliases": [
+            "invitecount"
+          ],
+          "usage": ".invites [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "joinedat",
+          "description": "Show when a member joined this server. Usage: joinedat [@member].",
+          "aliases": [
+            "joined"
+          ],
+          "usage": ".joinedat [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "inrole",
+          "description": "List members who have a role. Usage: inrole <@role|name>.",
+          "aliases": [
+            "whohas"
+          ],
+          "usage": ".inrole <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roles",
+          "description": "List this server’s roles (highest first).",
+          "aliases": [
+            "rolelist"
+          ],
+          "usage": ".roles",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roleicon",
+          "description": "Show a role’s icon. Usage: roleicon <@role|name>.",
+          "aliases": [],
+          "usage": ".roleicon <role>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "emojis",
+          "description": "List this server’s custom emojis.",
+          "aliases": [
+            "emojilist"
+          ],
+          "usage": ".emojis",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "enlarge",
+          "description": "Enlarge a custom emoji. Usage: enlarge <emoji>.",
+          "aliases": [
+            "jumbo",
+            "bigemoji"
+          ],
+          "usage": ".enlarge <emoji>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "steal",
+          "description": "Add a custom emoji from another server to this one. Usage: steal <emoji> [name].",
+          "aliases": [
+            "addemoji"
+          ],
+          "usage": ".steal <emoji> [name]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "color",
+          "description": "Preview a hex colour. Usage: color <#hex>.",
+          "aliases": [
+            "colour",
+            "hex"
+          ],
+          "usage": ".color <hex>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "firstmessage",
+          "description": "Link to the first message in a channel. Usage: firstmessage [#channel].",
+          "aliases": [
+            "firstmsg"
+          ],
+          "usage": ".firstmessage [channel]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "bots",
+          "description": "List the bots in this server.",
+          "aliases": [],
+          "usage": ".bots",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "8ball",
+          "description": "Ask the magic 8-ball. Usage: 8ball <question>.",
+          "aliases": [
+            "8b",
+            "eightball"
+          ],
+          "usage": ".8ball <question>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "flip",
+          "description": "Flip a coin.",
+          "aliases": [
+            "coinflip",
+            "coin"
+          ],
+          "usage": ".flip",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "roll",
+          "description": "Roll a die. Usage: roll [sides].",
+          "aliases": [
+            "dice",
+            "die"
+          ],
+          "usage": ".roll [sides]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "choose",
+          "description": "Pick one option. Usage: choose a, b, c.",
+          "aliases": [
+            "pick"
+          ],
+          "usage": ".choose <options>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "rps",
+          "description": "Rock paper scissors. Usage: rps <rock|paper|scissors>.",
+          "aliases": [],
+          "usage": ".rps <move>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "ship",
+          "description": "Ship two members. Usage: ship <@a> [@b].",
+          "aliases": [],
+          "usage": ".ship <a> [b]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "pp",
+          "description": "Measure a member’s pp. Usage: pp [@member].",
+          "aliases": [],
+          "usage": ".pp [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "howgay",
+          "description": "Rate how gay a member is (for fun). Usage: howgay [@member].",
+          "aliases": [
+            "gay"
+          ],
+          "usage": ".howgay [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "iq",
+          "description": "Measure a member’s IQ (for fun). Usage: iq [@member].",
+          "aliases": [],
+          "usage": ".iq [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "quote",
+          "description": "Quote a message as an embed. Usage: quote <message link or ID>.",
+          "aliases": [],
+          "usage": ".quote <message>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "remindme",
+          "description": "Set a reminder. Usage: remindme <time> <text>. e.g. remindme 10m stretch.",
+          "aliases": [
+            "remind",
+            "reminder"
+          ],
+          "usage": ".remindme <time> <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "reverse",
+          "description": "Reverse text. Usage: reverse <text>.",
+          "aliases": [],
+          "usage": ".reverse <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "mock",
+          "description": "MoCk TeXt. Usage: mock <text>.",
+          "aliases": [],
+          "usage": ".mock <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "clap",
+          "description": "Put 👏 between 👏 words. Usage: clap <text>.",
+          "aliases": [],
+          "usage": ".clap <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "say",
+          "description": "Make the bot say something. Usage: say <text>.",
+          "aliases": [
+            "echo"
+          ],
+          "usage": ".say <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "permissions",
+          "description": "Show a member's Discord permissions. Usage: permissions [@member].",
+          "aliases": [
+            "perms",
+            "viewperms",
+            "memberperms"
+          ],
+          "usage": ".permissions [member]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "newmembers",
+          "description": "Show the most recently joined members. Usage: newmembers [count].",
+          "aliases": [
+            "newusers",
+            "recentjoins"
+          ],
+          "usage": ".newmembers [count]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Economy",
+      "emoji": "🪙",
+      "commands": [
+        {
+          "name": "balance",
+          "description": "Check your (or another member’s) coin balance. Usage: balance [@member].",
+          "aliases": [
+            "bal",
+            "coins"
+          ],
+          "usage": ".balance [member]",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "daily",
+          "description": "Claim your daily coins (once every 24h).",
+          "aliases": [],
+          "usage": ".daily",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "work",
+          "description": "Work for coins (once per hour).",
+          "aliases": [],
+          "usage": ".work",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "beg",
+          "description": "Beg for spare coins (every 5 minutes).",
+          "aliases": [],
+          "usage": ".beg",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "gamble",
+          "description": "Gamble coins from your wallet. Usage: gamble <amount|all>.",
+          "aliases": [
+            "bet"
+          ],
+          "usage": ".gamble <amount>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "pay",
+          "description": "Give coins from your wallet to another member. Usage: pay <@member> <amount>.",
+          "aliases": [
+            "give-coins"
+          ],
+          "usage": ".pay <member> <amount>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "deposit",
+          "description": "Move coins from your wallet to your bank. Usage: deposit <amount|all>.",
+          "aliases": [
+            "dep"
+          ],
+          "usage": ".deposit <amount>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "withdraw",
+          "description": "Move coins from your bank to your wallet. Usage: withdraw <amount|all>.",
+          "aliases": [
+            "with"
+          ],
+          "usage": ".withdraw <amount>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "leaderboard",
+          "description": "Richest members in this server.",
+          "aliases": [
+            "rich",
+            "baltop"
+          ],
+          "usage": ".leaderboard",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "emoji": "⚙️",
+      "commands": [
+        {
+          "name": "prefix",
+          "description": "View or change the server prefix, or set your personal prefix.",
+          "aliases": [],
+          "usage": ".prefix <set|reset|view|self>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "set",
+              "description": "Set the server-wide command prefix (max 5 chars)."
+            },
+            {
+              "name": "reset",
+              "description": "Reset the server prefix to the default."
+            },
+            {
+              "name": "view",
+              "description": "Show the current server prefix."
+            },
+            {
+              "name": "self",
+              "description": "Set your personal prefix (works for you in any server). Use \"reset\" to clear."
+            }
+          ]
+        },
+        {
+          "name": "alias",
+          "description": "Create command shortcuts: add, remove, list. Templates support {0},{1}… and {+}.",
+          "aliases": [],
+          "usage": ".alias <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Add an alias. e.g. /alias add name:shh command:timeout {0} 10m"
+            },
+            {
+              "name": "remove",
+              "description": "Remove an alias."
+            },
+            {
+              "name": "list",
+              "description": "List this server’s aliases."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Server Tools",
+      "emoji": "🛠️",
+      "commands": [
+        {
+          "name": "giveaway",
+          "description": "Run reaction giveaways: start, end, reroll, cancel, list, edit.",
+          "aliases": [
+            "gw"
+          ],
+          "usage": ".giveaway <start|end|reroll|cancel|list|edit>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "start",
+              "description": "Start a giveaway. e.g. /giveaway start duration:24h winners:1 prize:Nitro"
+            },
+            {
+              "name": "end",
+              "description": "End a giveaway now and draw winners."
+            },
+            {
+              "name": "reroll",
+              "description": "Reroll winners for an ended giveaway."
+            },
+            {
+              "name": "cancel",
+              "description": "Cancel a giveaway without drawing winners."
+            },
+            {
+              "name": "list",
+              "description": "List active giveaways in this server."
+            },
+            {
+              "name": "edit",
+              "description": "Edit a running giveaway field (prize, winners, duration, description, image, thumbnail)."
+            }
+          ]
+        },
+        {
+          "name": "counter",
+          "description": "Live counter channels: add, remove, list. Types: members, humans, bots, boosts, online, roles, channels.",
+          "aliases": [],
+          "usage": ".counter <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Create a live counter channel. e.g. /counter add type:members kind:voice"
+            },
+            {
+              "name": "remove",
+              "description": "Remove a counter channel and delete it."
+            },
+            {
+              "name": "list",
+              "description": "List the counter channels in this server."
+            }
+          ]
+        },
+        {
+          "name": "webhook",
+          "description": "Manage channel webhooks: create, list, delete, send, edit.",
+          "aliases": [],
+          "usage": ".webhook <create|list|delete|send|edit>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "create",
+              "description": "Create a webhook in a channel. e.g. /webhook create name:News channel:#news"
+            },
+            {
+              "name": "list",
+              "description": "List managed webhooks in this server."
+            },
+            {
+              "name": "delete",
+              "description": "Delete a managed webhook."
+            },
+            {
+              "name": "send",
+              "description": "Send a message through a managed webhook."
+            },
+            {
+              "name": "edit",
+              "description": "Rename a managed webhook."
+            }
+          ]
+        },
+        {
+          "name": "boosterrole",
+          "description": "Manage your personal booster role (server boosters only).",
+          "aliases": [
+            "br"
+          ],
+          "usage": ".boosterrole <claim|rename|color|remove|base>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "claim",
+              "description": "Create/update your personal booster role. e.g. /boosterrole claim color:#ff0044 name:Legend"
+            },
+            {
+              "name": "rename",
+              "description": "Rename your booster role."
+            },
+            {
+              "name": "color",
+              "description": "Recolor your booster role."
+            },
+            {
+              "name": "remove",
+              "description": "Delete your booster role."
+            },
+            {
+              "name": "base",
+              "description": "(Admin) Anchor booster roles just under this role."
+            }
+          ]
+        },
+        {
+          "name": "timer",
+          "description": "Recurring scheduled messages: add, remove, list.",
+          "aliases": [],
+          "usage": ".timer <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Post a message on a repeating interval. e.g. /timer add channel:#news interval:6h message:Stay hydrated"
+            },
+            {
+              "name": "remove",
+              "description": "Remove a timer by ID."
+            },
+            {
+              "name": "list",
+              "description": "List this server’s timers."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Integrations",
+      "emoji": "🔌",
+      "commands": [
+        {
+          "name": "crypto",
+          "description": "Live crypto price & 24h change. Usage: crypto <coin>. e.g. crypto bitcoin.",
+          "aliases": [
+            "cprice"
+          ],
+          "usage": ".crypto <coin>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "chatgpt",
+          "description": "Ask an AI a question. Usage: chatgpt <prompt>.",
+          "aliases": [
+            "ai",
+            "ask",
+            "gpt"
+          ],
+          "usage": ".chatgpt <prompt>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "lastfm",
+          "description": "Last.fm now-playing & profile. Subcommands: set, now, profile.",
+          "aliases": [
+            "fm"
+          ],
+          "usage": ".lastfm <set|now|profile>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "set",
+              "description": "Link your Last.fm username."
+            },
+            {
+              "name": "now",
+              "description": "Show what you (or a linked user) are playing."
+            },
+            {
+              "name": "profile",
+              "description": "Show a Last.fm profile summary."
+            }
+          ]
+        },
+        {
+          "name": "fortnite",
+          "description": "Fortnite item shop & cosmetics. Subcommands: shop, item.",
+          "aliases": [
+            "fn"
+          ],
+          "usage": ".fortnite <shop|item>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "shop",
+              "description": "Show a summary of the current item shop."
+            },
+            {
+              "name": "item",
+              "description": "Search a cosmetic by name."
+            }
+          ]
+        },
+        {
+          "name": "music",
+          "description": "Music player (play, pause, resume, skip, stop, queue, nowplaying, volume, seek, repeat, disconnect).",
+          "aliases": [
+            "m"
+          ],
+          "usage": ".music <play|pause|resume|skip|stop|queue|nowplaying|volume|seek|repeat|disconnect>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "play",
+              "description": "Music: play."
+            },
+            {
+              "name": "pause",
+              "description": "Music: pause."
+            },
+            {
+              "name": "resume",
+              "description": "Music: resume."
+            },
+            {
+              "name": "skip",
+              "description": "Music: skip."
+            },
+            {
+              "name": "stop",
+              "description": "Music: stop."
+            },
+            {
+              "name": "queue",
+              "description": "Music: queue."
+            },
+            {
+              "name": "nowplaying",
+              "description": "Music: nowplaying."
+            },
+            {
+              "name": "volume",
+              "description": "Music: volume."
+            },
+            {
+              "name": "seek",
+              "description": "Music: seek."
+            },
+            {
+              "name": "repeat",
+              "description": "Music: repeat."
+            },
+            {
+              "name": "disconnect",
+              "description": "Music: disconnect."
+            }
+          ]
+        },
+        {
+          "name": "spotify",
+          "description": "Spotify controls (play, seek, volume, tracks, artists).",
+          "aliases": [
+            "sp"
+          ],
+          "usage": ".spotify <play|seek|volume|tracks|artists>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "play",
+              "description": "Spotify: play."
+            },
+            {
+              "name": "seek",
+              "description": "Spotify: seek."
+            },
+            {
+              "name": "volume",
+              "description": "Spotify: volume."
+            },
+            {
+              "name": "tracks",
+              "description": "Spotify: tracks."
+            },
+            {
+              "name": "artists",
+              "description": "Spotify: artists."
+            }
+          ]
+        },
+        {
+          "name": "twitter",
+          "description": "Post twitter updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".twitter <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a twitter account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a twitter feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed twitter feeds."
+            }
+          ]
+        },
+        {
+          "name": "instagram",
+          "description": "Post instagram updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".instagram <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a instagram account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a instagram feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed instagram feeds."
+            }
+          ]
+        },
+        {
+          "name": "tiktok",
+          "description": "Post tiktok updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".tiktok <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a tiktok account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a tiktok feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed tiktok feeds."
+            }
+          ]
+        },
+        {
+          "name": "youtube",
+          "description": "Post youtube updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".youtube <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a youtube account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a youtube feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed youtube feeds."
+            }
+          ]
+        },
+        {
+          "name": "twitch",
+          "description": "Post twitch updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".twitch <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a twitch account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a twitch feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed twitch feeds."
+            }
+          ]
+        },
+        {
+          "name": "kickstream",
+          "description": "Post kick updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".kickstream <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a kick account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a kick feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed kick feeds."
+            }
+          ]
+        },
+        {
+          "name": "pinterest",
+          "description": "Post pinterest updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".pinterest <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a pinterest account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a pinterest feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed pinterest feeds."
+            }
+          ]
+        },
+        {
+          "name": "soundcloud",
+          "description": "Post soundcloud updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".soundcloud <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a soundcloud account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a soundcloud feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed soundcloud feeds."
+            }
+          ]
+        },
+        {
+          "name": "subreddit",
+          "description": "Post subreddit updates to a channel. Subcommands: add, remove, list.",
+          "aliases": [],
+          "usage": ".subreddit <add|remove|list>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "add",
+              "description": "Follow a subreddit account/feed in a channel."
+            },
+            {
+              "name": "remove",
+              "description": "Stop following a subreddit feed."
+            },
+            {
+              "name": "list",
+              "description": "List followed subreddit feeds."
+            }
+          ]
+        },
+        {
+          "name": "pic",
+          "description": "Fetch an image by search term. Usage: pic <query>.",
+          "aliases": [],
+          "usage": ".pic <query>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "transparent",
+          "description": "Remove the background from an image. Usage: transparent <image url>.",
+          "aliases": [],
+          "usage": ".transparent <url>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "makegif",
+          "description": "Turn a short video/image sequence into a GIF. Usage: makegif <url>.",
+          "aliases": [],
+          "usage": ".makegif <url>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "imagine",
+          "description": "Generate an image from a text prompt (AI). Usage: imagine <prompt>.",
+          "aliases": [
+            "dalle",
+            "imggen"
+          ],
+          "usage": ".imagine <prompt>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "repost",
+          "description": "Download and repost a social video (TikTok, Instagram, etc.). Usage: repost <url>.",
+          "aliases": [
+            "rp",
+            "dl"
+          ],
+          "usage": ".repost <url>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Embeds & Panels",
+      "emoji": "📝",
+      "commands": [
+        {
+          "name": "makeembed",
+          "description": "Build a custom embed and post it in a channel (Administrators only).",
+          "aliases": [],
+          "usage": ".makeembed [channel]",
+          "level": "Admin",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "editembed",
+          "description": "Edit an embed the bot posted — opens it pre-filled (Administrators only).",
+          "aliases": [],
+          "usage": ".editembed <message> [channel]",
+          "level": "Admin",
+          "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "buttonpanel",
+          "description": "Post the configured Button Roles panel (Administrators only).",
+          "aliases": [],
+          "usage": ".buttonpanel [channel]",
+          "level": "Admin",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "sendembed",
+          "description": "Post the message composed in the dashboard Message Builder (Administrators only).",
+          "aliases": [],
+          "usage": ".sendembed [channel]",
+          "level": "Admin",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "ticketpanel",
+          "description": "Post every configured ticket panel to its channel (Administrators only).",
+          "aliases": [],
+          "usage": ".ticketpanel [channel]",
+          "level": "Admin",
+          "hybrid": true,
+          "subcommands": []
+        }
+      ]
+    }
+  ]
+}
