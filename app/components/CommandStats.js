@@ -8,14 +8,17 @@ const RANGES = [{ value: 7, label: "Last 7 days" }, { value: 30, label: "Last 30
 export default function CommandStats() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState(null);
+  const [staff, setStaff] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
-    setData(null); setErr(null);
+    setData(null); setStaff(null); setErr(null);
     fetch(`/api/command-usage?days=${days}`).then((r) => r.json().then((j) => ({ ok: r.ok, j })))
       .then(({ ok, j }) => { if (!alive) return; if (!ok) setErr(j.error || "Failed"); else setData(j); })
       .catch((e) => { if (alive) setErr(e.message); });
+    fetch(`/api/staff-activity?days=${days}`).then((r) => (r.ok ? r.json() : { staff: [] }))
+      .then((j) => { if (alive) setStaff(Array.isArray(j.staff) ? j.staff : []); }).catch(() => { if (alive) setStaff([]); });
     return () => { alive = false; };
   }, [days]);
 
@@ -50,6 +53,24 @@ export default function CommandStats() {
                   <div style={{ height: 6, borderRadius: 4, background: "var(--surface-3)", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${(c.count / maxCmd) * 100}%`, background: "linear-gradient(90deg,var(--brand),var(--brand-2))" }} />
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <div style={{ fontWeight: 750, marginBottom: 12 }}>Staff activity</div>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>Mod/grant actions + commands per staff member.</div>
+          {!staff ? <p className="muted">Loading…</p> : staff.length === 0 ? <p className="muted">No activity recorded yet.</p> : (
+            <div className="stack" style={{ gap: 8 }}>
+              {staff.map((u, i) => (
+                <div key={u.actor_id} className="between" style={{ padding: "7px 11px", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10 }}>
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span className="muted" style={{ marginRight: 8 }}>#{i + 1}</span>
+                    {u.actor_id ? <DiscordLink id={u.actor_id}>{u.actor_name || u.actor_id}</DiscordLink> : (u.actor_name || "—")}
+                  </span>
+                  <span className="muted" style={{ fontSize: 11.5, flex: "0 0 auto" }}>{u.actions} actions · {u.commands} cmds</span>
                 </div>
               ))}
             </div>
