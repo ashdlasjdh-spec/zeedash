@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-23T15:44:50.613Z",
+  "generatedAt": "2026-08-24T17:56:56.381Z",
   "prefix": ".",
-  "total": 203,
+  "total": 224,
   "categories": [
     {
       "name": "Moderation",
@@ -75,6 +75,15 @@
           "usage": ".warn <user> <reason>",
           "level": "Lvl 238",
           "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "warnconfig",
+          "description": "Auto-escalation for warnings. Usage: warnconfig <threshold> [alert|ban] (0 = off).",
+          "aliases": [],
+          "usage": ".warnconfig <threshold> [action]",
+          "level": "Everyone",
+          "hybrid": false,
           "subcommands": []
         },
         {
@@ -978,97 +987,9 @@
       ]
     },
     {
-      "name": "Game & Grants",
+      "name": "Game",
       "emoji": "🎮",
       "commands": [
-        {
-          "name": "give",
-          "description": "Grant in-game perks to a user — /give <category> user items (comma-separate for bulk).",
-          "aliases": [],
-          "usage": ".give <power|stand|car|tool|gamepass|shazam|startbr|emoji|bundle>",
-          "level": "Lvl 247",
-          "hybrid": true,
-          "subcommands": [
-            {
-              "name": "power",
-              "description": "Grant power(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "stand",
-              "description": "Grant stand(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "car",
-              "description": "Grant car(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "tool",
-              "description": "Grant tool(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "gamepass",
-              "description": "Grant gamepass(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "shazam",
-              "description": "Grant shazam(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "startbr",
-              "description": "Grant startbr(s) to a user — comma-separate for multiple."
-            },
-            {
-              "name": "emoji",
-              "description": "Give custom emoji(s) to a user (co founders+). e.g. items: 😀⭐🔥"
-            },
-            {
-              "name": "bundle",
-              "description": "Apply a preset grant bundle to a user (co owners+)."
-            }
-          ]
-        },
-        {
-          "name": "revoke",
-          "description": "Revoke in-game perks from a user — /revoke <category> user items (comma-separate for bulk).",
-          "aliases": [],
-          "usage": ".revoke <power|stand|car|tool|gamepass|shazam|startbr|emoji>",
-          "level": "Lvl 247",
-          "hybrid": true,
-          "subcommands": [
-            {
-              "name": "power",
-              "description": "Revoke power(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "stand",
-              "description": "Revoke stand(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "car",
-              "description": "Revoke car(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "tool",
-              "description": "Revoke tool(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "gamepass",
-              "description": "Revoke gamepass(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "shazam",
-              "description": "Revoke shazam(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "startbr",
-              "description": "Revoke startbr(s) from a user — comma-separate for multiple."
-            },
-            {
-              "name": "emoji",
-              "description": "Remove ALL of a user's custom emojis (co founders+)."
-            }
-          ]
-        },
         {
           "name": "antinuke",
           "description": "Manage the antinuke whitelist & admins (server owner only).",
@@ -1356,18 +1277,6 @@
           "aliases": [],
           "usage": ".badges <user> [count]",
           "level": "Lvl 234",
-          "hybrid": false,
-          "subcommands": []
-        },
-        {
-          "name": "suggest",
-          "description": "Submit a suggestion (posts with up / down votes).",
-          "aliases": [
-            "suggestion",
-            "idea"
-          ],
-          "usage": ".suggest <text>",
-          "level": "Everyone",
           "hybrid": false,
           "subcommands": []
         },
@@ -1673,18 +1582,6 @@
           "description": "Quote a message as an embed. Usage: quote <message link or ID>.",
           "aliases": [],
           "usage": ".quote <message>",
-          "level": "Everyone",
-          "hybrid": false,
-          "subcommands": []
-        },
-        {
-          "name": "remindme",
-          "description": "Set a reminder. Usage: remindme <time> <text>. e.g. remindme 10m stretch.",
-          "aliases": [
-            "remind",
-            "reminder"
-          ],
-          "usage": ".remindme <time> <text>",
           "level": "Everyone",
           "hybrid": false,
           "subcommands": []
@@ -2054,6 +1951,322 @@
               "description": "List this server’s timers."
             }
           ]
+        },
+        {
+          "name": "suggest",
+          "description": "Submit a suggestion for the community to vote on.",
+          "aliases": [
+            "suggestion",
+            "idea"
+          ],
+          "usage": ".suggest <idea>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "csat",
+          "description": "Staff satisfaction leaderboard — average ticket rating per staff member.",
+          "aliases": [
+            "satisfaction",
+            "ratings"
+          ],
+          "usage": ".csat",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "whoami",
+          "description": "Show your resolved access — level, group delegation, and fake permissions here.",
+          "aliases": [
+            "myperms",
+            "myaccess"
+          ],
+          "usage": ".whoami",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "autotasks",
+          "description": "Configure scheduled group tasks (auto-accept join requests / recurring shout).",
+          "aliases": [
+            "schedule",
+            "autotask"
+          ],
+          "usage": ".autotasks [task] [value]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "digest",
+          "description": "Post the weekly stats digest now (owner only).",
+          "aliases": [],
+          "usage": ".digest",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "backup",
+          "description": "Post a JSON backup of the bot data store now (owner only).",
+          "aliases": [],
+          "usage": ".backup",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "ticketstats",
+          "description": "Show ticket analytics (totals, resolution time, top staff) from the transcript system.",
+          "aliases": [
+            "tickets",
+            "ticketanalytics"
+          ],
+          "usage": ".ticketstats [days]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "changelog",
+          "description": "Post the changelog now. Usage: changelog [launch]. \"launch\" posts the full summary.",
+          "aliases": [
+            "postchangelog"
+          ],
+          "usage": ".changelog [mode]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "Community & Members",
+      "emoji": "🌐",
+      "commands": [
+        {
+          "name": "afk",
+          "description": "Set yourself AFK. The bot replies when you're pinged and clears it when you return.",
+          "aliases": [],
+          "usage": ".afk [reason]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "birthday",
+          "description": "Birthdays. Usage: birthday set <MM-DD> | view [@user] | clear | list | channel #ch | role @role.",
+          "aliases": [
+            "bday"
+          ],
+          "usage": ".birthday <set|view|clear|list|channel|role>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "set",
+              "description": "Set your birthday. e.g. birthday set 04-20"
+            },
+            {
+              "name": "view",
+              "description": "View a birthday."
+            },
+            {
+              "name": "clear",
+              "description": "Remove your birthday."
+            },
+            {
+              "name": "list",
+              "description": "Upcoming birthdays in this server."
+            },
+            {
+              "name": "channel",
+              "description": "(admin) Set the announcement channel."
+            },
+            {
+              "name": "role",
+              "description": "(admin) Temporary birthday role, or \"off\"."
+            }
+          ]
+        },
+        {
+          "name": "tag",
+          "description": "Custom text snippets. Usage: tag <name> | tag create <name> <text> | edit | delete | list | info.",
+          "aliases": [
+            "t"
+          ],
+          "usage": ".tag [action] [rest]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "remind",
+          "description": "Remind you (via DM) after a delay — e.g. remind 2h check the ticket.",
+          "aliases": [
+            "remindme",
+            "reminder"
+          ],
+          "usage": ".remind <when> <message>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "reminders",
+          "description": "List your pending reminders (or `reminders clear` to cancel them all).",
+          "aliases": [
+            "myreminders"
+          ],
+          "usage": ".reminders [action]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "usernote",
+          "description": "Add a staff note to a Discord user (visible to staff via `notes`).",
+          "aliases": [
+            "addusernote"
+          ],
+          "usage": ".usernote <user> <text>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "usernotes",
+          "description": "View staff notes on a Discord user.",
+          "aliases": [],
+          "usage": ".usernotes <user>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "clearusernotes",
+          "description": "Delete all staff notes on a Discord user.",
+          "aliases": [],
+          "usage": ".clearusernotes <user>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "verify",
+          "description": "Link your Roblox account. Usage: verify <robloxUsername>, then verify again after adding the code.",
+          "aliases": [],
+          "usage": ".verify [username]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "unverify",
+          "description": "Unlink your Roblox account (admins can unlink others: unverify @user).",
+          "aliases": [],
+          "usage": ".unverify [user]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "robloxof",
+          "description": "Show a member's linked Roblox account (and group rank). Usage: robloxof <@user|robloxUser>.",
+          "aliases": [
+            "whoisroblox",
+            "linkedto"
+          ],
+          "usage": ".robloxof [who]",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "verifyconfig",
+          "description": "Configure verification roles. Usage: verifyconfig <role|rank|nick|show|sync>.",
+          "aliases": [
+            "verifysetup"
+          ],
+          "usage": ".verifyconfig <role|rank|nick|show|sync>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "role",
+              "description": "Set the \"verified\" role. Usage: verifyconfig role @role"
+            },
+            {
+              "name": "rank",
+              "description": "Map a group rank number to a role. Usage: verifyconfig rank <rankNumber> @role"
+            },
+            {
+              "name": "nick",
+              "description": "Set nickname to Roblox name on verify. Usage: verifyconfig nick on|off"
+            },
+            {
+              "name": "show",
+              "description": "Show the current verification config."
+            },
+            {
+              "name": "sync",
+              "description": "Re-sync everyone's roles now."
+            }
+          ]
+        },
+        {
+          "name": "redeem",
+          "description": "Redeem a code for in-game perks (you must be verified first).",
+          "aliases": [],
+          "usage": ".redeem <code>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "redeemcode",
+          "description": "Manage redeem codes (admin). Usage: redeemcode create <perks…> | list | delete <code>.",
+          "aliases": [
+            "rcode"
+          ],
+          "usage": ".redeemcode <create|list|delete>",
+          "level": "Everyone",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "create",
+              "description": "Create a code. e.g. redeemcode create powers:Batman armor:50 uses:10 code:SUMMER"
+            },
+            {
+              "name": "list",
+              "description": "List active codes."
+            },
+            {
+              "name": "delete",
+              "description": "Delete a code."
+            }
+          ]
+        },
+        {
+          "name": "appeal",
+          "description": "Appeal a game ban (you must be verified). Usage: appeal <reason>.",
+          "aliases": [],
+          "usage": ".appeal <reason>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "appealchannel",
+          "description": "Set (or clear) the channel ban appeals are posted to (admin).",
+          "aliases": [],
+          "usage": ".appealchannel <channel>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
         }
       ]
     },
