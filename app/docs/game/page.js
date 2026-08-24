@@ -126,6 +126,17 @@ export default function GameDocs() {
         <Link className="inl" href="/preview">preview</Link> either before it goes live.
       </p>
 
+      <h2>Verification &amp; redeem codes</h2>
+      <p>
+        Members link their Roblox account with <code>,verify &lt;username&gt;</code> (a one-time code in their
+        Roblox profile — no passwords). Once linked, the bot can sync their Discord roles from their group
+        rank automatically, and they can claim perk bundles: staff generate a code with{" "}
+        <code>,redeemcode create powers:Batman armor:50 uses:10</code> and players run{" "}
+        <code>,redeem &lt;code&gt;</code> to receive those perks in-game — one claim each, respecting the
+        code&apos;s use limit and expiry. Every member command is listed on the{" "}
+        <Link className="inl" href="/bot/commands">commands page</Link>.
+      </p>
+
       <Pager prev={{ href: "/docs/access", title: "Access & roles" }} next={{ href: "/docs/moderation", title: "Moderation" }} />
     </>
   );

@@ -57,12 +57,19 @@ export default function TicketsDocs() {
       <SpecTable
         head={["Setting", "What it controls"]}
         rows={[
-          [<>Enabled</>, "Turns the ticket system on for the server."],
-          [<>Panel</>, "The message + button members use to open a ticket."],
-          [<>Staff access</>, "Which roles can see and respond in ticket channels."],
-          [<>Transcripts</>, "Generated automatically on close and linked in the log."],
+          [<>Panels</>, "One or more — each posts to its own channel with its own title, text and default category."],
+          [<>Buttons</>, "Add as many ticket types as you want and assign each to a panel. Every button opens tickets in its own category (or the panel's), with its own emoji, opening message and support roles."],
+          [<>Staff access</>, "Global support roles plus per-button roles — added to the channel and pinged when a ticket opens."],
+          [<>Claim</>, "Staff press Claim so everyone knows a ticket is being handled."],
+          [<>Ratings</>, "On close, the opener is DM'd a 1–5 star prompt; scores feed the ,csat staff leaderboard."],
+          [<>Messages</>, "Custom opening + close messages ({user} = the opener/closer)."],
+          [<>Transcripts</>, "Generated automatically on close and linked in your chosen transcript (or Logs) channel."],
         ]}
       />
+      <Callout kind="info">
+        Configure everything under <b>Server Management → Tickets</b>, then hit <b>Publish ticket panels</b>
+        (or run <code>,ticketpanel</code>) to post them. Members can open one ticket per type at a time.
+      </Callout>
 
       <Callout kind="info">
         Tickets appear at the bottom of the <Link className="inl" href="/docs/server">Server</Link> sidebar.

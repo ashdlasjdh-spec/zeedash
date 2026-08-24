@@ -72,6 +72,15 @@ export default function ModerationDocs() {
         are reserved for <strong>Leadership (251+)</strong>.
       </Callout>
 
+      <h2>Warning escalation &amp; appeals</h2>
+      <p>
+        Warnings can escalate on their own: set a threshold with <code>,warnconfig &lt;count&gt; [alert|ban]</code>
+        and once a player hits it (and each multiple after) the bot either pings staff to review or
+        auto-bans them from the game. Banned players who&apos;ve linked their Roblox account can submit an
+        appeal with <code>,appeal &lt;reason&gt;</code>; it posts to the review channel you set with
+        <code>,appealchannel</code>, where <b>Accept</b> lifts their ban in-game and DMs them the outcome.
+      </p>
+
       <h2>Looking someone up</h2>
       <p>
         The Lookup page takes a Roblox username or ID and pulls together everything the system knows about
