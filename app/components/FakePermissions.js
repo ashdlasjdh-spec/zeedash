@@ -63,6 +63,7 @@ export default function FakePermissions() {
   const [lookupId, setLookupId] = useState("");
   const [lookup, setLookup] = useState(null);
   const [lookupBusy, setLookupBusy] = useState(false);
+  const [proposals, setProposals] = useState([]);
 
   const roles = meta?.roles || [];
   const roleName = (id) => roles.find((r) => String(r.id) === String(id))?.name || id;
@@ -89,8 +90,32 @@ export default function FakePermissions() {
     if (cached) { apply(cached); setLoading(false); } else setLoading(true);
     loadGuildSettings(guild).then((s) => { if (alive) apply(s); }).catch(() => {}).finally(() => { if (alive) setLoading(false); });
     fetch(`/api/fake-perms?guild=${guild}`).then((r) => r.json()).then((j) => { if (alive) setAudit(Array.isArray(j.log) ? j.log : []); }).catch(() => {});
+    fetch(`/api/fake-perms/proposals?guild=${guild}`).then((r) => r.json()).then((j) => { if (alive) setProposals(Array.isArray(j.proposals) ? j.proposals : []); }).catch(() => {});
     return () => { alive = false; };
   }, [guild, apply]);
+
+  const refreshProposals = () => fetch(`/api/fake-perms/proposals?guild=${guild}`).then((r) => r.json()).then((j) => setProposals(Array.isArray(j.proposals) ? j.proposals : [])).catch(() => {});
+
+  const propose = async () => {
+    setSaving(true); setToast(null);
+    try {
+      const r = await fetch("/api/fake-perms/proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, config: { items: buildItems(items) } }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setToast({ ok: true, msg: "Submitted for review — an approver can apply it." });
+      refreshProposals();
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+    setSaving(false);
+  };
+  const decide = async (id, action) => {
+    try {
+      const r = await fetch("/api/fake-perms/proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guild, id, action }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      setProposals((p) => p.filter((x) => x.id !== id));
+      if (action === "approve") { const s = await loadGuildSettings(guild, { force: true }); apply(s); setToast({ ok: true, msg: "Approved and applied." }); }
+    } catch (e) { setToast({ ok: false, msg: e.message }); }
+  };
 
   // ---- row mutations ----
   const addRow = (preset) => setItems((x) => [...x, {
@@ -206,6 +231,7 @@ export default function FakePermissions() {
           <div style={{ fontWeight: 750 }}>Roles ({items.length})</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn ghost" style={{ width: "auto" }} onClick={() => addRow()}>+ Add role</button>
+            <button className="btn ghost" style={{ width: "auto" }} disabled={saving} onClick={propose} title="Submit these changes for another approver to apply">Propose for review</button>
             <button className="btn" style={{ width: "auto" }} disabled={saving} onClick={save}>{saving ? "Saving…" : "Save changes"}</button>
           </div>
         </div>
@@ -315,6 +341,28 @@ export default function FakePermissions() {
           </div>
         )}
       </div>
+
+      {/* Pending proposals (change control) */}
+      {proposals.length > 0 && (
+        <div className="card" style={{ borderColor: "var(--brand-line)" }}>
+          <div style={{ fontWeight: 750, marginBottom: 8 }}>Pending proposals ({proposals.length})</div>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>Changes submitted for review. Approving applies them immediately (and audits it).</div>
+          <div className="stack" style={{ gap: 8 }}>
+            {proposals.map((p) => (
+              <div key={p.id} className="between" style={{ padding: "10px 13px", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, gap: 10, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 650 }}>{(p.config?.items || []).length} role mapping(s)</div>
+                  <div className="muted" style={{ fontSize: 12 }}>by {p.proposer_name || p.proposer_id || "someone"} · {p.created_at ? new Date(p.created_at).toLocaleString() : ""}</div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="btn" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={() => decide(p.id, "approve")}>Approve</button>
+                  <button className="btn danger" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={() => decide(p.id, "reject")}>Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Audit trail */}
       <div className="card">
