@@ -43,7 +43,7 @@ export default async function DashLayout({ children }) {
   if (groupAny) mod.push({ label: "Group", href: "/dashboard/group" });
   if (canGroupS(user)) mod.push({ label: "Analytics", href: "/dashboard/analytics" });
   if (serverAccess) mod.push({ label: "Server", href: "/bot" });
-  if (canConfig(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" });
+  if (canConfig(lvl)) mod.push({ label: "Audit Log", href: "/dashboard/audit" }, { label: "Command Stats", href: "/dashboard/command-stats" });
   if (mod.length) allGroups.push({ sec: "Moderation", items: mod });
   const manage = [];
   if (canWhitelistS(user)) manage.push({ label: "Whitelist", href: "/dashboard/whitelist" }, { label: "Blacklist", href: "/dashboard/blacklist" }, { label: "Settings", href: "/dashboard/settings" });
