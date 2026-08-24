@@ -2,6 +2,7 @@ import { query } from "@/lib/db";
 import { getLivePlayers } from "@/lib/gamestats";
 import { resolveGuildInfo } from "@/lib/discord";
 import { NextResponse } from "next/server";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,9 @@ const inviteFor = (id) => `https://discord.gg/${GUILD_INVITES[id] || DEFAULT_INV
 // allow-listed guilds above: member counts, recent message activity, and the live
 // in-game player count. Cached at the edge so the landing page can be hammered
 // without touching Postgres on every hit.
-export async function GET() {
+export async function GET(req) {
+  const rl = await rateLimit(`pub-stats:${clientIp(req)}`, { max: 60, windowSec: 60 });
+  if (!rl.ok) return NextResponse.json({ error: "busy" }, { status: 429, headers: { "retry-after": "20" } });
   try {
     const [rows, playersInGame] = await Promise.all([
       query(

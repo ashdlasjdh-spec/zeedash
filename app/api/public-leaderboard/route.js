@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { resolveAvatars } from "@/lib/discord";
 import { NextResponse } from "next/server";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,9 @@ export const dynamic = "force-dynamic";
 // over the last 30 days, aggregated per user (with Discord avatars). Edge-cached.
 const PUBLIC_GUILD_IDS = ["1447037325380157452", "1496219608800170004", "1494327144829026354"];
 
-export async function GET() {
+export async function GET(req) {
+  const rl = await rateLimit(`pub-lb:${clientIp(req)}`, { max: 60, windowSec: 60 });
+  if (!rl.ok) return NextResponse.json({ error: "busy" }, { status: 429, headers: { "retry-after": "20" } });
   try {
     const rows = await query(
       `select user_id, max(username) username, sum(messages)::bigint m

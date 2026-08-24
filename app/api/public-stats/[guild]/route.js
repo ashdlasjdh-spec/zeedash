@@ -2,6 +2,7 @@ import { query } from "@/lib/db";
 import { resolveAvatars, resolveGuildInfo } from "@/lib/discord";
 import { NextResponse } from "next/server";
 import { notFound, serverError } from "@/lib/api";
+import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,9 @@ const GUILD_INVITES = { "1447037325380157452": "zhd", "1496219608800170004": "zh
 const GUILD_LABELS = { "1447037325380157452": "ZHD", "1496219608800170004": "ZHD Board", "1494327144829026354": "ZHD HOF" };
 const N = (x) => Number(x || 0);
 
-export async function GET(_req, { params }) {
+export async function GET(req, { params }) {
+  const rl = await rateLimit(`pub-guild:${clientIp(req)}`, { max: 60, windowSec: 60 });
+  if (!rl.ok) return NextResponse.json({ error: "busy" }, { status: 429, headers: { "retry-after": "20" } });
   const guild = String(params?.guild || "");
   if (!PUBLIC_GUILD_IDS.includes(guild)) return notFound();
 
