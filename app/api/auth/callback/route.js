@@ -1,5 +1,5 @@
 import { exchangeCode, getUser, getUserGuilds } from "@/lib/discord";
-import { createSession, resolveLevel, labelForLevel } from "@/lib/session";
+import { createSession, resolveLevel, labelForLevel, liveGuildGrants } from "@/lib/session";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { query, ensureSchema } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -37,8 +37,10 @@ export async function GET(req) {
       );
     } catch { /* non-fatal */ }
 
-    // Access requires EITHER a Roblox staff level (Game) OR admin/owner of a guild the bot is
-    // actually in (Server-only). Otherwise there's nothing for them to do — deny.
+    // Access requires ANY of: a Roblox staff level (Game), admin/owner of a guild the bot is in
+    // (Server-only), OR a delegated grant via Role Access / Fake Permissions (group actions, feature
+    // perms, transcript viewing, section grants, antinuke-admin). Otherwise there's nothing for them
+    // to do — deny.
     let serverOnlyOk = false;
     if (!level && Object.keys(perms).length) {
       try {
@@ -47,10 +49,22 @@ export async function GET(req) {
         serverOnlyOk = Object.keys(perms).some((gid) => set.has(gid));
       } catch { /* if we can't check, fall through to deny */ }
     }
-    if (!level && !serverOnlyOk) return NextResponse.redirect(new URL("/login?error=denied", req.url));
+    // Delegated access: resolve the same grants getSession() uses, so a Role-Access-only user (e.g. a
+    // Discord role granted group actions or transcripts, or a specific user id) can get in. gameGrant =
+    // a Game-section grant (group / transcripts / section); serverGrant = a Server-section grant.
+    let gameGrant = false;
+    let serverGrant = false;
+    try {
+      const gr = await liveGuildGrants(du.id, perms);
+      gameGrant = !!((gr.group && gr.group.actions && gr.group.actions.length) || (gr.transcriptGuilds && gr.transcriptGuilds.length) || (gr.sectionGrants && gr.sectionGrants.length));
+      serverGrant = !!((gr.securityGuildIds && gr.securityGuildIds.length) || (gr.manualPerms && Object.keys(gr.manualPerms).length) || (gr.featureGrants && Object.keys(gr.featureGrants).length));
+    } catch { /* fall through to the level/admin checks */ }
+    if (!level && !serverOnlyOk && !gameGrant && !serverGrant) return NextResponse.redirect(new URL("/login?error=denied", req.url));
 
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
-    return NextResponse.redirect(new URL(level ? "/dashboard?welcome=1" : "/bot?welcome=1", req.url));
+    // Game-side people (staff level or a game grant) land on the dashboard; server-only people on /bot.
+    const dest = (level || gameGrant) ? "/dashboard?welcome=1" : "/bot?welcome=1";
+    return NextResponse.redirect(new URL(dest, req.url));
   } catch (e) {
     return NextResponse.redirect(new URL("/login?error=oauth", req.url));
   }
