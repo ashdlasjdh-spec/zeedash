@@ -14,7 +14,7 @@ export default function DocsLayout({ children }) {
   return (
     <div className="docs">
       <aside className="docs-rail">
-        <Link href="/docs" className="brand docs-rail-brand" style={{ textDecoration: "none" }}>
+        <Link href="/" className="brand docs-rail-brand" style={{ textDecoration: "none" }}>
           <img src="/zhd-mark.png" alt="" width="30" height="30" />zhd<span>.lol</span>
         </Link>
         <div className="docs-rail-tag">Documentation</div>
@@ -27,7 +27,7 @@ export default function DocsLayout({ children }) {
       </aside>
       <main className="docs-main">
         <div className="docs-mtop">
-          <Link href="/docs" className="brand" style={{ textDecoration: "none" }}>zhd<span>.lol</span></Link>
+          <Link href="/" className="brand" style={{ textDecoration: "none" }}>zhd<span>.lol</span></Link>
           <DocNav variant="mobile" />
         </div>
         <article className="docs-article">{children}</article>
