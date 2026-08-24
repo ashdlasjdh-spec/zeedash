@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Dropdown from "./Dropdown";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "./ProfileLinks";
 
-const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist", "fake-permissions"];
+const ACTIONS = ["", "grant", "revoke", "ban", "unban", "kick", "warn", "purge", "sync", "config", "whitelist", "fake-permissions", "role-access"];
 const CATEGORIES = ["", "power", "stand", "car", "tool", "gamepass", "shazam", "startbr", "tag", "emoji", "ban", "granter", "group", "server"];
 const PAGE = 50;
 

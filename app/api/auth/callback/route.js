@@ -59,7 +59,15 @@ export async function GET(req) {
       gameGrant = !!((gr.group && gr.group.actions && gr.group.actions.length) || (gr.transcriptGuilds && gr.transcriptGuilds.length) || (gr.sectionGrants && gr.sectionGrants.length));
       serverGrant = !!((gr.securityGuildIds && gr.securityGuildIds.length) || (gr.manualPerms && Object.keys(gr.manualPerms).length) || (gr.featureGrants && Object.keys(gr.featureGrants).length));
     } catch { /* fall through to the level/admin checks */ }
-    if (!level && !serverOnlyOk && !gameGrant && !serverGrant) return NextResponse.redirect(new URL("/login?error=denied", req.url));
+    if (!level && !serverOnlyOk && !gameGrant && !serverGrant) {
+      // Drop a short-lived diagnostic cookie so the denied screen can show exactly what we detected —
+      // their ID + which managed community servers they're actually in — to make granting them trivial.
+      const MANAGED = { "1447037325380157452": "ZHD", "1496219608800170004": "ZHD Board", "1494327144829026354": "ZHD HOF", "1531917648588312677": "Server" };
+      const inCommunity = guilds.filter((g) => MANAGED[g.id]).map((g) => ({ id: g.id, name: g.name || MANAGED[g.id] }));
+      const res = NextResponse.redirect(new URL("/login?error=denied", req.url));
+      res.cookies.set("deny_info", JSON.stringify({ id: du.id, name: du.global_name || du.username, guilds: inCommunity }), { httpOnly: false, secure: true, sameSite: "lax", path: "/", maxAge: 300 });
+      return res;
+    }
 
     await createSession({ id: du.id, name: du.global_name || du.username, level, role: labelForLevel(level), avatar: du.avatar });
     // Game-side people (staff level or a game grant) land on the dashboard; server-only people on /bot.

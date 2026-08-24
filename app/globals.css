@@ -114,6 +114,13 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .brand span{background:linear-gradient(135deg,var(--brand-2),var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--brand)}
 .login-sub{color:var(--muted);margin:10px 0 30px;font-size:14px}
 .err{margin-top:18px;color:var(--danger);font-size:13px;background:var(--danger-soft);border:1px solid rgba(255,84,112,.35);border-radius:10px;padding:10px 12px}
+.deny-diag{margin-top:14px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 14px;font-size:12.5px}
+.deny-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+.deny-row:last-of-type{border-bottom:none}
+.deny-k{color:var(--muted)}
+.deny-v{color:var(--text);text-align:right;font-weight:600;word-break:break-word}
+.deny-v.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.deny-note{margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
 
 /* ============ buttons ============ */
 .btn{

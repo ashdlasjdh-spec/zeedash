@@ -57,6 +57,22 @@ export default function RoleAccess() {
   const [editSections, setEditSections] = useState([]); // bans / powers / grants
   const [busy, setBusy] = useState(false);
   const [toast, setT] = useState(null);
+  const [previewId, setPreviewId] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
+
+  async function runPreview() {
+    const uid = String(previewId || "").trim();
+    if (!/^\d{5,}$/.test(uid)) { setPreview({ error: "Enter a valid Discord user ID." }); return; }
+    setPreviewBusy(true); setPreview(null);
+    try {
+      const r = await fetch(`/api/resolve-access?guild=${guild}&user=${uid}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Lookup failed.");
+      setPreview(d);
+    } catch (e) { setPreview({ error: e.message }); }
+    setPreviewBusy(false);
+  }
 
   const keyOf = (it) => (it.user ? `u:${it.user}` : `r:${it.role}`);
   const normItem = (it) => ({ role: it.role ? String(it.role) : undefined, user: it.user ? String(it.user) : undefined, group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts, sections: Array.isArray(it.sections) ? it.sections.filter((s) => SECTION_GRANTS.includes(s)) : [] });
@@ -233,6 +249,40 @@ export default function RoleAccess() {
               </p>
             </div>
           </>
+        )}
+      </div>
+
+      {/* Preview access as user — check exactly what a Discord ID would get in this server. */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div style={{ fontWeight: 750, color: "var(--white)", marginBottom: 4 }}>Preview access as user</div>
+        <p className="muted" style={{ fontSize: 12.5, marginTop: 0 }}>Enter a Discord user ID to see exactly what they can do in <b>{guilds.find((g) => g.id === guild)?.name || "this server"}</b> — and whether they can get into the dashboard.</p>
+        <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+          <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Discord user ID" value={previewId}
+            onChange={(e) => setPreviewId(e.target.value.replace(/[^\d]/g, ""))} onKeyDown={(e) => e.key === "Enter" && runPreview()} />
+          <button className="btn" style={{ width: "auto" }} disabled={previewBusy} onClick={runPreview}>{previewBusy ? "Checking…" : "Preview"}</button>
+        </div>
+        {preview && (
+          preview.error ? <div className="toast bad" style={{ marginTop: 12 }}>{preview.error}</div>
+          : preview.isMember === false ? <div className="toast bad" style={{ marginTop: 12 }}>That user isn&apos;t in this server, so no roles could be read.</div>
+          : (
+            <div style={{ marginTop: 12 }}>
+              <div className="between" style={{ marginBottom: 8 }}>
+                <div style={{ fontWeight: 700, color: "var(--white)" }}>{preview.member?.name || preview.member?.id}</div>
+                <span className="chip" style={{ background: preview.canAccess ? "var(--success-soft)" : "var(--danger-soft)", color: preview.canAccess ? "var(--success)" : "var(--danger)" }}>
+                  {preview.canAccess ? "Can access the dashboard" : "No dashboard access"}
+                </span>
+              </div>
+              <div className="ra-item-perms">
+                {preview.level > 0 && <span className="chip">Staff level {preview.level}</span>}
+                {(preview.group?.actions || []).map((a) => <span key={a} className="chip">{GROUP_ACTION_LABELS[a] || a}</span>)}
+                {preview.transcripts && <span className="chip">Transcripts</span>}
+                {(preview.sections || []).map((s) => <span key={s} className="chip">{SECTION_GRANT_LABELS[s]?.split(" ")[0] || s}</span>)}
+                {(preview.manage || []).map((f) => <span key={`m${f}`} className="chip">Manage {f}</span>)}
+                {(preview.view || []).map((f) => <span key={`v${f}`} className="chip" style={{ opacity: 0.8 }}>View {f}</span>)}
+                {!preview.canAccess && <span className="muted" style={{ fontSize: 12 }}>Nothing grants this user access yet.</span>}
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

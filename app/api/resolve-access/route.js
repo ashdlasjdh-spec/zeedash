@@ -37,9 +37,27 @@ export async function GET(req) {
     const fake = fp?.enabled ? resolveFakeForRoles(fp.config || {}, roleIds) : { perms: [], manage: [], view: [] };
     const group = ra?.enabled ? resolveGroupForRoles(ra.config || {}, roleIds) : null;
 
+    // Role-Access transcript + section grants for this member (matched by role OR by their user id).
+    let transcripts = false;
+    const sections = new Set();
+    if (ra?.enabled) {
+      for (const it of (ra.config?.items || [])) {
+        const byRole = it.role && roleIds.includes(String(it.role));
+        const byUser = it.user && String(it.user) === String(user);
+        if (!byRole && !byUser) continue;
+        if (it.transcripts) transcripts = true;
+        for (const sec of (Array.isArray(it.sections) ? it.sections : [])) sections.add(sec);
+      }
+    }
+
     // Roblox staff level (game access) — best-effort; not per-guild.
     let level = 0;
     try { level = await resolveLevel(user); } catch { /* ignore */ }
+
+    const sectionList = [...sections];
+    // Would they get INTO the dashboard? (level, any group action, transcripts, a section grant, or a
+    // manage/view feature grant.)
+    const canAccess = level > 0 || !!(group && group.actions && group.actions.length) || transcripts || sectionList.length > 0 || fake.manage.length > 0 || fake.view.length > 0 || fake.perms.length > 0;
 
     const name = m.nick || m.user?.global_name || m.user?.username || null;
     return NextResponse.json({
@@ -49,7 +67,10 @@ export async function GET(req) {
       manage: fake.manage,
       view: fake.view,
       group,
+      transcripts,
+      sections: sectionList,
       level,
+      canAccess,
       roleName: labelForLevel(level),
     });
   } catch (e) {

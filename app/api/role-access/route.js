@@ -3,7 +3,7 @@ import { isSuperOwner, GROUP_ACTIONS, RANK_ASSIGN_ACTIONS, SECTION_GRANTS } from
 import { getGuildMeta } from "@/lib/discord";
 import { getConfig } from "@/lib/config";
 import { listGroupRoles } from "@/lib/robloxGroups";
-import { query, ensureSchema } from "@/lib/db";
+import { query, ensureSchema, logAudit } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { badRequest, forbidden, serverError } from "@/lib/api";
 
@@ -137,6 +137,15 @@ export async function POST(req) {
        on conflict (guild_id, feature) do update set enabled = true, config = $2::jsonb, updated_by = $3, updated_at = now()`,
       [String(guild), JSON.stringify({ items: clean }), String(s.id)],
     );
+    // Audit trail: record who changed the role-access map for this server and a snapshot of the grants.
+    try {
+      const snap = clean.map((it) => {
+        const who = it.user ? `user ${it.user}` : `role ${it.role}`;
+        const what = [...(it.group?.actions || []), it.transcripts ? "transcripts" : null, ...(it.sections || [])].filter(Boolean).join("/") || "none";
+        return `${who}: ${what}`;
+      }).join("; ").slice(0, 600);
+      await logAudit({ actorId: s.id, actorName: s.name, action: "role-access", target: String(guild), detail: `${clean.length} mapping(s) — ${snap || "cleared"}` });
+    } catch { /* audit is best-effort */ }
     return NextResponse.json({ ok: true, items: clean });
   } catch (e) {
     return serverError(e.message);
