@@ -31,5 +31,20 @@ export async function GET(req) {
   let players = null, robloxOk = false;
   try { players = await getLivePlayers(); robloxOk = players != null; } catch { /* roblox down */ }
 
-  return NextResponse.json({ botOnline, sweepAgo, dbOk, robloxOk, players, build, uptimeSec }, { headers: { "cache-control": "no-store" } });
+  // Probe the other services (perks API + transcript site) with short timeouts. null = not configured.
+  const probe = async (url, ms = 4000) => {
+    if (!url) return null;
+    try {
+      const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+      const r = await fetch(url, { signal: c.signal, cache: "no-store" }); clearTimeout(t);
+      return r.ok;
+    } catch { return false; }
+  };
+  const perksBase = (process.env.PERKS_API_URL || "").replace(/\/$/, "");
+  const [perksOk, transcriptOk] = await Promise.all([
+    probe(perksBase ? `${perksBase}/health` : null),
+    probe(process.env.TRANSCRIPT_SITE_URL || "https://zhdtranscript.com"),
+  ]);
+
+  return NextResponse.json({ botOnline, sweepAgo, dbOk, robloxOk, players, build, uptimeSec, perksOk, transcriptOk }, { headers: { "cache-control": "no-store" } });
 }

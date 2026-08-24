@@ -25,7 +25,7 @@ export default function StatusPage() {
     return () => { alive = false; clearInterval(iv); };
   }, []);
 
-  const allOk = s && s.botOnline && s.dbOk && s.robloxOk;
+  const allOk = s && s.botOnline && s.dbOk && s.robloxOk && s.perksOk !== false && s.transcriptOk !== false;
 
   // "up 3d 4h" / "up 12m" — short human uptime for the bot heartbeat.
   const fmtUptime = (sec) => {
@@ -50,6 +50,8 @@ export default function StatusPage() {
         <Row label="Discord bot" ok={s ? s.botOnline : null} detail={s && s.sweepAgo != null ? `heartbeat ${s.sweepAgo}s ago` : ""} />
         <Row label="Database" ok={s ? s.dbOk : null} />
         <Row label="Roblox game API" ok={s ? s.robloxOk : null} detail={s && s.players != null ? `${s.players} in-game` : ""} />
+        <Row label="Perks API" ok={s ? (s.perksOk == null ? null : s.perksOk) : null} />
+        <Row label="Transcript site" ok={s ? (s.transcriptOk == null ? null : s.transcriptOk) : null} />
       </div>
       {s && s.botOnline && (s.uptimeSec != null || s.build) && (
         <div className="muted" style={{ textAlign: "center", fontSize: 12, marginTop: 14, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
