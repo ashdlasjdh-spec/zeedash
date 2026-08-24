@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SignJWT, jwtVerify } from "jose";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 
 // Two jobs:
@@ -12,6 +13,38 @@ import { rateLimit, clientIp } from "@/lib/ratelimit";
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const SESSION_COOKIE = "zhd_session";
 const DEV = process.env.NODE_ENV !== "production";
+
+// Session lifetime + sliding refresh. The login cookie is short-lived (3 days) so a stolen token dies
+// on its own, but an ACTIVE staff member never gets logged out: once a valid token is more than a third
+// of the way through its life, we silently re-issue it with a fresh 3-day window on the response. Result
+// — a token is only truly dead 3 days after its owner stops using the dashboard.
+const SESSION_TTL_S = 60 * 60 * 24 * 3; // 3 days
+const SLIDE_AFTER_S = 60 * 60 * 24;     // re-issue once the token is older than 1 day
+function sessionSecret() {
+  const s = process.env.SESSION_SECRET;
+  if (s && s.length >= 16) return new TextEncoder().encode(s);
+  // No secure secret in production → don't touch the cookie at all (getSession() refuses to run anyway).
+  if (!DEV) return null;
+  return new TextEncoder().encode("dev-insecure-secret-change-me");
+}
+// Best-effort: verify the current cookie and, if it's aged past the slide point, set a fresh one on the
+// response. Any failure leaves the existing cookie exactly as it was — we never log a valid user out.
+async function slideSession(req, res) {
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  if (!token) return;
+  const secret = sessionSecret();
+  if (!secret) return;
+  let payload;
+  try { ({ payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] })); }
+  catch { return; } // invalid/expired — leave it; getSession() treats it as signed out
+  const iat = Number(payload.iat) || 0;
+  if (!iat || Date.now() / 1000 - iat < SLIDE_AFTER_S) return; // still fresh — no reissue needed
+  try {
+    const fresh = await new SignJWT({ id: payload.id, name: payload.name, level: payload.level, role: payload.role, avatar: payload.avatar })
+      .setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${SESSION_TTL_S}s`).sign(secret);
+    res.cookies.set(SESSION_COOKIE, fresh, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: SESSION_TTL_S });
+  } catch { /* leave the existing cookie untouched */ }
+}
 
 function buildCSP(nonce) {
   return [
@@ -65,6 +98,8 @@ export async function middleware(req) {
   reqHeaders.set("Content-Security-Policy", csp);
   const res = NextResponse.next({ request: { headers: reqHeaders } });
   res.headers.set("Content-Security-Policy", csp);
+  // Slide the session forward for active users (re-issues an aged-but-valid cookie). Best-effort.
+  await slideSession(req, res);
   return res;
 }
 
