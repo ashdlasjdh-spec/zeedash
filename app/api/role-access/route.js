@@ -39,12 +39,13 @@ function cleanItem(it) {
   if (!role) return null;
   const g = it?.group || {};
   const actions = [...new Set((Array.isArray(g.actions) ? g.actions : []).map(String).filter((a) => GROUP_ACTIONS.includes(a)))];
-  if (!actions.length) return null;
+  const transcripts = !!it?.transcripts; // may view ticket transcripts for this server
+  if (!actions.length && !transcripts) return null; // grants nothing
   // A ceiling only matters when the role can lift people up; store it as a plain rank number.
   const needsCeiling = actions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
   const mr = Number(g.maxRank);
   const maxRank = needsCeiling && Number.isFinite(mr) ? Math.max(0, Math.min(255, Math.floor(mr))) : null;
-  return { role, group: { actions, maxRank } };
+  return { role, group: { actions, maxRank }, transcripts };
 }
 
 // GET            -> { guilds: [{ id, name, icon }] }

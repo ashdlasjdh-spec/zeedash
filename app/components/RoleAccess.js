@@ -45,6 +45,7 @@ export default function RoleAccess() {
   const [editRole, setEditRole] = useState("");
   const [editActions, setEditActions] = useState([]);
   const [editMaxRank, setEditMaxRank] = useState("");
+  const [editTranscripts, setEditTranscripts] = useState(false);
   const [busy, setBusy] = useState(false);
   const [toast, setT] = useState(null);
 
@@ -58,14 +59,14 @@ export default function RoleAccess() {
 
   const loadGuild = useCallback(async (gid) => {
     if (!gid) return;
-    setLoadingGuild(true); setT(null); setEditRole(""); setEditActions([]); setEditMaxRank("");
+    setLoadingGuild(true); setT(null); setEditRole(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false);
     try {
       const r = await fetch(`/api/role-access?guild=${gid}`);
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setRoles(d.roles || []);
       setGroupRanks(d.groupRanks || []);
-      setItems((d.items || []).map((it) => ({ role: String(it.role), group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null } })));
+      setItems((d.items || []).map((it) => ({ role: String(it.role), group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts })));
     } catch (e) { setRoles([]); setGroupRanks([]); setItems([]); setT({ bad: true, msg: e.message }); }
     setLoadingGuild(false);
   }, []);
@@ -79,14 +80,14 @@ export default function RoleAccess() {
 
   function addOrUpdate() {
     if (!editRole) { setT({ bad: true, msg: "Pick a role first." }); return; }
-    if (!editActions.length) { setT({ bad: true, msg: "Choose at least one group action." }); return; }
+    if (!editActions.length && !editTranscripts) { setT({ bad: true, msg: "Choose at least one group action or enable transcripts." }); return; }
     if (needsCeiling && editMaxRank === "") { setT({ bad: true, msg: "Pick the highest rank this role may assign people to." }); return; }
     const maxRank = needsCeiling && editMaxRank !== "" ? Number(editMaxRank) : null;
-    setItems((list) => [...list.filter((i) => i.role !== editRole), { role: editRole, group: { actions: editActions, maxRank } }]);
-    setEditRole(""); setEditActions([]); setEditMaxRank(""); setT(null);
+    setItems((list) => [...list.filter((i) => i.role !== editRole), { role: editRole, group: { actions: editActions, maxRank }, transcripts: editTranscripts }]);
+    setEditRole(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false); setT(null);
   }
   const removeItem = (role) => setItems((list) => list.filter((i) => i.role !== role));
-  function editItem(it) { setEditRole(it.role); setEditActions(it.group?.actions || []); setEditMaxRank(it.group?.maxRank != null ? String(it.group.maxRank) : ""); }
+  function editItem(it) { setEditRole(it.role); setEditActions(it.group?.actions || []); setEditMaxRank(it.group?.maxRank != null ? String(it.group.maxRank) : ""); setEditTranscripts(!!it.transcripts); }
 
   async function save() {
     setBusy(true); setT(null);
@@ -155,6 +156,12 @@ export default function RoleAccess() {
               </div>
             )}
 
+            <label style={{ marginTop: 18 }}>Other access</label>
+            <button type="button" className={`ra-cap ${editTranscripts ? "on" : ""}`} style={{ marginTop: 8 }} onClick={() => setEditTranscripts((v) => !v)}>
+              <span className="ra-check" aria-hidden="true">{editTranscripts ? "✓" : ""}</span>
+              <span><span className="ra-cap-t">View ticket transcripts</span><span className="ra-cap-d">Members with this role may open this server&apos;s ticket transcripts.</span></span>
+            </button>
+
             <div className="row" style={{ marginTop: 16 }}>
               <button className="btn" style={{ width: "auto" }} onClick={addOrUpdate}>Add / update role</button>
             </div>
@@ -177,6 +184,7 @@ export default function RoleAccess() {
                           <div className="ra-item-perms">
                             {(it.group?.actions || []).map((a) => <span key={a} className="chip">{GROUP_ACTION_LABELS[a] || a}</span>)}
                             {it.group?.maxRank != null && <span className="chip" style={{ opacity: 0.85 }}>≤ {rankName(it.group.maxRank)}</span>}
+                            {it.transcripts && <span className="chip">Transcripts</span>}
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: 8 }}>
