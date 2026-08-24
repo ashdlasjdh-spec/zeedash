@@ -1,0 +1,69 @@
+name: Changelog
+
+# Post a professional changelog embed to the ZHD updates channel on EVERY push to main.
+# Requires a repo/org secret CHANGELOG_WEBHOOK = a Discord webhook URL for the target channel
+# (channel 1541290871830351943 in guild 1531917648588312677). No-ops if the secret isn't set.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Post changelog to Discord
+        env:
+          WEBHOOK: ${{ secrets.CHANGELOG_WEBHOOK }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          SHA: ${{ github.sha }}
+          SERVER: ${{ github.server_url }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then echo "CHANGELOG_WEBHOOK not set — skipping."; exit 0; fi
+          NAME=$(basename "$REPO")
+          SHORT=$(git rev-parse --short HEAD)
+          URL="$SERVER/$REPO/commit/$SHA"
+          SUBJECT=$(git log -1 --pretty=%s)
+          BODY=$(git log -1 --pretty=%b)
+          WHEN=$(git log -1 --date=iso-strict --pretty=%cd)
+          # A short "what changed in this push" list (subjects across the pushed range), best-effort.
+          CHANGES=$(git log --pretty='• %s' -n 10 2>/dev/null || echo "")
+          # Trim the co-author/session trailer lines out of the body so the embed stays clean.
+          CLEAN_BODY=$(printf '%s\n' "$BODY" | grep -viE '^(Co-Authored-By|Claude-Session):' | sed '/^[[:space:]]*$/d')
+          DESC="$CLEAN_BODY"
+          if [ -z "$DESC" ]; then DESC="$CHANGES"; fi
+          # Build the payload safely with jq (handles quotes/newlines in commit text).
+          jq -n \
+            --arg name "$NAME" \
+            --arg subject "$SUBJECT" \
+            --arg desc "$DESC" \
+            --arg url "$URL" \
+            --arg actor "$ACTOR" \
+            --arg short "$SHORT" \
+            --arg when "$WHEN" \
+            '{
+              username: "ZHD Changelog",
+              embeds: [ {
+                author: { name: ("\($name) — update") },
+                title: (if ($subject|length) > 0 then $subject else "Update" end),
+                url: $url,
+                description: ( ($desc // "") | if length > 3900 then .[:3900] + "…" else . end ),
+                color: 14688031,
+                fields: [
+                  { name: "Pushed by", value: $actor, inline: true },
+                  { name: "Commit", value: ("[`\($short)`](\($url))"), inline: true }
+                ],
+                footer: { text: ("\($name) • zhd") },
+                timestamp: $when
+              } ]
+            }' > payload.json
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -H "Content-Type: application/json" -X POST -d @payload.json "$WEBHOOK")
+          echo "Discord responded $code"
+          # 2xx = posted; anything else we surface but don't fail the build over.
+          case "$code" in 2*) echo "changelog posted";; *) echo "changelog post failed ($code)";; esac
