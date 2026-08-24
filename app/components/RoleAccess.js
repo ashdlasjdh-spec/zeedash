@@ -1,7 +1,14 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Dropdown from "./Dropdown";
-import { GROUP_ACTIONS, GROUP_ACTION_LABELS, RANK_ASSIGN_ACTIONS } from "@/lib/permissions";
+import { GROUP_ACTIONS, GROUP_ACTION_LABELS, RANK_ASSIGN_ACTIONS, SECTION_GRANTS, SECTION_GRANT_LABELS } from "@/lib/permissions";
+
+// Dashboard section grants offered in the "Other access" area.
+const SECTION_DESCS = {
+  bans: "Use the in-game Bans & moderation tools.",
+  powers: "Grant Powers to players.",
+  grants: "Grant everything — powers, stands, cars, tools, gamepasses, tags, emojis.",
+};
 
 // Group actions grouped for the UI. Keys are GROUP_ACTIONS.
 const ACTION_GROUPS = [
@@ -43,11 +50,17 @@ export default function RoleAccess() {
   const [items, setItems] = useState([]); // [{ role, group: { actions, maxRank } }]
   const [loadingGuild, setLoadingGuild] = useState(false);
   const [editRole, setEditRole] = useState("");
+  const [editUser, setEditUser] = useState(""); // optional: target a specific Discord user id instead of a role
   const [editActions, setEditActions] = useState([]);
   const [editMaxRank, setEditMaxRank] = useState("");
   const [editTranscripts, setEditTranscripts] = useState(false);
+  const [editSections, setEditSections] = useState([]); // bans / powers / grants
   const [busy, setBusy] = useState(false);
   const [toast, setT] = useState(null);
+
+  const keyOf = (it) => (it.user ? `u:${it.user}` : `r:${it.role}`);
+  const normItem = (it) => ({ role: it.role ? String(it.role) : undefined, user: it.user ? String(it.user) : undefined, group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts, sections: Array.isArray(it.sections) ? it.sections.filter((s) => SECTION_GRANTS.includes(s)) : [] });
+  const resetEdit = () => { setEditRole(""); setEditUser(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false); setEditSections([]); };
 
   useEffect(() => {
     fetch("/api/role-access").then((r) => r.json()).then((d) => {
@@ -59,14 +72,14 @@ export default function RoleAccess() {
 
   const loadGuild = useCallback(async (gid) => {
     if (!gid) return;
-    setLoadingGuild(true); setT(null); setEditRole(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false);
+    setLoadingGuild(true); setT(null); resetEdit();
     try {
       const r = await fetch(`/api/role-access?guild=${gid}`);
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setRoles(d.roles || []);
       setGroupRanks(d.groupRanks || []);
-      setItems((d.items || []).map((it) => ({ role: String(it.role), group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts })));
+      setItems((d.items || []).map(normItem));
     } catch (e) { setRoles([]); setGroupRanks([]); setItems([]); setT({ bad: true, msg: e.message }); }
     setLoadingGuild(false);
   }, []);
@@ -76,18 +89,23 @@ export default function RoleAccess() {
   const roleName = (id) => roles.find((r) => String(r.id) === String(id))?.name || id;
   const rankName = (n) => groupRanks.find((r) => Number(r.rank) === Number(n))?.name || (n != null ? `rank ${n}` : "");
   const toggleAction = (k) => setEditActions((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
+  const toggleSection = (k) => setEditSections((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const needsCeiling = editActions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
 
   function addOrUpdate() {
-    if (!editRole) { setT({ bad: true, msg: "Pick a role first." }); return; }
-    if (!editActions.length && !editTranscripts) { setT({ bad: true, msg: "Choose at least one group action or enable transcripts." }); return; }
+    const user = String(editUser || "").trim();
+    if (user && !/^\d{5,}$/.test(user)) { setT({ bad: true, msg: "That user ID doesn't look right (it should be a Discord ID)." }); return; }
+    if (!user && !editRole) { setT({ bad: true, msg: "Pick a role, or enter a user ID to grant a specific person." }); return; }
+    if (!editActions.length && !editTranscripts && !editSections.length) { setT({ bad: true, msg: "Choose at least one action, transcripts, or a section (Bans / Powers / Grants)." }); return; }
     if (needsCeiling && editMaxRank === "") { setT({ bad: true, msg: "Pick the highest rank this role may assign people to." }); return; }
     const maxRank = needsCeiling && editMaxRank !== "" ? Number(editMaxRank) : null;
-    setItems((list) => [...list.filter((i) => i.role !== editRole), { role: editRole, group: { actions: editActions, maxRank }, transcripts: editTranscripts }]);
-    setEditRole(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false); setT(null);
+    const item = normItem({ role: user ? undefined : editRole, user: user || undefined, group: { actions: editActions, maxRank }, transcripts: editTranscripts, sections: editSections });
+    const k = keyOf(item);
+    setItems((list) => [...list.filter((i) => keyOf(i) !== k), item]);
+    resetEdit(); setT(null);
   }
-  const removeItem = (role) => setItems((list) => list.filter((i) => i.role !== role));
-  function editItem(it) { setEditRole(it.role); setEditActions(it.group?.actions || []); setEditMaxRank(it.group?.maxRank != null ? String(it.group.maxRank) : ""); setEditTranscripts(!!it.transcripts); }
+  const removeItem = (key) => setItems((list) => list.filter((i) => keyOf(i) !== key));
+  function editItem(it) { setEditRole(it.user ? "" : (it.role || "")); setEditUser(it.user || ""); setEditActions(it.group?.actions || []); setEditMaxRank(it.group?.maxRank != null ? String(it.group.maxRank) : ""); setEditTranscripts(!!it.transcripts); setEditSections(Array.isArray(it.sections) ? it.sections : []); }
 
   async function save() {
     setBusy(true); setT(null);
@@ -98,8 +116,8 @@ export default function RoleAccess() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      setItems((d.items || []).map((it) => ({ role: String(it.role), group: { actions: it.group?.actions || [], maxRank: it.group?.maxRank ?? null } })));
-      setT({ ok: true, msg: "Saved — members with these roles now have this group access on the site." });
+      setItems((d.items || []).map(normItem));
+      setT({ ok: true, msg: "Saved — these roles and users now have the access you set on the site." });
     } catch (e) { setT({ bad: true, msg: e.message }); }
     setBusy(false);
   }
@@ -123,11 +141,17 @@ export default function RoleAccess() {
       <div className="card">
         {loadingGuild ? <p className="muted" style={{ margin: 0 }}>Loading roles…</p> : (
           <>
-            <div className="row" style={{ alignItems: "flex-start" }}>
+            <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <label>Role</label>
-                <Dropdown value={editRole} onChange={(e) => setEditRole(e.target.value)}
+                <Dropdown value={editRole} onChange={(e) => { setEditRole(e.target.value); if (e.target.value) setEditUser(""); }}
                   options={[{ value: "", label: "Select a role…" }, ...roles.map((r) => ({ value: r.id, label: r.name }))]} />
+              </div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <label>…or a specific user ID</label>
+                <input className="input" placeholder="Discord user ID (optional)" value={editUser}
+                  onChange={(e) => { setEditUser(e.target.value.replace(/[^\d]/g, "")); if (e.target.value) setEditRole(""); }} />
+                <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>Grants this access to one person even if they don&apos;t have the role.</p>
               </div>
             </div>
 
@@ -157,10 +181,18 @@ export default function RoleAccess() {
             )}
 
             <label style={{ marginTop: 18 }}>Other access</label>
-            <button type="button" className={`ra-cap ${editTranscripts ? "on" : ""}`} style={{ marginTop: 8 }} onClick={() => setEditTranscripts((v) => !v)}>
-              <span className="ra-check" aria-hidden="true">{editTranscripts ? "✓" : ""}</span>
-              <span><span className="ra-cap-t">View ticket transcripts</span><span className="ra-cap-d">Members with this role may open this server&apos;s ticket transcripts.</span></span>
-            </button>
+            <div className="ra-caps">
+              <button type="button" className={`ra-cap ${editTranscripts ? "on" : ""}`} onClick={() => setEditTranscripts((v) => !v)}>
+                <span className="ra-check" aria-hidden="true">{editTranscripts ? "✓" : ""}</span>
+                <span><span className="ra-cap-t">View ticket transcripts</span><span className="ra-cap-d">May open this server&apos;s ticket transcripts.</span></span>
+              </button>
+              {SECTION_GRANTS.map((s) => (
+                <button key={s} type="button" className={`ra-cap ${editSections.includes(s) ? "on" : ""}`} onClick={() => toggleSection(s)}>
+                  <span className="ra-check" aria-hidden="true">{editSections.includes(s) ? "✓" : ""}</span>
+                  <span><span className="ra-cap-t">{SECTION_GRANT_LABELS[s]}</span><span className="ra-cap-d">{SECTION_DESCS[s]}</span></span>
+                </button>
+              ))}
+            </div>
 
             <div className="row" style={{ marginTop: 16 }}>
               <button className="btn" style={{ width: "auto" }} onClick={addOrUpdate}>Add / update role</button>
@@ -178,25 +210,26 @@ export default function RoleAccess() {
                 : (
                   <div className="ra-list">
                     {items.map((it) => (
-                      <div className="ra-item" key={it.role}>
+                      <div className="ra-item" key={keyOf(it)}>
                         <div style={{ minWidth: 0, flex: 1 }}>
-                          <div className="ra-item-role">@{roleName(it.role)}</div>
+                          <div className="ra-item-role">{it.user ? `User ${it.user}` : `@${roleName(it.role)}`}</div>
                           <div className="ra-item-perms">
                             {(it.group?.actions || []).map((a) => <span key={a} className="chip">{GROUP_ACTION_LABELS[a] || a}</span>)}
                             {it.group?.maxRank != null && <span className="chip" style={{ opacity: 0.85 }}>≤ {rankName(it.group.maxRank)}</span>}
                             {it.transcripts && <span className="chip">Transcripts</span>}
+                            {(it.sections || []).map((s) => <span key={s} className="chip">{SECTION_GRANT_LABELS[s]?.split(" ")[0] || s}</span>)}
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: 8 }}>
                           <button className="btn ghost" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={() => editItem(it)}>Edit</button>
-                          <button className="btn danger" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={() => removeItem(it.role)}>Remove</button>
+                          <button className="btn danger" style={{ width: "auto", padding: "6px 12px", fontSize: 12 }} onClick={() => removeItem(keyOf(it))}>Remove</button>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
               <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>
-                Delegates Roblox group management only. Deleted roles drop off automatically. Changes apply within a minute (a member may need to reopen the site).
+                Delegate group management, transcript viewing, and dashboard sections (Bans, Powers, Grants) to a role or a specific user. Deleted roles drop off automatically. Changes apply within a minute (a member may need to reopen the site).
               </p>
             </div>
           </>

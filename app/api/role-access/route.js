@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import { isSuperOwner, GROUP_ACTIONS, RANK_ASSIGN_ACTIONS } from "@/lib/permissions";
+import { isSuperOwner, GROUP_ACTIONS, RANK_ASSIGN_ACTIONS, SECTION_GRANTS } from "@/lib/permissions";
 import { getGuildMeta } from "@/lib/discord";
 import { getConfig } from "@/lib/config";
 import { listGroupRoles } from "@/lib/robloxGroups";
@@ -33,19 +33,26 @@ async function guard() {
   return { session: s };
 }
 
-// Sanitize one stored/posted item into { role, group: { actions, maxRank } } or null.
+// Sanitize one stored/posted item into { role?, user?, group: { actions, maxRank }, transcripts, sections }
+// or null. An item targets EITHER a Discord role OR a specific user id (so access can be granted to a
+// user even when they don't have the role).
 function cleanItem(it) {
-  const role = String(it?.role || "").match(/^\d{5,}$/)?.[0];
-  if (!role) return null;
+  const role = String(it?.role || "").match(/^\d{5,}$/)?.[0] || null;
+  const user = String(it?.user || "").match(/^\d{5,}$/)?.[0] || null;
+  if (!role && !user) return null; // must target someone
   const g = it?.group || {};
   const actions = [...new Set((Array.isArray(g.actions) ? g.actions : []).map(String).filter((a) => GROUP_ACTIONS.includes(a)))];
   const transcripts = !!it?.transcripts; // may view ticket transcripts for this server
-  if (!actions.length && !transcripts) return null; // grants nothing
+  const sections = [...new Set((Array.isArray(it?.sections) ? it.sections : []).map(String).filter((s) => SECTION_GRANTS.includes(s)))];
+  if (!actions.length && !transcripts && !sections.length) return null; // grants nothing
   // A ceiling only matters when the role can lift people up; store it as a plain rank number.
   const needsCeiling = actions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
   const mr = Number(g.maxRank);
   const maxRank = needsCeiling && Number.isFinite(mr) ? Math.max(0, Math.min(255, Math.floor(mr))) : null;
-  return { role, group: { actions, maxRank }, transcripts };
+  const out = { group: { actions, maxRank }, transcripts, sections };
+  if (role) out.role = role;
+  if (user) out.user = user;
+  return out;
 }
 
 // GET            -> { guilds: [{ id, name, icon }] }
@@ -88,8 +95,9 @@ export async function GET(req) {
 
     const rows = await query("select config from guild_settings where guild_id=$1 and feature='role-access'", [guild]);
     const rawItems = Array.isArray(rows[0]?.config?.items) ? rows[0].config.items : [];
-    // Drop roles that no longer exist in the guild (auto-cleanup when a role is deleted), then sanitize.
-    const items = rawItems.map(cleanItem).filter((it) => it && liveRoleIds.has(String(it.role)));
+    // Sanitize, then drop role-targeted items whose role no longer exists (auto-cleanup). User-targeted
+    // items are always kept.
+    const items = rawItems.map(cleanItem).filter((it) => it && (it.user || liveRoleIds.has(String(it.role))));
     return NextResponse.json({ roles: meta.roles || [], groupRanks, items });
   } catch (e) {
     return serverError(e.message);
@@ -112,9 +120,11 @@ export async function POST(req) {
   const clean = [];
   for (const raw of items) {
     const it = cleanItem(raw);
-    if (!it || seen.has(it.role)) continue;
-    if (liveRoleIds && !liveRoleIds.has(it.role)) continue;
-    seen.add(it.role);
+    if (!it) continue;
+    const key = it.role ? `r:${it.role}` : `u:${it.user}`;
+    if (seen.has(key)) continue;
+    if (it.role && liveRoleIds && !liveRoleIds.has(it.role)) continue; // role deleted -> drop
+    seen.add(key);
     clean.push(it);
   }
 

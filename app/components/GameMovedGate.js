@@ -16,6 +16,12 @@ const GRANT_PATHS = [
 ];
 
 export default function GameMovedGate({ superOwner = false }) {
+  // Disabled: the "granting moved to zhd.erased.dev" overlay is off. Access to granting/game pages is
+  // now controlled purely by each user's permissions (level, Role-Access group, or section grants), so
+  // people simply see only what they're allowed. Kept as a no-op so existing imports don't break.
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   const path = (usePathname() || "").replace(/\/+$/, "");
   const onGrantPage = GRANT_PATHS.some((p) => path === p || path.startsWith(p + "/"));
   if (superOwner || !onGrantPage) return null;
