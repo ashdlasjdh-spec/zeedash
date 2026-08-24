@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { getSession, bumpGrantsVersion } from "@/lib/session";
 import { isSuperOwner, GROUP_ACTIONS, RANK_ASSIGN_ACTIONS, SECTION_GRANTS } from "@/lib/permissions";
 import { getGuildMeta } from "@/lib/discord";
 import { getConfig } from "@/lib/config";
@@ -137,6 +137,8 @@ export async function POST(req) {
        on conflict (guild_id, feature) do update set enabled = true, config = $2::jsonb, updated_by = $3, updated_at = now()`,
       [String(guild), JSON.stringify({ items: clean }), String(s.id)],
     );
+    // Bust every user's cached grants so this change takes effect on their next page load, not in 90s.
+    await bumpGrantsVersion();
     // Audit trail: record who changed the role-access map for this server and a snapshot of the grants.
     try {
       const snap = clean.map((it) => {

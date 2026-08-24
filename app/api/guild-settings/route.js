@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { getSession, bumpGrantsVersion } from "@/lib/session";
 import { canReachGuild, isSecurityFeature, canManageFeature, canViewFeature, isFeatureReadOnly, grantChannelsFor } from "@/lib/permissions";
 import { canManageSecurity } from "@/lib/guildaccess";
 import { logAudit } from "@/lib/db";
@@ -86,6 +86,9 @@ export async function POST(req) {
         logAudit({ actorId: s.id, actorName: s.name, action: "fake-permissions", category: "server", target: guild, detail: line }).catch(() => {});
       }
     }
+    // Any change that affects delegated access (fake-permissions, antinuke admins) should apply
+    // immediately — bust the grants cache so affected users see it on their next page load.
+    if (feature === "fake-permissions" || feature === "antinuke") { await bumpGrantsVersion(); }
     const rows = await query("select enabled, config from guild_settings where guild_id=$1 and feature=$2", [String(guild), String(feature)]);
     return NextResponse.json({ ok: true, enabled: !!rows[0]?.enabled, config: rows[0]?.config || {} });
   } catch (e) {
