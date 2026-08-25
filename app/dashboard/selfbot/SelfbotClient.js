@@ -344,9 +344,19 @@ export default function SelfbotClient({ me }) {
               <KV k="Query" v={<span className="mono">{lookupRes.query}</span>} />
               <KV k="Matched as" v={lookupRes.source || "—"} />
               <KV k="Roblox ID" v={<span className="mono">{lookupRes.robloxId || "not found"}</span>} />
+              <KV k="Current username" v={lookupRes.currentUsername || "—"} />
+              {lookupRes.recordedName && <KV k="Recorded name" v={lookupRes.recordedName} />}
+              {lookupRes.usernameChanged && (
+                <p style={{ margin: "8px 0 0", padding: "8px 10px", borderRadius: 10, background: "var(--danger-soft)", color: lookupRes.recordedIsSameAccount ? "var(--warning)" : "var(--danger)", fontSize: 13 }}>
+                  {lookupRes.recordedIsSameAccount
+                    ? `⚠ Username changed since recorded ("${lookupRes.recordedName}" → "${lookupRes.currentUsername}"). Same account — confirmed in history. Consider updating the staff-info record.`
+                    : `⚠ Recorded name "${lookupRes.recordedName}" is NOT in this account's username history — this may be a different person who took that name. Verify before removing.`}
+                </p>
+              )}
+              {lookupRes.history && lookupRes.history.length > 0 && <KV k="Past names" v={<span className="mono" style={{ fontSize: 12 }}>{lookupRes.history.join(", ")}</span>} />}
               <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
               <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{lookupRes.removable ? "YES" : "no — protected"}</b>} />
-              {lookupRes.staffRec && <KV k="Staff-info" v={<span className="mono">{lookupRes.staffRec.rblxUser || ""} {lookupRes.staffRec.userId ? `#${lookupRes.staffRec.userId}` : ""}</span>} />}
+              {lookupRes.staffRec && <KV k="Staff-info record" v={<span className="mono">{lookupRes.staffRec.rblxUser || ""} {lookupRes.staffRec.userId ? `#${lookupRes.staffRec.userId}` : ""}</span>} />}
               {lookupRes.robloxId && (
                 <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
                   <button className="btn danger" disabled={!lookupRes.removable || !!busy} onClick={() => act("kickRoblox", lookupRes.robloxId, "kick")}>Remove from group</button>
@@ -370,7 +380,10 @@ export default function SelfbotClient({ me }) {
               <table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Discord ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                 <tbody>{filteredStaff.map((s, i) => (
                   <tr key={i}>
-                    <td>{s.username || <span className="muted">—</span>}</td>
+                    <td>
+                      {s.username || <span className="muted">—</span>}
+                      {s.renamed && <span className="pill" title={`recorded as "${s.recorded}"`} style={{ marginLeft: 6, color: "var(--warning)", padding: "1px 7px" }}>renamed</span>}
+                    </td>
                     <td className="mono">{s.robloxId || <span className="muted">—</span>}</td>
                     <td className="mono">{s.discordId}</td>
                     <td>{s.inGroup ? <>{s.rankName} <span className="muted">({s.rank})</span></> : <span className="muted">not in group</span>}</td>
