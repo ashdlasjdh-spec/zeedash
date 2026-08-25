@@ -52,11 +52,31 @@ export default function SelfbotClient({ me }) {
     });
     return r.json();
   };
+  // Commands are queued in the DB and answered asynchronously by the bot; poll
+  // the API until the matching command_result shows up.
+  const pollResult = async (id, tries = 12) => {
+    for (let i = 0; i < tries; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      try {
+        const r = await fetch("/api/selfbot", { cache: "no-store" });
+        const j = await r.json();
+        if (j && j.status) setState(j);
+        if (j && j.result && j.result.id === id) return j.result;
+      } catch (e) {
+        /* keep polling */
+      }
+    }
+    return null;
+  };
+
   const act = async (action, arg) => {
     setBusy(action);
     try {
       const j = await post("action", { action, arg });
-      if (j && j.result) setOut(JSON.stringify(j.result, null, 2));
+      if (j && j.queued) {
+        const res = await pollResult(j.id);
+        if (res) setOut(JSON.stringify(res, null, 2));
+      }
       await load();
     } finally {
       setBusy("");
@@ -76,11 +96,15 @@ export default function SelfbotClient({ me }) {
     setBusy("wouldkick");
     try {
       const j = await post("action", { action: "wouldkick" });
-      const hits = (j && j.result && j.result.hits) || [];
+      let hits = [];
+      if (j && j.queued) {
+        const res = await pollResult(j.id);
+        hits = (res && res.hits) || [];
+      }
       setOut(
         hits.length
           ? "Would remove " + hits.length + ":\n" + hits.map((h) => `• ${h.discordId} -> ${h.robloxId} (${h.rankName}/${h.rank})`).join("\n")
-          : "Nobody would be removed.",
+          : "Nobody would be removed (or bot offline).",
       );
     } finally {
       setBusy("");
