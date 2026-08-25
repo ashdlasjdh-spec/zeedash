@@ -93,6 +93,8 @@ export default function SelfbotClient({ me }) {
   const [purgeTarget, setPurgeTarget] = useState("");
   const [purgeLimit, setPurgeLimit] = useState(50);
   const [purgeRes, setPurgeRes] = useState(null);
+  const [purgeAllRes, setPurgeAllRes] = useState(null);
+  const [confirmAll, setConfirmAll] = useState(false);
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
@@ -170,6 +172,11 @@ export default function SelfbotClient({ me }) {
     setBusy("purge");
     try { const r = await runCommand("purgedm", { target: purgeTarget.trim(), limit: Number(purgeLimit) || 50 }); setPurgeRes(r); }
     finally { setBusy(""); }
+  };
+  const doPurgeAll = async () => {
+    setBusy("purgeall");
+    try { const r = await runCommand("purgealldm", { limit: Number(purgeLimit) || 200 }); setPurgeAllRes(r); }
+    finally { setBusy(""); setConfirmAll(false); }
   };
 
   const cfg = (state && state.settings) || {};
@@ -439,6 +446,20 @@ export default function SelfbotClient({ me }) {
               <button className="btn danger" disabled={!!busy} onClick={doPurge}>Purge my DMs</button>
             </div>
             {purgeRes && <p className="muted" style={{ marginTop: 10 }}>{purgeRes.ok ? `Deleted ${purgeRes.deleted} message(s) (scanned ${purgeRes.scanned}).` : `Error: ${purgeRes.error || "failed"}`}</p>}
+          </div>
+          <div className="card" style={{ borderColor: "var(--brand-line)" }}>
+            <b>Purge ALL DMs</b>
+            <p className="muted" style={{ margin: "4px 0 12px" }}>Deletes <b>every message the self-bot has sent</b> across <b>all</b> of its DM channels (up to the count each). This cannot be undone.</p>
+            {!confirmAll ? (
+              <button className="btn danger" disabled={!!busy} onClick={() => setConfirmAll(true)}>Purge all my DMs…</button>
+            ) : (
+              <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <span className="muted">Delete everything?</span>
+                <button className="btn danger" disabled={!!busy} onClick={doPurgeAll}>Yes, delete all</button>
+                <button className="btn ghost" disabled={!!busy} onClick={() => setConfirmAll(false)}>Cancel</button>
+              </span>
+            )}
+            {purgeAllRes && <p className="muted" style={{ marginTop: 10 }}>{purgeAllRes.ok ? `Deleted ${purgeAllRes.deleted} message(s) across ${purgeAllRes.channels} DM(s).` : `Error: ${purgeAllRes.error || "failed"}`}</p>}
           </div>
           <div className="card">
             <div className="sb-card-actions">
