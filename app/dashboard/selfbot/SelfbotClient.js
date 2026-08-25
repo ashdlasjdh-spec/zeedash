@@ -261,6 +261,19 @@ export default function SelfbotClient({ me }) {
         </div>
       </div>
 
+      {/* Risk banner — always visible */}
+      <div className="card" style={{ borderColor: "var(--brand-line)", padding: 14, marginTop: 4 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 18, lineHeight: 1 }}>⚠️</span>
+          <div>
+            <b>Self-bot — account risk</b>
+            <p className="muted" style={{ margin: "3px 0 0", fontSize: 13, lineHeight: 1.5 }}>
+              Automating a user account breaks Discord's ToS and can get it disabled. This build paces every action (one at a time, randomized delays, well under Discord's limits) and caps mass actions to reduce the risk — but nothing makes a self-bot 100% safe. Keep DM blasts/purges small, don't hammer it 24/7, and prefer a real bot account for anything you can.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="sb-tabs">
         {TABS.map(([id, label]) => (
