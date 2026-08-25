@@ -16,6 +16,10 @@ const DEFAULTS = {
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false,
   auditPollSeconds: 100, staffInfoHistoryLimit: 200, membershipCacheSeconds: 30, robloxConcurrency: 2,
+  // Presence / RPC
+  presenceStatus: "online", presenceType: "none", presenceName: "", presenceDetails: "", presenceState: "",
+  streamUrl: "", customEmoji: "", presenceTimestamp: false, presenceLargeImage: "", presenceLargeText: "",
+  presenceButton1Label: "", presenceButton1Url: "", presenceButton2Label: "", presenceButton2Url: "",
 };
 const EDITABLE = Object.keys(DEFAULTS);
 

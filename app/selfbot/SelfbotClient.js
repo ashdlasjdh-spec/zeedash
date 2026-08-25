@@ -12,6 +12,8 @@ const TABS = [
   ["staff", "Roster"],
   ["roles", "Staff roles"],
   ["ranks", "Ranks"],
+  ["presence", "Presence"],
+  ["tools", "Tools"],
   ["settings", "Settings"],
   ["creds", "Credentials"],
 ];
@@ -50,6 +52,7 @@ const EVENT_META = {
   protected: { c: "var(--success)", label: "Protected" },
   skip: { c: "var(--muted)", label: "Skipped" },
   error: { c: "var(--danger)", label: "Error" },
+  presence: { c: "var(--brand-2)", label: "Presence" },
   info: { c: "var(--brand-2)", label: "Info" },
 };
 
@@ -87,6 +90,9 @@ export default function SelfbotClient({ me }) {
   const [preview, setPreview] = useState(null);
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
+  const [purgeTarget, setPurgeTarget] = useState("");
+  const [purgeLimit, setPurgeLimit] = useState(50);
+  const [purgeRes, setPurgeRes] = useState(null);
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
@@ -157,6 +163,14 @@ export default function SelfbotClient({ me }) {
   const setStaffRoles = async (ids) => { setBusy("roles"); try { const j = await post("settings", { staffRoleIds: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), staffRoleIds: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
   const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg.staffRoleIds || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
   const removeStaffRole = (id) => setStaffRoles((cfg.staffRoleIds || []).map(String).filter((x) => x !== String(id)));
+  const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
+  const applyPresenceNow = () => act("presence", null, "presence");
+  const doPurge = async () => {
+    if (!/^\d+$/.test(purgeTarget.trim())) return;
+    setBusy("purge");
+    try { const r = await runCommand("purgedm", { target: purgeTarget.trim(), limit: Number(purgeLimit) || 50 }); setPurgeRes(r); }
+    finally { setBusy(""); }
+  };
 
   const cfg = (state && state.settings) || {};
   const st = (state && state.status) || {};
@@ -370,6 +384,71 @@ export default function SelfbotClient({ me }) {
             </div>
           )}
         </div>
+      )}
+
+      {tab === "presence" && form && (
+        <div className="card">
+          <b>Presence / RPC</b>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>How the self-bot account appears in Discord. Applies live on save.</p>
+          <div className="sb-field"><span className="muted">Status</span>
+            <select value={form.presenceStatus || "online"} onChange={(e) => setF("presenceStatus", e.target.value)}>
+              <option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do Not Disturb</option><option value="invisible">Invisible</option>
+            </select>
+          </div>
+          <div className="sb-field"><span className="muted">Activity type</span>
+            <select value={form.presenceType || "none"} onChange={(e) => setF("presenceType", e.target.value)}>
+              <option value="none">None</option><option value="custom">Custom status</option><option value="playing">Playing</option>
+              <option value="streaming">Streaming</option><option value="listening">Listening</option><option value="watching">Watching</option><option value="competing">Competing</option>
+            </select>
+          </div>
+          {form.presenceType === "custom" && (
+            <>
+              <div className="sb-field"><span className="muted">Emoji</span><input value={form.customEmoji || ""} onChange={(e) => setF("customEmoji", e.target.value)} placeholder="😎 or :name:" /></div>
+              <div className="sb-field"><span className="muted">Status text</span><input value={form.presenceName || ""} onChange={(e) => setF("presenceName", e.target.value)} placeholder="feeling good" /></div>
+            </>
+          )}
+          {form.presenceType !== "none" && form.presenceType !== "custom" && (
+            <>
+              <div className="sb-field"><span className="muted">Name</span><input value={form.presenceName || ""} onChange={(e) => setF("presenceName", e.target.value)} placeholder="ZHD" /></div>
+              <div className="sb-field"><span className="muted">Details (line 1)</span><input value={form.presenceDetails || ""} onChange={(e) => setF("presenceDetails", e.target.value)} /></div>
+              <div className="sb-field"><span className="muted">State (line 2)</span><input value={form.presenceState || ""} onChange={(e) => setF("presenceState", e.target.value)} /></div>
+              {form.presenceType === "streaming" && (
+                <div className="sb-field"><span className="muted">Stream URL</span><input value={form.streamUrl || ""} onChange={(e) => setF("streamUrl", e.target.value)} placeholder="https://twitch.tv/… or youtube.com/…" /></div>
+              )}
+              <div className="sb-field"><span className="muted">Show elapsed time</span><input type="checkbox" checked={!!form.presenceTimestamp} onChange={(e) => setF("presenceTimestamp", e.target.checked)} /></div>
+              <div className="sb-field"><span className="muted">Large image URL</span><input value={form.presenceLargeImage || ""} onChange={(e) => setF("presenceLargeImage", e.target.value)} placeholder="https://…png (optional)" /></div>
+              <div className="sb-field"><span className="muted">Button 1 (label / url)</span><span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}><input value={form.presenceButton1Label || ""} onChange={(e) => setF("presenceButton1Label", e.target.value)} placeholder="label" style={{ width: 110 }} /><input value={form.presenceButton1Url || ""} onChange={(e) => setF("presenceButton1Url", e.target.value)} placeholder="https://…" style={{ width: 150 }} /></span></div>
+              <div className="sb-field"><span className="muted">Button 2 (label / url)</span><span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}><input value={form.presenceButton2Label || ""} onChange={(e) => setF("presenceButton2Label", e.target.value)} placeholder="label" style={{ width: 110 }} /><input value={form.presenceButton2Url || ""} onChange={(e) => setF("presenceButton2Url", e.target.value)} placeholder="https://…" style={{ width: 150 }} /></span></div>
+            </>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button className="btn" disabled={busy === "save"} onClick={saveSettings}>Save &amp; apply</button>
+            <button className="btn ghost" disabled={!!busy} onClick={applyPresenceNow}>Re-apply</button>
+          </div>
+        </div>
+      )}
+
+      {tab === "tools" && (
+        <>
+          <div className="card">
+            <b>DM purge</b>
+            <p className="muted" style={{ margin: "4px 0 12px" }}>Delete the self-bot's own messages in a DM with a user (one by one — may take a moment).</p>
+            <div className="row">
+              <input value={purgeTarget} onChange={(e) => setPurgeTarget(e.target.value)} placeholder="Discord user ID" style={{ minWidth: 220 }} />
+              <input value={purgeLimit} onChange={(e) => setPurgeLimit(e.target.value)} placeholder="count" style={{ width: 90 }} />
+              <button className="btn danger" disabled={!!busy} onClick={doPurge}>Purge my DMs</button>
+            </div>
+            {purgeRes && <p className="muted" style={{ marginTop: 10 }}>{purgeRes.ok ? `Deleted ${purgeRes.deleted} message(s) (scanned ${purgeRes.scanned}).` : `Error: ${purgeRes.error || "failed"}`}</p>}
+          </div>
+          <div className="card">
+            <div className="sb-card-actions">
+              <b style={{ marginRight: "auto" }}>Maintenance</b>
+              <button className="btn ghost" disabled={!!busy} onClick={() => act("reindex", null, "reindex")}>Reindex staff</button>
+              <button className="btn ghost" disabled={!!busy} onClick={() => act("sync", null, "sync")}>Sync now</button>
+              <button className="btn ghost" disabled={!!busy} onClick={applyPresenceNow}>Re-apply presence</button>
+            </div>
+          </div>
+        </>
       )}
 
       {tab === "settings" && form && (
