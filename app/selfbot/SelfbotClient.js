@@ -186,14 +186,15 @@ export default function SelfbotClient({ me }) {
   return (
     <Shell me={me}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+      <div className="sb-head">
         <div>
           <h1 style={{ margin: 0, fontSize: 26, letterSpacing: "-.02em" }}>Self-bot</h1>
           <p className="muted" style={{ margin: "2px 0 0" }}>ZHD staff sync · controlled here, runs in the bot process</p>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <div className="sb-actions">
           <span className="pill" style={{ color: connected ? "var(--success)" : "var(--danger)" }}>
-            {connected ? "● Connected" : "● Offline"}{st.tag ? ` · ${st.tag}` : ""}
+            <span className="sb-dot" style={{ background: "currentColor", "--pulse": connected ? "rgba(74,222,128,.5)" : "rgba(255,84,112,.5)" }} />
+            {connected ? "Connected" : "Offline"}{st.tag ? ` · ${st.tag}` : ""}
           </span>
           {connected
             ? <button className="btn ghost" disabled={!!busy} onClick={() => act("disconnect", null, "disconnect")}>Disconnect</button>
@@ -203,18 +204,19 @@ export default function SelfbotClient({ me }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 2, borderBottom: "1px solid var(--line)", margin: "18px 0 4px", flexWrap: "wrap" }}>
+      <div className="sb-tabs">
         {TABS.map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} className="btn ghost"
-            style={{ border: 0, borderRadius: 0, padding: "9px 14px", color: tab === id ? "var(--text)" : "var(--muted)", borderBottom: tab === id ? "2px solid var(--brand)" : "2px solid transparent" }}>
+            style={{ color: tab === id ? "var(--text)" : "var(--muted)", borderBottom: tab === id ? "2px solid var(--brand)" : "2px solid transparent" }}>
             {label}
           </button>
         ))}
       </div>
 
+      <div className="sb-view" key={tab}>
       {tab === "overview" && (
         <>
-          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))" }}>
+          <div className="sb-stats">
             <Stat label="Connection" value={connected ? "Online" : "Offline"} tone={connected ? "var(--success)" : "var(--danger)"} />
             <Stat label="Account" value={st.tag || "—"} />
             <Stat label="Uptime" value={connected ? uptime(st.readyAt) : "—"} />
@@ -322,7 +324,7 @@ export default function SelfbotClient({ me }) {
           </div>
           <p className="muted" style={{ margin: "4px 0 12px" }}>Anyone with one of these Discord roles is staff. Losing the last one triggers an automatic removal (rank-guarded).</p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+          <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {(cfg.staffRoleIds || []).length === 0 && <span className="muted">No staff roles set.</span>}
             {(cfg.staffRoleIds || []).map((id) => (
               <span key={id} className="chip">
@@ -419,15 +421,69 @@ export default function SelfbotClient({ me }) {
         </>
       )}
 
-      {toast && <div style={{ position: "fixed", right: 18, bottom: 18, background: "var(--surface-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 14px", boxShadow: "var(--shadow)" }}>{toast}</div>}
-      {busy && <div style={{ position: "fixed", left: 18, bottom: 18 }} className="muted">Working: {busy}…</div>}
+      </div>
+
+      {toast && <div style={{ position: "fixed", right: 18, bottom: 18, background: "var(--surface-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 14px", boxShadow: "var(--shadow)", animation: "sbRise .25s ease" }}>{toast}</div>}
+      {busy && <div style={{ position: "fixed", left: 18, bottom: 18 }} className="muted"><span className="sb-spin" />{busy}…</div>}
     </Shell>
   );
 }
 
+const SB_CSS = `
+.sb-main{max-width:1000px;margin:0 auto;padding:34px 24px 80px;font-family:var(--sans);color:var(--text)}
+.sb-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.sb-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sb-actions>button{width:auto!important;min-width:0}
+.sb-tabs{display:flex;gap:2px;overflow-x:auto;flex-wrap:nowrap;border-bottom:1px solid var(--line);margin:18px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sb-tabs::-webkit-scrollbar{display:none}
+.sb-tabs>button{flex:0 0 auto;width:auto!important;white-space:nowrap;border:0;border-radius:0;padding:10px 14px;background:transparent;font-weight:600}
+.sb-stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.sb-card-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sb-card-actions .btn{width:auto!important;min-width:0}
+.sb-field{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.sb-field input{max-width:260px}
+
+/* Motion + strokes to match the site */
+@keyframes sbFade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes sbRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sbPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--pulse,rgba(74,222,128,.5))}50%{opacity:.55;box-shadow:0 0 0 4px transparent}}
+@keyframes sbSpin{to{transform:rotate(360deg)}}
+.sb-view{animation:sbFade .3s ease both}
+.sb-head{animation:sbRise .4s ease both}
+.sb-tabs{animation:sbRise .4s .04s ease both}
+.sb-stats>*{animation:sbRise .4s ease both}
+.sb-stats>*:nth-child(2){animation-delay:.03s}.sb-stats>*:nth-child(3){animation-delay:.06s}
+.sb-stats>*:nth-child(4){animation-delay:.09s}.sb-stats>*:nth-child(5){animation-delay:.12s}
+.sb-stats>*:nth-child(6){animation-delay:.15s}.sb-stats>*:nth-child(7){animation-delay:.18s}
+.sb-stats>*:nth-child(8){animation-delay:.21s}.sb-stats>*:nth-child(9){animation-delay:.24s}
+.sb-stat{background:linear-gradient(180deg,var(--surface-2),var(--bg-2));border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 15px;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.sb-stat::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:var(--brand);opacity:0;transition:opacity .2s}
+.sb-stat:hover{border-color:var(--brand-line);transform:translateY(-2px);box-shadow:0 12px 26px -18px var(--brand-glow)}
+.sb-stat:hover::before{opacity:1}
+.sb-tabs>button{transition:color .16s,border-color .16s}
+.sb-tabs>button:hover{color:var(--text)}
+.sb-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle;animation:sbPulse 2s ease-in-out infinite}
+.sb-view .card{animation:sbFade .32s ease both}
+.sb-view .card:nth-child(2){animation-delay:.05s}.sb-view .card:nth-child(3){animation-delay:.1s}
+.sb-view table tbody tr{transition:background .13s}
+.sb-view table tbody tr:hover{background:var(--surface-2)}
+.sb-chip-row .chip{animation:sbFade .22s ease both}
+.sb-spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sbSpin .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+@media(max-width:560px){
+  .sb-main{padding:20px 14px 72px}
+  .sb-stats{grid-template-columns:1fr 1fr}
+  .sb-head h1{font-size:22px!important}
+  .sb-field{flex-direction:column;align-items:stretch;gap:6px}
+  .sb-field input{max-width:100%;width:100%}
+  .sb-field span:first-child{font-size:13px}
+}
+`;
+
 function Shell({ me, children }) {
   return (
-    <main style={{ maxWidth: 1000, margin: "0 auto", padding: "34px 24px 80px", fontFamily: "var(--sans)", color: "var(--text)" }}>
+    <main className="sb-main">
+      <style dangerouslySetInnerHTML={{ __html: SB_CSS }} />
       {children}
       <p className="muted" style={{ marginTop: 26, fontSize: 12 }}>Signed in as {me} · super owner</p>
     </main>
@@ -435,7 +491,7 @@ function Shell({ me, children }) {
 }
 function Stat({ label, value, tone }) {
   return (
-    <div style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", padding: "13px 15px" }}>
+    <div className="sb-stat">
       <div className="muted" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</div>
       <div style={{ fontSize: 19, fontWeight: 700, marginTop: 4, color: tone || "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{String(value)}</div>
     </div>
@@ -472,9 +528,9 @@ function Field({ label, type, value, onChange }) {
   }
   const val = type === "ids" ? (Array.isArray(value) ? value.join(", ") : value || "") : value == null ? "" : value;
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: "1px solid var(--line-soft)" }}>
+    <div className="sb-field">
       <span className="muted">{label}</span>
-      <input value={val} style={{ maxWidth: 260 }}
+      <input value={val}
         onChange={(e) => onChange(type === "ids" ? e.target.value.split(",").map((s) => s.trim()).filter(Boolean) : type === "int" ? parseInt(e.target.value || "0", 10) : e.target.value)} />
     </div>
   );
