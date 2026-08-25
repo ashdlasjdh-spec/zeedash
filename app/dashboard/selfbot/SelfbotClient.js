@@ -656,6 +656,16 @@ export default function SelfbotClient({ me }) {
 }
 
 const SB_CSS = `
+/* Scoped to this page only — smaller buttons, rounder boxes. */
+.sb-root .btn{width:auto;padding:6.5px 12px;font-size:12.5px;border-radius:10px;gap:6px}
+.sb-root .row>.btn{min-width:0}
+.sb-root .card{border-radius:20px;padding:20px}
+.sb-root .sb-stat{border-radius:16px}
+.sb-root input,.sb-root select,.sb-root textarea{border-radius:11px}
+.sb-root .chip{border-radius:9px}
+.sb-root .sb-tabs>button{padding:9px 13px;font-size:13px}
+.sb-root .sb-stat .muted{font-size:11px}
+.sb-root .pill{font-size:11px;padding:3px 9px}
 .ph{flex-wrap:wrap}
 .ph-actions{flex-wrap:wrap}
 .sb-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -708,11 +718,11 @@ const SB_CSS = `
 
 function Shell({ me, children }) {
   return (
-    <>
+    <div className="sb-root">
       <style dangerouslySetInnerHTML={{ __html: SB_CSS }} />
       {children}
       <p className="muted" style={{ marginTop: 26, fontSize: 12 }}>Signed in as {me} · super owner</p>
-    </>
+    </div>
   );
 }
 function Stat({ label, value, tone }) {
