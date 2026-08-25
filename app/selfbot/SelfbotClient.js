@@ -9,7 +9,8 @@ const TABS = [
   ["overview", "Overview"],
   ["activity", "Activity"],
   ["lookup", "Lookup"],
-  ["staff", "Staff"],
+  ["staff", "Roster"],
+  ["roles", "Staff roles"],
   ["ranks", "Ranks"],
   ["settings", "Settings"],
   ["creds", "Credentials"],
@@ -80,10 +81,12 @@ export default function SelfbotClient({ me }) {
   const [cook, setCook] = useState("");
   const [lookupQ, setLookupQ] = useState("");
   const [lookupRes, setLookupRes] = useState(null);
-  const [staffList, setStaffList] = useState(null);
+  const [roster, setRoster] = useState(null);
   const [staffFilter, setStaffFilter] = useState("");
   const [ranks, setRanks] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [guildRoles, setGuildRoles] = useState(null);
+  const [roleAdd, setRoleAdd] = useState("");
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
@@ -148,8 +151,12 @@ export default function SelfbotClient({ me }) {
   };
   const doPreview = async () => { setBusy("preview"); try { const r = await runCommand("wouldkick"); setPreview((r && r.hits) || []); flash("Preview ready"); } finally { setBusy(""); } };
   const doLookup = async () => { if (!lookupQ.trim()) return; setBusy("lookup"); try { setLookupRes(await runCommand("lookup", lookupQ.trim())); } finally { setBusy(""); } };
-  const loadStaff = async () => { setBusy("staff"); try { const r = await runCommand("liststaff"); setStaffList((r && r.staff) || []); } finally { setBusy(""); } };
+  const loadRoster = async () => { setBusy("roster"); try { const r = await runCommand("roster"); setRoster((r && r.roster) || []); } finally { setBusy(""); } };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
+  const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles"); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
+  const setStaffRoles = async (ids) => { setBusy("roles"); try { const j = await post("settings", { staffRoleIds: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), staffRoleIds: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
+  const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg.staffRoleIds || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
+  const removeStaffRole = (id) => setStaffRoles((cfg.staffRoleIds || []).map(String).filter((x) => x !== String(id)));
 
   const cfg = (state && state.settings) || {};
   const st = (state && state.status) || {};
@@ -157,11 +164,15 @@ export default function SelfbotClient({ me }) {
   const events = st.events || [];
 
   const filteredStaff = useMemo(() => {
-    if (!staffList) return [];
+    if (!roster) return [];
     const q = staffFilter.trim().toLowerCase();
-    if (!q) return staffList;
-    return staffList.filter((s) => [s.discordId, s.rblxUser, s.userId, s.resolvedId].some((v) => String(v || "").toLowerCase().includes(q)));
-  }, [staffList, staffFilter]);
+    if (!q) return roster;
+    return roster.filter((s) => [s.discordId, s.username, s.robloxId, s.rankName].some((v) => String(v || "").toLowerCase().includes(q)));
+  }, [roster, staffFilter]);
+  const roleName = useCallback((id) => {
+    const r = guildRoles && guildRoles.find((x) => String(x.id) === String(id));
+    return r ? r.name : null;
+  }, [guildRoles]);
 
   if (err && !state) {
     return (
@@ -276,24 +287,65 @@ export default function SelfbotClient({ me }) {
       {tab === "staff" && (
         <div className="card">
           <div className="row" style={{ alignItems: "center" }}>
-            <b style={{ marginRight: "auto" }}>Indexed staff records {staffList ? `(${staffList.length})` : ""}</b>
+            <b style={{ marginRight: "auto" }}>Registered staff {roster ? `(${roster.length})` : ""}</b>
             <input value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} placeholder="Filter…" style={{ minWidth: 160 }} />
-            <button className="btn ghost" disabled={!!busy} onClick={loadStaff}>{staffList ? "Reload" : "Load"}</button>
+            <button className="btn ghost" disabled={!!busy} onClick={loadRoster}>{roster ? "Reload" : "Load roster"}</button>
           </div>
-          {staffList && (
+          {!roster && <p className="muted" style={{ marginTop: 8 }}>Loads everyone the bot has registered from staff-info, with their Roblox username, group rank, and whether they'd be removed.</p>}
+          {roster && (
             <div style={{ overflowX: "auto", marginTop: 10 }}>
-              <table><thead><tr><th>Discord ID</th><th>Roblox user</th><th>Roblox ID</th><th></th></tr></thead>
+              <table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Discord ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                 <tbody>{filteredStaff.map((s, i) => (
                   <tr key={i}>
+                    <td>{s.username || <span className="muted">—</span>}</td>
+                    <td className="mono">{s.robloxId || <span className="muted">—</span>}</td>
                     <td className="mono">{s.discordId}</td>
-                    <td>{s.rblxUser || <span className="muted">—</span>}</td>
-                    <td className="mono">{s.userId || s.resolvedId || <span className="muted">—</span>}</td>
-                    <td><button className="btn ghost" style={{ padding: "4px 10px" }} onClick={() => { setLookupQ(s.discordId); setTab("lookup"); }}>Inspect</button></td>
+                    <td>{s.inGroup ? <>{s.rankName} <span className="muted">({s.rank})</span></> : <span className="muted">not in group</span>}</td>
+                    <td><span className="pill" style={{ color: s.removable ? "var(--danger)" : "var(--success)" }}>{s.removable ? "removable" : "protected"}</span></td>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      <button className="btn ghost" style={{ padding: "4px 10px" }} onClick={() => { setLookupQ(s.discordId); setTab("lookup"); }}>Inspect</button>
+                      {s.removable && s.robloxId ? <button className="btn danger" style={{ padding: "4px 10px", marginLeft: 6 }} disabled={!!busy} onClick={() => act("kickRoblox", s.robloxId, "kick")}>Remove</button> : null}
+                    </td>
                   </tr>
-                ))}{filteredStaff.length === 0 && <tr><td colSpan={4} className="muted">No matches.</td></tr>}</tbody>
+                ))}{filteredStaff.length === 0 && <tr><td colSpan={6} className="muted">No matches.</td></tr>}</tbody>
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {tab === "roles" && (
+        <div className="card">
+          <div className="row" style={{ alignItems: "center" }}>
+            <b style={{ marginRight: "auto" }}>Staff roles</b>
+            <button className="btn ghost" disabled={!!busy} onClick={loadGuildRoles}>{guildRoles ? "Refresh role names" : "Load role names"}</button>
+          </div>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>Anyone with one of these Discord roles is staff. Losing the last one triggers an automatic removal (rank-guarded).</p>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {(cfg.staffRoleIds || []).length === 0 && <span className="muted">No staff roles set.</span>}
+            {(cfg.staffRoleIds || []).map((id) => (
+              <span key={id} className="chip">
+                {roleName(id) || id}
+                {roleName(id) ? <span className="mono muted" style={{ fontSize: 11 }}>&nbsp;{id}</span> : null}
+                <button title="Remove" disabled={!!busy} onClick={() => removeStaffRole(id)}>×</button>
+              </span>
+            ))}
+          </div>
+
+          <div className="row">
+            {guildRoles && guildRoles.length > 0 ? (
+              <select value={roleAdd} onChange={(e) => setRoleAdd(e.target.value)} style={{ minWidth: 240 }}>
+                <option value="">Pick a role to add…</option>
+                {guildRoles.filter((r) => !(cfg.staffRoleIds || []).map(String).includes(String(r.id))).map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input value={roleAdd} onChange={(e) => setRoleAdd(e.target.value)} placeholder="Role ID" style={{ minWidth: 240 }} />
+            )}
+            <button className="btn" disabled={!roleAdd || !!busy} onClick={() => addStaffRole(roleAdd)}>Add role</button>
+          </div>
         </div>
       )}
 
