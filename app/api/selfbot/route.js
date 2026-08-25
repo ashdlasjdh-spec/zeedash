@@ -20,6 +20,9 @@ const DEFAULTS = {
   presenceStatus: "online", presenceType: "none", presenceName: "", presenceDetails: "", presenceState: "",
   streamUrl: "", customEmoji: "", presenceTimestamp: false, presenceLargeImage: "", presenceLargeText: "",
   presenceButton1Label: "", presenceButton1Url: "", presenceButton2Label: "", presenceButton2Url: "",
+  // Automation
+  rotateEnabled: false, rotateSeconds: 20, rotateLines: [],
+  autoReplyEnabled: false, autoReplyMessage: "", autoReplyOncePerUser: true,
 };
 const EDITABLE = Object.keys(DEFAULTS);
 

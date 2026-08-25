@@ -95,6 +95,15 @@ export default function SelfbotClient({ me }) {
   const [purgeRes, setPurgeRes] = useState(null);
   const [purgeAllRes, setPurgeAllRes] = useState(null);
   const [confirmAll, setConfirmAll] = useState(false);
+  const [purgeClose, setPurgeClose] = useState(false);
+  const [purgeOlder, setPurgeOlder] = useState("");
+  const [blastTargets, setBlastTargets] = useState("");
+  const [blastContent, setBlastContent] = useState("");
+  const [blastRes, setBlastRes] = useState(null);
+  const [sayChannel, setSayChannel] = useState("");
+  const [sayContent, setSayContent] = useState("");
+  const [sayRes, setSayRes] = useState(null);
+  const [guilds, setGuilds] = useState(null);
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
@@ -167,17 +176,31 @@ export default function SelfbotClient({ me }) {
   const removeStaffRole = (id) => setStaffRoles((cfg.staffRoleIds || []).map(String).filter((x) => x !== String(id)));
   const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
   const applyPresenceNow = () => act("presence", null, "presence");
+  const purgeOpts = () => ({ close: purgeClose, olderThanDays: Number(purgeOlder) || 0 });
   const doPurge = async () => {
     if (!/^\d+$/.test(purgeTarget.trim())) return;
     setBusy("purge");
-    try { const r = await runCommand("purgedm", { target: purgeTarget.trim(), limit: Number(purgeLimit) || 50 }); setPurgeRes(r); }
+    try { const r = await runCommand("purgedm", { target: purgeTarget.trim(), limit: Number(purgeLimit) || 50, ...purgeOpts() }); setPurgeRes(r); }
     finally { setBusy(""); }
   };
   const doPurgeAll = async () => {
     setBusy("purgeall");
-    try { const r = await runCommand("purgealldm", { limit: Number(purgeLimit) || 200 }); setPurgeAllRes(r); }
+    try { const r = await runCommand("purgealldm", { limit: Number(purgeLimit) || 200, ...purgeOpts() }); setPurgeAllRes(r); }
     finally { setBusy(""); setConfirmAll(false); }
   };
+  const doBlast = async () => {
+    if (!blastTargets.trim() || !blastContent.trim()) return;
+    setBusy("blast");
+    try { setBlastRes(await runCommand("senddm", { targets: blastTargets.trim(), content: blastContent })); }
+    finally { setBusy(""); }
+  };
+  const doSay = async () => {
+    if (!sayChannel.trim() || !sayContent.trim()) return;
+    setBusy("say");
+    try { setSayRes(await runCommand("say", { channel: sayChannel.trim(), content: sayContent })); }
+    finally { setBusy(""); }
+  };
+  const loadGuilds = async () => { setBusy("guilds"); try { const r = await runCommand("listguilds"); setGuilds((r && r.guilds) || []); } finally { setBusy(""); } };
 
   const cfg = (state && state.settings) || {};
   const st = (state && state.status) || {};
@@ -394,6 +417,7 @@ export default function SelfbotClient({ me }) {
       )}
 
       {tab === "presence" && form && (
+        <>
         <div className="card">
           <b>Presence / RPC</b>
           <p className="muted" style={{ margin: "4px 0 12px" }}>How the self-bot account appears in Discord. Applies live on save.</p>
@@ -433,6 +457,19 @@ export default function SelfbotClient({ me }) {
             <button className="btn ghost" disabled={!!busy} onClick={applyPresenceNow}>Re-apply</button>
           </div>
         </div>
+        <div className="card">
+          <div className="sb-card-actions">
+            <b style={{ marginRight: "auto" }}>Rotating status</b>
+            <label className="muted" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <input type="checkbox" checked={!!form.rotateEnabled} onChange={(e) => setF("rotateEnabled", e.target.checked)} /> enabled
+            </label>
+          </div>
+          <p className="muted" style={{ margin: "6px 0 10px" }}>While enabled, cycles these lines (one per line) as the status — overrides the single presence above, using the type/status you picked.</p>
+          <div className="sb-field"><span className="muted">Interval (seconds)</span><input value={form.rotateSeconds ?? 20} onChange={(e) => setF("rotateSeconds", parseInt(e.target.value || "0", 10))} style={{ width: 110 }} /></div>
+          <textarea value={(form.rotateLines || []).join("\n")} onChange={(e) => setF("rotateLines", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))} placeholder={"line one\nline two\nline three"} style={{ width: "100%", minHeight: 110, marginTop: 8 }} />
+          <div style={{ marginTop: 10 }}><button className="btn" disabled={busy === "save"} onClick={saveSettings}>Save rotation</button></div>
+        </div>
+        </>
       )}
 
       {tab === "tools" && (
@@ -444,6 +481,11 @@ export default function SelfbotClient({ me }) {
               <input value={purgeTarget} onChange={(e) => setPurgeTarget(e.target.value)} placeholder="Discord user ID" style={{ minWidth: 220 }} />
               <input value={purgeLimit} onChange={(e) => setPurgeLimit(e.target.value)} placeholder="count" style={{ width: 90 }} />
               <button className="btn danger" disabled={!!busy} onClick={doPurge}>Purge my DMs</button>
+            </div>
+            <div className="row" style={{ marginTop: 8 }}>
+              <label className="muted" style={{ display: "flex", gap: 6, alignItems: "center" }}><input type="checkbox" checked={purgeClose} onChange={(e) => setPurgeClose(e.target.checked)} /> close DM after</label>
+              <label className="muted" style={{ display: "flex", gap: 6, alignItems: "center" }}>only older than <input value={purgeOlder} onChange={(e) => setPurgeOlder(e.target.value)} placeholder="days" style={{ width: 64 }} /> days</label>
+              <span className="muted" style={{ fontSize: 12 }}>(applies to both purges)</span>
             </div>
             {purgeRes && <p className="muted" style={{ marginTop: 10 }}>{purgeRes.ok ? `Deleted ${purgeRes.deleted} message(s) (scanned ${purgeRes.scanned}).` : `Error: ${purgeRes.error || "failed"}`}</p>}
           </div>
@@ -461,6 +503,55 @@ export default function SelfbotClient({ me }) {
             )}
             {purgeAllRes && <p className="muted" style={{ marginTop: 10 }}>{purgeAllRes.ok ? `Deleted ${purgeAllRes.deleted} message(s) across ${purgeAllRes.channels} DM(s).` : `Error: ${purgeAllRes.error || "failed"}`}</p>}
           </div>
+          {form && (
+            <div className="card">
+              <div className="sb-card-actions">
+                <b style={{ marginRight: "auto" }}>Auto-reply (AFK)</b>
+                <label className="muted" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <input type="checkbox" checked={!!form.autoReplyEnabled} onChange={(e) => setF("autoReplyEnabled", e.target.checked)} /> enabled
+                </label>
+              </div>
+              <p className="muted" style={{ margin: "6px 0 10px" }}>Auto-responds to incoming DMs with this message.</p>
+              <textarea value={form.autoReplyMessage || ""} onChange={(e) => setF("autoReplyMessage", e.target.value)} placeholder="I'm away right now — I'll get back to you soon." style={{ width: "100%", minHeight: 70 }} />
+              <div className="sb-field" style={{ marginTop: 8 }}><span className="muted">Only reply once per user</span><input type="checkbox" checked={form.autoReplyOncePerUser !== false} onChange={(e) => setF("autoReplyOncePerUser", e.target.checked)} /></div>
+              <div style={{ marginTop: 10 }}><button className="btn" disabled={busy === "save"} onClick={saveSettings}>Save auto-reply</button></div>
+            </div>
+          )}
+
+          <div className="card">
+            <b>DM blast</b>
+            <p className="muted" style={{ margin: "4px 0 10px" }}>Send a DM to one or many users (space/comma-separated IDs).</p>
+            <input value={blastTargets} onChange={(e) => setBlastTargets(e.target.value)} placeholder="user id, user id, …" style={{ width: "100%", marginBottom: 8 }} />
+            <textarea value={blastContent} onChange={(e) => setBlastContent(e.target.value)} placeholder="Message…" style={{ width: "100%", minHeight: 70 }} />
+            <div style={{ marginTop: 10 }}><button className="btn" disabled={!!busy} onClick={doBlast}>Send DM</button></div>
+            {blastRes && <p className="muted" style={{ marginTop: 10 }}>{blastRes.ok ? `Sent to ${blastRes.sent}${blastRes.failed && blastRes.failed.length ? ` · failed: ${blastRes.failed.join(", ")}` : ""}.` : `Error: ${blastRes.error || "failed"}`}</p>}
+          </div>
+
+          <div className="card">
+            <b>Say to channel</b>
+            <p className="muted" style={{ margin: "4px 0 10px" }}>Post a message to any channel the account can see (by channel ID).</p>
+            <div className="row">
+              <input value={sayChannel} onChange={(e) => setSayChannel(e.target.value)} placeholder="channel ID" style={{ minWidth: 200 }} />
+            </div>
+            <textarea value={sayContent} onChange={(e) => setSayContent(e.target.value)} placeholder="Message…" style={{ width: "100%", minHeight: 60, marginTop: 8 }} />
+            <div style={{ marginTop: 10 }}><button className="btn" disabled={!!busy} onClick={doSay}>Send</button></div>
+            {sayRes && <p className="muted" style={{ marginTop: 10 }}>{sayRes.ok ? "Sent." : `Error: ${sayRes.error || "failed"}`}</p>}
+          </div>
+
+          <div className="card">
+            <div className="sb-card-actions">
+              <b style={{ marginRight: "auto" }}>Servers {guilds ? `(${guilds.length})` : ""}</b>
+              <button className="btn ghost" disabled={!!busy} onClick={loadGuilds}>{guilds ? "Reload" : "Load"}</button>
+            </div>
+            {guilds && (
+              <div style={{ overflowX: "auto", marginTop: 10 }}>
+                <table><thead><tr><th>Server</th><th>Members</th><th>ID</th></tr></thead>
+                  <tbody>{guilds.map((g) => (<tr key={g.id}><td>{g.name}</td><td className="mono">{g.members ?? "—"}</td><td className="mono">{g.id}</td></tr>))}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           <div className="card">
             <div className="sb-card-actions">
               <b style={{ marginRight: "auto" }}>Maintenance</b>
