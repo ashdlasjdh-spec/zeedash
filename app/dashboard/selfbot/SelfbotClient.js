@@ -220,6 +220,17 @@ export default function SelfbotClient({ me }) {
   const st = (state && state.status) || {};
   const connected = !!st.connected;
   const events = st.events || [];
+  const heartbeat = st.updatedAt ? Date.now() - st.updatedAt : null;
+  const runnerDown = heartbeat == null || heartbeat > 25000; // runner not writing status
+  const diagnostic = connected
+    ? null
+    : runnerDown
+      ? { t: "Bot process isn't reporting in", d: "The self-bot runs inside your Zee Hood bot. It isn't writing to the shared database, so nothing acts on Connect. Deploy the Zee Hood service with this branch and make sure its DATABASE_URL points at the SAME Postgres this dashboard uses.", bad: true }
+      : st.lastError
+        ? { t: "Connection error", d: `${st.lastError} — the token must be a USER token (not a bot token), and the cookie must be a valid .ROBLOSECURITY.`, bad: true }
+        : (!st.hasToken || !st.hasCookie)
+          ? { t: "Credentials needed", d: "Enter the Discord token and Roblox cookie in the Credentials tab, then hit Connect.", bad: false }
+          : { t: "Connecting…", d: "Credentials are set and the bot is reporting in — it should connect within a few seconds. If it stays here, the token or cookie is invalid.", bad: false };
 
   const filteredStaff = useMemo(() => {
     if (!roster) return [];
@@ -273,6 +284,18 @@ export default function SelfbotClient({ me }) {
           </div>
         </div>
       </div>
+
+      {diagnostic && (
+        <div className="card" style={{ borderColor: diagnostic.bad ? "var(--danger)" : "var(--brand-line)", padding: 14, marginTop: 10 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{diagnostic.bad ? "🛑" : "⏳"}</span>
+            <div>
+              <b>{diagnostic.t}</b>
+              <p className="muted" style={{ margin: "3px 0 0", fontSize: 13, lineHeight: 1.5 }}>{diagnostic.d}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="sb-tabs">
