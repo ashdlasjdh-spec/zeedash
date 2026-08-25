@@ -104,6 +104,9 @@ export default function SelfbotClient({ me }) {
   const [sayContent, setSayContent] = useState("");
   const [sayRes, setSayRes] = useState(null);
   const [guilds, setGuilds] = useState(null);
+  const [nickGuild, setNickGuild] = useState("");
+  const [nickValue, setNickValue] = useState("");
+  const [nickRes, setNickRes] = useState(null);
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
@@ -201,6 +204,17 @@ export default function SelfbotClient({ me }) {
     finally { setBusy(""); }
   };
   const loadGuilds = async () => { setBusy("guilds"); try { const r = await runCommand("listguilds"); setGuilds((r && r.guilds) || []); } finally { setBusy(""); } };
+  const doLeave = async (g) => {
+    if (typeof window !== "undefined" && !window.confirm(`Leave "${g.name}"?`)) return;
+    setBusy("leave");
+    try { await runCommand("leaveguild", { guild: g.id }); await loadGuilds(); } finally { setBusy(""); }
+  };
+  const doNick = async () => {
+    if (!nickGuild.trim()) return;
+    setBusy("nick");
+    try { setNickRes(await runCommand("setnick", { guild: nickGuild.trim(), nick: nickValue })); }
+    finally { setBusy(""); }
+  };
 
   const cfg = (state && state.settings) || {};
   const st = (state && state.status) || {};
@@ -229,13 +243,13 @@ export default function SelfbotClient({ me }) {
 
   return (
     <Shell me={me}>
-      {/* Header */}
-      <div className="sb-head">
-        <div>
-          <h1 style={{ margin: 0, fontSize: 26, letterSpacing: "-.02em" }}>Self-bot</h1>
-          <p className="muted" style={{ margin: "2px 0 0" }}>ZHD staff sync · controlled here, runs in the bot process</p>
+      {/* Header — matches the site's page header */}
+      <div className="ph">
+        <div className="ph-text">
+          <h1 className="ph-title">Self-bot</h1>
+          <p className="ph-sub">ZHD staff sync — runs inside the bot process, controlled here.</p>
         </div>
-        <div className="sb-actions">
+        <div className="ph-actions sb-actions">
           <span className="pill" style={{ color: connected ? "var(--success)" : "var(--danger)" }}>
             <span className="sb-dot" style={{ background: "currentColor", "--pulse": connected ? "rgba(74,222,128,.5)" : "rgba(255,84,112,.5)" }} />
             {connected ? "Connected" : "Offline"}{st.tag ? ` · ${st.tag}` : ""}
@@ -272,7 +286,7 @@ export default function SelfbotClient({ me }) {
             <Stat label="Errors" value={(st.counters && st.counters.errors) ?? 0} tone="var(--danger)" />
           </div>
           <div className="card">
-            <div className="row" style={{ alignItems: "center" }}>
+            <div className="sb-card-actions">
               <b style={{ marginRight: "auto" }}>Quick actions</b>
               <button className="btn ghost" disabled={!!busy} onClick={() => act("reindex", null, "reindex")}>Reindex staff</button>
               <button className="btn ghost" disabled={!!busy} onClick={() => act("sync", null, "sync")}>Sync now</button>
@@ -545,11 +559,32 @@ export default function SelfbotClient({ me }) {
             </div>
             {guilds && (
               <div style={{ overflowX: "auto", marginTop: 10 }}>
-                <table><thead><tr><th>Server</th><th>Members</th><th>ID</th></tr></thead>
-                  <tbody>{guilds.map((g) => (<tr key={g.id}><td>{g.name}</td><td className="mono">{g.members ?? "—"}</td><td className="mono">{g.id}</td></tr>))}</tbody>
+                <table><thead><tr><th>Server</th><th>Members</th><th>ID</th><th></th></tr></thead>
+                  <tbody>{guilds.map((g) => (
+                    <tr key={g.id}>
+                      <td>{g.name}</td>
+                      <td className="mono">{g.members ?? "—"}</td>
+                      <td className="mono">{g.id}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <button className="btn ghost" style={{ padding: "4px 10px" }} onClick={() => { setNickGuild(g.id); }}>Nick</button>
+                        <button className="btn danger" style={{ padding: "4px 10px", marginLeft: 6 }} disabled={!!busy} onClick={() => doLeave(g)}>Leave</button>
+                      </td>
+                    </tr>
+                  ))}</tbody>
                 </table>
               </div>
             )}
+          </div>
+
+          <div className="card">
+            <b>Set nickname</b>
+            <p className="muted" style={{ margin: "4px 0 10px" }}>Change the self-bot's nickname in a server (leave blank to clear). Tip: hit "Nick" on a row in Servers to fill the ID.</p>
+            <div className="row">
+              <input value={nickGuild} onChange={(e) => setNickGuild(e.target.value)} placeholder="server ID" style={{ minWidth: 180 }} />
+              <input value={nickValue} onChange={(e) => setNickValue(e.target.value)} placeholder="new nickname" style={{ minWidth: 180 }} />
+              <button className="btn" disabled={!!busy} onClick={doNick}>Set</button>
+            </div>
+            {nickRes && <p className="muted" style={{ marginTop: 10 }}>{nickRes.ok ? "Nickname updated." : `Error: ${nickRes.error || "failed"}`}</p>}
           </div>
 
           <div className="card">
@@ -621,8 +656,8 @@ export default function SelfbotClient({ me }) {
 }
 
 const SB_CSS = `
-.sb-main{max-width:1000px;margin:0 auto;padding:34px 24px 80px;font-family:var(--sans);color:var(--text)}
-.sb-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.ph{flex-wrap:wrap}
+.ph-actions{flex-wrap:wrap}
 .sb-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sb-actions>button{width:auto!important;min-width:0}
 .sb-tabs{display:flex;gap:2px;overflow-x:auto;flex-wrap:nowrap;border-bottom:1px solid var(--line);margin:18px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -662,9 +697,9 @@ const SB_CSS = `
 .sb-spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sbSpin .7s linear infinite;vertical-align:-2px;margin-right:7px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 @media(max-width:560px){
-  .sb-main{padding:20px 14px 72px}
   .sb-stats{grid-template-columns:1fr 1fr}
-  .sb-head h1{font-size:22px!important}
+  .ph-title{font-size:22px!important}
+  .ph{gap:10px}
   .sb-field{flex-direction:column;align-items:stretch;gap:6px}
   .sb-field input{max-width:100%;width:100%}
   .sb-field span:first-child{font-size:13px}
@@ -673,11 +708,11 @@ const SB_CSS = `
 
 function Shell({ me, children }) {
   return (
-    <main className="sb-main">
+    <>
       <style dangerouslySetInnerHTML={{ __html: SB_CSS }} />
       {children}
       <p className="muted" style={{ marginTop: 26, fontSize: 12 }}>Signed in as {me} · super owner</p>
-    </main>
+    </>
   );
 }
 function Stat({ label, value, tone }) {

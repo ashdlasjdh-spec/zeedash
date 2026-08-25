@@ -12,6 +12,11 @@ const nextConfig = {
   experimental: {
     staleTimes: { dynamic: 30, static: 180 },
   },
+  // Keep the public /selfbot URL but render it inside the dashboard layout
+  // (Topbar + Sidebar + mobile nav) so it matches the rest of the site.
+  async rewrites() {
+    return [{ source: "/selfbot", destination: "/dashboard/selfbot" }];
+  },
   // Security headers on every response. The dashboard performs privileged actions,
   // so deny framing (clickjacking), block MIME sniffing, trim the referrer, and
   // disable device APIs it never uses.
