@@ -383,20 +383,23 @@ export default function SelfbotClient({ me }) {
                 </p>
               )}
               {lookupRes.history && lookupRes.history.length > 0 && <KV k="Past names" v={<span className="mono" style={{ fontSize: 12 }}>{lookupRes.history.join(", ")}</span>} />}
-              <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
-              <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
+              {!(Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1) && <>
+                <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
+                <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
+              </>}
               {lookupRes.staffRec && <KV k="Staff-info record" v={<span className="mono">{lookupRes.staffRec.rblxUser || ""} {lookupRes.staffRec.userId ? `#${lookupRes.staffRec.userId}` : ""}</span>} />}
               {Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1 && (
                 <div style={{ marginTop: 12 }}>
                   <b style={{ fontSize: 13 }}>Linked Roblox accounts ({lookupRes.accounts.length})</b>
-                  <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>This Discord user has multiple Roblox accounts on file. A role loss / departure removes every one that's in the group on a staff rank.</p>
-                  <div style={{ overflowX: "auto" }}><table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
+                  <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>This Discord user has {lookupRes.accounts.length} Roblox accounts on file. Removing them (role loss / departure / the button below) kicks every account that would be removed.</p>
+                  <div style={{ overflowX: "auto" }}><table><thead><tr><th>Roblox user</th><th>Recorded</th><th>Roblox ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                     <tbody>{lookupRes.accounts.map((a, i) => (
                       <tr key={i}>
-                        <td>{a.username || <span className="muted">—</span>}</td>
+                        <td>{a.username || <span className="muted">—</span>}{a.username && a.recorded && a.username.toLowerCase() !== a.recorded.toLowerCase() ? <span title="renamed since recorded" style={{ color: "var(--warning)" }}> ⚠</span> : null}</td>
+                        <td className="muted">{a.recorded || "—"}</td>
                         <td className="mono">{a.robloxId}</td>
                         <td>{a.inGroup ? `${a.rankName} (${a.rank})` : <span className="muted">not in group</span>}</td>
-                        <td><b style={{ color: a.removable ? "var(--danger)" : "var(--success)" }}>{a.removable ? "would remove" : a.inGroup ? "protected" : "—"}</b></td>
+                        <td><b style={{ color: a.whitelisted ? "var(--success)" : a.removable ? "var(--danger)" : "var(--success)" }}>{a.whitelisted ? "whitelisted" : a.removable ? "would remove" : a.inGroup ? "protected" : "—"}</b></td>
                         <td>{a.removable ? <button className="btn danger" style={{ padding: "4px 10px" }} disabled={!!busy} onClick={() => act("kickRoblox", a.robloxId, "kick")}>Remove</button> : null}</td>
                       </tr>
                     ))}</tbody></table></div>
