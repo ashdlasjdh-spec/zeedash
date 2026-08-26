@@ -641,7 +641,10 @@ export default function SelfbotClient({ me, isOwner = false }) {
                   <p className="muted" style={{ margin: "0 0 8px", fontSize: 12 }}>Ranks checked: {orphanRes.perRank.map((p) => `${p.name} (${p.rank}) — ${p.scanned}/${p.expected ?? "?"}`).join(" · ")}</p>
                 )}
                 {Array.isArray(orphanRes.failedRanks) && orphanRes.failedRanks.length > 0 && (
-                  <p style={{ margin: "0 0 8px", color: "var(--danger)", fontSize: 12 }}>⚠ Couldn't read these ranks (rerun): {orphanRes.failedRanks.join(", ")}</p>
+                  <>
+                    {orphanRes.failHint && <p style={{ margin: "0 0 6px", color: "var(--danger)", fontSize: 13 }}>⚠ {orphanRes.failHint}</p>}
+                    <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>Ranks not read: {orphanRes.failedRanks.join(", ")}</p>
+                  </>
                 )}
                 {orphanRes.scanned === 0 && (!orphanRes.failedRanks || !orphanRes.failedRanks.length) && (
                   <p style={{ margin: "0 0 8px", color: "var(--warning)", fontSize: 12 }}>Scanned 0 — the removable ranks have no members, or the group id/cookie is off. Check the "Ranks checked" line above.</p>
