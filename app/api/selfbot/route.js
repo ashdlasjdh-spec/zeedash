@@ -15,6 +15,7 @@ const DEFAULTS = {
   staffMinRank: 234, staffMaxRank: 0, staffRankIds: [],
   guildId: "1447037325380157452", staffInfoChannelId: "1494154502851268748",
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
+  whitelist: [], // Roblox ids/usernames that are never removed from the group
   dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false,
   auditPollSeconds: 100, roleReconcileSeconds: 60, staffRefreshSeconds: 30, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
   // Presence / RPC

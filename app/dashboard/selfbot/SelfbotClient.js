@@ -11,6 +11,7 @@ const TABS = [
   ["lookup", "Lookup"],
   ["staff", "Roster"],
   ["roles", "Staff roles"],
+  ["whitelist", "Whitelist"],
   ["ranks", "Ranks"],
   ["presence", "Presence"],
   ["tools", "Tools"],
@@ -90,6 +91,7 @@ export default function SelfbotClient({ me }) {
   const [preview, setPreview] = useState(null);
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
+  const [whitelistAdd, setWhitelistAdd] = useState("");
   const [purgeTarget, setPurgeTarget] = useState("");
   const [purgeLimit, setPurgeLimit] = useState(50);
   const [purgeRes, setPurgeRes] = useState(null);
@@ -177,6 +179,9 @@ export default function SelfbotClient({ me }) {
   const setStaffRoles = async (ids) => { setBusy("roles"); try { const j = await post("settings", { staffRoleIds: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), staffRoleIds: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
   const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg.staffRoleIds || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
   const removeStaffRole = (id) => setStaffRoles((cfg.staffRoleIds || []).map(String).filter((x) => x !== String(id)));
+  const setWhitelist = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelist: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelist: list })); flash("Whitelist updated"); await load(); } finally { setBusy(""); } };
+  const addWhitelist = (v) => { v = String(v || "").trim().replace(/^@+/, ""); if (!v) return; const cur = (cfg.whitelist || []).map(String); if (cur.some((x) => x.toLowerCase() === v.toLowerCase())) return; setWhitelistAdd(""); setWhitelist([...cur, v]); };
+  const removeWhitelist = (v) => setWhitelist((cfg.whitelist || []).map(String).filter((x) => x !== String(v)));
   const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
   const applyPresenceNow = () => act("presence", null, "presence");
   const purgeOpts = () => ({ close: purgeClose, olderThanDays: Number(purgeOlder) || 0 });
@@ -471,6 +476,29 @@ export default function SelfbotClient({ me }) {
             )}
             <button className="btn" disabled={!roleAdd || !!busy} onClick={() => addStaffRole(roleAdd)}>Add role</button>
           </div>
+        </div>
+      )}
+
+      {tab === "whitelist" && (
+        <div className="card">
+          <b>Roblox whitelist</b>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>These Roblox users are <b>never</b> removed from the group — even if they lose their staff role, leave the server, or get fired. Add a Roblox <b>ID</b> (exact, safest) or a <b>username</b>.</p>
+
+          <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {(cfg.whitelist || []).length === 0 && <span className="muted">No one whitelisted.</span>}
+            {(cfg.whitelist || []).map((v) => (
+              <span key={v} className="chip">
+                {/^\d+$/.test(String(v)) ? <span className="mono">#{v}</span> : v}
+                <button title="Remove" disabled={!!busy} onClick={() => removeWhitelist(v)}>×</button>
+              </span>
+            ))}
+          </div>
+
+          <div className="row">
+            <input value={whitelistAdd} onChange={(e) => setWhitelistAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addWhitelist(whitelistAdd); }} placeholder="Roblox ID or username" style={{ minWidth: 240 }} />
+            <button className="btn" disabled={!whitelistAdd.trim() || !!busy} onClick={() => addWhitelist(whitelistAdd)}>Add to whitelist</button>
+          </div>
+          <p className="muted" style={{ margin: "10px 0 0", fontSize: 12 }}>Tip: a Roblox ID can't be changed, a username can — prefer the ID for accounts you must never touch.</p>
         </div>
       )}
 
