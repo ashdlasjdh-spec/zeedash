@@ -106,6 +106,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [roleGuild, setRoleGuild] = useState("main"); // 'main' | 'leaderboard'
   const [whitelistAdd, setWhitelistAdd] = useState("");
   const [whitelistDiscordAdd, setWhitelistDiscordAdd] = useState("");
+  const [pingWlAdd, setPingWlAdd] = useState("");
+  const [pingWlRoleAdd, setPingWlRoleAdd] = useState("");
   const [viewerAdd, setViewerAdd] = useState("");
   const [purgeTarget, setPurgeTarget] = useState("");
   const [purgeLimit, setPurgeLimit] = useState(50);
@@ -207,6 +209,13 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const setWhitelistDiscord = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelistDiscord: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelistDiscord: list })); flash("Discord whitelist updated"); await load(); } finally { setBusy(""); } };
   const addWhitelistDiscord = (v) => { v = String(v || "").trim(); if (!/^\d{17,20}$/.test(v)) { flash("Enter a valid Discord ID"); return; } const cur = (cfg.whitelistDiscord || []).map(String); if (cur.includes(v)) return; setWhitelistDiscordAdd(""); setWhitelistDiscord([...cur, v]); };
   const removeWhitelistDiscord = (v) => setWhitelistDiscord((cfg.whitelistDiscord || []).map(String).filter((x) => x !== String(v)));
+  const togglePingAutomod = async () => { setBusy("ping"); try { const next = !cfg.pingAutomodEnabled; const j = await post("settings", { pingAutomodEnabled: next }); if (j.settings) setForm((f) => ({ ...(f || {}), pingAutomodEnabled: next })); flash(next ? "Ping automod ON" : "Ping automod OFF"); await load(); } finally { setBusy(""); } };
+  const setPingWhitelist = async (list) => { setBusy("ping"); try { const j = await post("settings", { pingWhitelist: list }); if (j.settings) setForm((f) => ({ ...(f || {}), pingWhitelist: list })); flash("Ping whitelist updated"); await load(); } finally { setBusy(""); } };
+  const addPingWhitelist = (v) => { v = String(v || "").trim(); if (!/^\d{17,20}$/.test(v)) { flash("Enter a valid Discord user ID"); return; } const cur = (cfg.pingWhitelist || []).map(String); if (cur.includes(v)) return; setPingWlAdd(""); setPingWhitelist([...cur, v]); };
+  const removePingWhitelist = (v) => setPingWhitelist((cfg.pingWhitelist || []).map(String).filter((x) => x !== String(v)));
+  const setPingWhitelistRoles = async (list) => { setBusy("ping"); try { const j = await post("settings", { pingWhitelistRoles: list }); if (j.settings) setForm((f) => ({ ...(f || {}), pingWhitelistRoles: list })); flash("Ping role whitelist updated"); await load(); } finally { setBusy(""); } };
+  const addPingWhitelistRole = (v) => { v = String(v || "").trim(); if (!/^\d{17,20}$/.test(v)) { flash("Enter a valid role ID"); return; } const cur = (cfg.pingWhitelistRoles || []).map(String); if (cur.includes(v)) return; setPingWlRoleAdd(""); setPingWhitelistRoles([...cur, v]); };
+  const removePingWhitelistRole = (v) => setPingWhitelistRoles((cfg.pingWhitelistRoles || []).map(String).filter((x) => x !== String(v)));
   const addViewer = async (id) => { id = String(id || "").trim(); if (!/^\d{17,20}$/.test(id)) { flash("Enter a valid Discord ID"); return; } setBusy("access"); try { const j = await post("access", { action: "add", id }); if (j.error) flash(j.error); else { setViewerAdd(""); flash("Viewer added"); await load(); } } finally { setBusy(""); } };
   const removeViewer = async (id) => { setBusy("access"); try { const j = await post("access", { action: "remove", id: String(id) }); if (j.error) flash(j.error); else { flash("Viewer removed"); await load(); } } finally { setBusy(""); } };
   const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
@@ -553,6 +562,47 @@ export default function SelfbotClient({ me, isOwner = false }) {
             <div className="row">
               <input value={whitelistDiscordAdd} onChange={(e) => setWhitelistDiscordAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addWhitelistDiscord(whitelistDiscordAdd); }} placeholder="Discord user ID (17–20 digits)" style={{ minWidth: 240 }} />
               <button className="btn" disabled={!whitelistDiscordAdd.trim() || !!busy} onClick={() => addWhitelistDiscord(whitelistDiscordAdd)}>Protect user</button>
+            </div>
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--line)", margin: "18px 0 0", paddingTop: 16 }}>
+            <div className="row" style={{ alignItems: "center" }}>
+              <div style={{ marginRight: "auto" }}>
+                <b>Ping automod</b>
+                <div className="muted" style={{ fontSize: 13 }}>When anyone <b>not</b> whitelisted pings <span className="mono">@everyone</span>/<span className="mono">@here</span>, delete the message and strip every role the bot can remove.</div>
+              </div>
+              <button className={cfg.pingAutomodEnabled ? "btn" : "btn ghost"} disabled={busy === "ping"} onClick={togglePingAutomod}>{cfg.pingAutomodEnabled ? "On" : "Off"}</button>
+            </div>
+            <p className="muted" style={{ margin: "10px 0 6px", fontSize: 12 }}>Owners and authorized command users are always exempt. Stripping a staffer's roles also removes them from the group (the normal role-loss path). Only real pings trigger it — a message that just contains the text without permission to ping is ignored.</p>
+
+            <div style={{ marginTop: 12 }}>
+              <b style={{ fontSize: 13 }}>Allowed users</b>
+              <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>Discord user IDs allowed to ping everyone.</p>
+              <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                {(cfg.pingWhitelist || []).length === 0 && <span className="muted">No users allowed to ping.</span>}
+                {(cfg.pingWhitelist || []).map((v) => (
+                  <span key={v} className="chip"><span className="mono">{v}</span><button title="Remove" disabled={!!busy} onClick={() => removePingWhitelist(v)}>×</button></span>
+                ))}
+              </div>
+              <div className="row">
+                <input value={pingWlAdd} onChange={(e) => setPingWlAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addPingWhitelist(pingWlAdd); }} placeholder="Discord user ID (17–20 digits)" style={{ minWidth: 240 }} />
+                <button className="btn" disabled={!pingWlAdd.trim() || !!busy} onClick={() => addPingWhitelist(pingWlAdd)}>Allow user</button>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <b style={{ fontSize: 13 }}>Allowed roles</b>
+              <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>Anyone holding one of these roles may ping everyone.</p>
+              <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                {(cfg.pingWhitelistRoles || []).length === 0 && <span className="muted">No roles allowed to ping.</span>}
+                {(cfg.pingWhitelistRoles || []).map((v) => (
+                  <span key={v} className="chip"><span className="mono">{v}</span><button title="Remove" disabled={!!busy} onClick={() => removePingWhitelistRole(v)}>×</button></span>
+                ))}
+              </div>
+              <div className="row">
+                <input value={pingWlRoleAdd} onChange={(e) => setPingWlRoleAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addPingWhitelistRole(pingWlRoleAdd); }} placeholder="Role ID (17–20 digits)" style={{ minWidth: 240 }} />
+                <button className="btn" disabled={!pingWlRoleAdd.trim() || !!busy} onClick={() => addPingWhitelistRole(pingWlRoleAdd)}>Allow role</button>
+              </div>
             </div>
           </div>
         </div>
