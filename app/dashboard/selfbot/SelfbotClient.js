@@ -39,10 +39,13 @@ const FIELD_GROUPS = [
     ["crraamsGroupId", "id", "Audit-source group ID"],
     ["guildId", "id", "Discord guild ID"],
     ["staffInfoChannelId", "id", "Staff-info channel ID"],
-    ["leaderboardGuildId", "id", "Leaderboard staff guild ID (optional)"],
-    ["leaderboardChannels", "ids", "Leaderboard staff-info channel IDs (rank 236, not auto-kicked)"],
     ["logChannelId", "id", "Log channel ID (optional)"],
     ["authorizedUserIds", "ids", "Authorized command user IDs"],
+  ]],
+  ["Leaderboard staff guild (own roles)", [
+    ["leaderboardGuildId", "id", "Leaderboard staff guild ID"],
+    ["leaderboardChannels", "ids", "Leaderboard staff-info channel IDs"],
+    ["leaderboardStaffRoleIds", "ids", "Leaderboard STAFF role IDs (this guild's own staff roles)"],
   ]],
   ["Performance & timing", [
     ["roleReconcileSeconds", "int", "Role reconcile interval (s) — backstop sweep"],
