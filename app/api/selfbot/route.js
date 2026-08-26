@@ -14,6 +14,9 @@ const DEFAULTS = {
   managedGroupId: "1099600954", crraamsGroupId: "1099600954",
   staffMinRank: 234, staffMaxRank: 0, staffRankIds: [], removeAnyRank: false,
   guildId: "1447037325380157452", staffInfoChannelId: "1494154502851268748",
+  // Leaderboard-staff registry: separate guild/channel. Records here are indexed
+  // (protected from the orphan purge) but not auto-kicked by main-guild roles.
+  leaderboardGuildId: "1496219608800170004", leaderboardChannels: ["1498891974516805652"],
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
   whitelistDiscord: [], // Discord user ids whose every linked account is protected
