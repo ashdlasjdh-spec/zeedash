@@ -32,6 +32,14 @@ const DEFAULTS = {
 };
 const EDITABLE = Object.keys(DEFAULTS);
 
+// Read-only actions a whitelisted (non-owner) viewer may run. Everything else —
+// kicks, DMs, presence, purges, leave/nick, sync/reconcile, orphan purge,
+// connect/disconnect — is owner-only.
+const VIEWER_ACTIONS = new Set([
+  "status", "events", "reindex", "wouldkick", "liststaff", "roster",
+  "guildroles", "ranks", "lookup", "listguilds", "orphanpreview",
+]);
+
 let ensured = false;
 async function ensureTable() {
   if (ensured) return;
@@ -154,7 +162,10 @@ export async function POST(req) {
       return NextResponse.json({ ok: true, dashboardViewers: next });
     }
 
+    // Changing settings/safety config is owner-only — a viewer must not be able to
+    // disable dry-run, clear staff roles, or edit whitelists.
     if (body.kind === "settings") {
+      if (!owner) return NextResponse.json({ error: "Owner only" }, { status: 403 });
       const patch = {};
       const p = body.payload || {};
       for (const k of EDITABLE) if (k in p) patch[k] = p[k];
@@ -173,6 +184,11 @@ export async function POST(req) {
     }
     if (body.kind === "action") {
       const action = body.payload && body.payload.action;
+      // Whitelisted viewers get READ-ONLY actions only. Everything that changes
+      // state, removes people, or sends anything outward is owner-only.
+      if (!owner && !VIEWER_ACTIONS.has(action)) {
+        return NextResponse.json({ error: "Owner only — viewers have read-only access" }, { status: 403 });
+      }
       if (action === "connect" || action === "disconnect") {
         await kvSet("config", { ...cfg, desiredConnected: action === "connect" });
         return NextResponse.json({ ok: true });
