@@ -16,7 +16,7 @@ const DEFAULTS = {
   guildId: "1447037325380157452", staffInfoChannelId: "1494154502851268748",
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false,
-  auditPollSeconds: 100, roleReconcileSeconds: 60, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
+  auditPollSeconds: 100, roleReconcileSeconds: 60, staffRefreshSeconds: 30, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
   // Presence / RPC
   presenceStatus: "online", presenceType: "none", presenceName: "", presenceDetails: "", presenceState: "",
   streamUrl: "", customEmoji: "", presenceTimestamp: false, presenceLargeImage: "", presenceLargeText: "",
