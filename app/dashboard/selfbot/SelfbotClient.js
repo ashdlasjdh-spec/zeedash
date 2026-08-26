@@ -106,6 +106,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [blastTargets, setBlastTargets] = useState("");
   const [blastContent, setBlastContent] = useState("");
   const [blastRes, setBlastRes] = useState(null);
+  const [orphanRes, setOrphanRes] = useState(null);
+  const [confirmOrphan, setConfirmOrphan] = useState(false);
   const [sayChannel, setSayChannel] = useState("");
   const [sayContent, setSayContent] = useState("");
   const [sayRes, setSayRes] = useState(null);
@@ -151,9 +153,9 @@ export default function SelfbotClient({ me, isOwner = false }) {
     }
     return null;
   };
-  const runCommand = async (action, arg) => {
+  const runCommand = async (action, arg, tries) => {
     const j = await post("action", { action, arg });
-    if (j && j.queued) return await pollResult(j.id);
+    if (j && j.queued) return await pollResult(j.id, tries);
     return j;
   };
 
@@ -177,6 +179,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
   };
   const doPreview = async () => { setBusy("preview"); try { const r = await runCommand("wouldkick"); setPreview((r && r.hits) || []); flash("Preview ready"); } finally { setBusy(""); } };
   const doLookup = async () => { if (!lookupQ.trim()) return; setBusy("lookup"); try { setLookupRes(await runCommand("lookup", lookupQ.trim())); } finally { setBusy(""); } };
+  const doOrphanPreview = async () => { setBusy("orphan"); setConfirmOrphan(false); try { const r = await runCommand("orphanpreview", null, 90); setOrphanRes(r); if (r && r.error) flash(r.error); else flash("Scan complete"); } finally { setBusy(""); } };
+  const doOrphanPurge = async () => { setBusy("orphan"); try { const r = await runCommand("orphanpurge", null, 120); setOrphanRes(r); setConfirmOrphan(false); if (r && r.error) flash(r.error); else flash(`Processed ${r ? r.processed : 0}`); await load(); } finally { setBusy(""); } };
   const loadRoster = async () => { setBusy("roster"); try { const r = await runCommand("roster"); setRoster((r && r.roster) || []); } finally { setBusy(""); } };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
   const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles"); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
@@ -611,6 +615,37 @@ export default function SelfbotClient({ me, isOwner = false }) {
 
       {tab === "tools" && (
         <>
+          <div className="card" style={{ borderColor: "var(--brand-line)" }}>
+            <b>Cleanup — kick unregistered staff-rank members</b>
+            <p className="muted" style={{ margin: "4px 0 12px" }}>Removes everyone currently on a <b>removable rank</b> in the group who has <b>no staff-info record</b>. It rebuilds the <b>entire</b> staff-info channel first and refuses to run unless the whole channel indexed — so a registered staffer is never mistaken for an orphan. Whitelists, the rank guard and dry-run all apply. <b>Always preview first.</b></p>
+            <div className="row">
+              <button className="btn" disabled={busy === "orphan"} onClick={doOrphanPreview}>{busy === "orphan" ? "Scanning…" : "Preview (no kicks)"}</button>
+              {orphanRes && !orphanRes.error && Array.isArray(orphanRes.candidates) && orphanRes.candidates.length > 0 && (
+                !confirmOrphan
+                  ? <button className="btn danger" disabled={!!busy} onClick={() => setConfirmOrphan(true)}>Kick {orphanRes.candidates.length}…</button>
+                  : <span style={{ display: "inline-flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span className="muted">Remove {Math.min(orphanRes.candidates.length, 200)}{orphanRes.candidates.length > 200 ? " (first 200)" : ""}?</span>
+                      <button className="btn danger" disabled={!!busy} onClick={doOrphanPurge}>Yes, kick them</button>
+                      <button className="btn ghost" disabled={!!busy} onClick={() => setConfirmOrphan(false)}>Cancel</button>
+                    </span>
+              )}
+            </div>
+            {orphanRes && orphanRes.error && <p style={{ marginTop: 10, color: "var(--danger)" }}>{orphanRes.error}</p>}
+            {orphanRes && !orphanRes.error && orphanRes.processed === undefined && (
+              <div style={{ marginTop: 10 }}>
+                <p className="muted" style={{ margin: "0 0 8px" }}>Scanned {orphanRes.scanned} member(s) on removable ranks · {orphanRes.registeredCount} registered Roblox account(s) on file · <b style={{ color: orphanRes.candidates.length ? "var(--danger)" : "var(--success)" }}>{orphanRes.candidates.length} unregistered</b>{orphanRes.dryRun ? "" : ""}.</p>
+                {orphanRes.candidates.length > 0 && (
+                  <div style={{ overflowX: "auto", maxHeight: 320, overflowY: "auto" }}><table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Rank</th></tr></thead>
+                    <tbody>{orphanRes.candidates.map((c, i) => (
+                      <tr key={i}><td>{c.username || <span className="muted">—</span>}</td><td className="mono">{c.robloxId}</td><td>{c.rankName} <span className="muted">({c.rank})</span></td></tr>
+                    ))}</tbody></table></div>
+                )}
+              </div>
+            )}
+            {orphanRes && orphanRes.processed !== undefined && (
+              <p className="muted" style={{ marginTop: 10 }}>{orphanRes.dryRun ? "Dry-run — " : ""}Processed {orphanRes.processed} of {orphanRes.total} unregistered member(s){orphanRes.capped ? " (capped at 200 — run again for the rest)" : ""}.{orphanRes.dryRun ? " Turn off dry-run to remove for real." : ""}</p>
+            )}
+          </div>
           <div className="card">
             <b>DM purge</b>
             <p className="muted" style={{ margin: "4px 0 12px" }}>Delete the self-bot's own messages in a DM with a user (one by one — may take a moment).</p>
