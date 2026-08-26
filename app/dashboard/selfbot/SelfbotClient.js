@@ -22,6 +22,7 @@ const TABS = [
 const FIELD_GROUPS = [
   ["Safety guard", [
     ["dryRun", "bool", "Dry run (log only — remove nobody)"],
+    ["removeAnyRank", "bool", "Remove at ANY group rank (ignore the staff-rank guard)"],
     ["staffMinRank", "int", "Staff min rank (≥ removable)"],
     ["staffMaxRank", "int", "Staff max rank (0 = no cap)"],
     ["staffRankIds", "ids", "Exact removable rank IDs (overrides min/max)"],

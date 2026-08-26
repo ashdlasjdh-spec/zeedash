@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const DEFAULTS = {
   managedGroupId: "1099600954", crraamsGroupId: "1099600954",
-  staffMinRank: 234, staffMaxRank: 0, staffRankIds: [],
+  staffMinRank: 234, staffMaxRank: 0, staffRankIds: [], removeAnyRank: false,
   guildId: "1447037325380157452", staffInfoChannelId: "1494154502851268748",
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
