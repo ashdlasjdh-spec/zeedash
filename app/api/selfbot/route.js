@@ -29,6 +29,7 @@ const DEFAULTS = {
   // Automation
   rotateEnabled: false, rotateSeconds: 20, rotateLines: [],
   autoReplyEnabled: false, autoReplyMessage: "", autoReplyOncePerUser: true,
+  autoReplyMinGapSeconds: 120, autoReplyDailyCap: 20, // safety governor for AFK auto-reply
 };
 const EDITABLE = Object.keys(DEFAULTS);
 

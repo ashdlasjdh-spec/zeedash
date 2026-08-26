@@ -694,8 +694,13 @@ export default function SelfbotClient({ me, isOwner = false }) {
                 </label>
               </div>
               <p className="muted" style={{ margin: "6px 0 10px" }}>Auto-responds to incoming DMs with this message.</p>
+              <p style={{ margin: "0 0 10px", padding: "8px 10px", borderRadius: 10, background: "var(--danger-soft)", color: "var(--warning)", fontSize: 12.5 }}>⚠ Auto-replying to DMs is the single biggest self-bot flag trigger — it can get the account limited. This build now waits 30–90s before each reply, spaces replies out, and caps them per day, but nothing makes it 100% safe. Keep the daily cap low and the message plain.</p>
               <textarea value={form.autoReplyMessage || ""} onChange={(e) => setF("autoReplyMessage", e.target.value)} placeholder="I'm away right now — I'll get back to you soon." style={{ width: "100%", minHeight: 70 }} />
               <div className="sb-field" style={{ marginTop: 8 }}><span className="muted">Only reply once per user</span><input type="checkbox" checked={form.autoReplyOncePerUser !== false} onChange={(e) => setF("autoReplyOncePerUser", e.target.checked)} /></div>
+              <div className="row" style={{ marginTop: 8, gap: 12 }}>
+                <label className="muted" style={{ fontSize: 12 }}>Min gap (sec)<br /><input type="number" value={form.autoReplyMinGapSeconds ?? 120} onChange={(e) => setF("autoReplyMinGapSeconds", Number(e.target.value) || 120)} style={{ width: 100 }} /></label>
+                <label className="muted" style={{ fontSize: 12 }}>Daily cap<br /><input type="number" value={form.autoReplyDailyCap ?? 20} onChange={(e) => setF("autoReplyDailyCap", Number(e.target.value) || 20)} style={{ width: 100 }} /></label>
+              </div>
               <div style={{ marginTop: 10 }}><button className="btn" disabled={busy === "save"} onClick={saveSettings}>Save auto-reply</button></div>
             </div>
           )}
