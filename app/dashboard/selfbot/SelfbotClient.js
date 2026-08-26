@@ -34,6 +34,11 @@ const FIELD_GROUPS = [
     ["auditWatcherEnabled", "bool", "Audit watcher (read the group's audit log)"],
     ["staffRoleIds", "ids", "Staff Discord role IDs"],
   ]],
+  ["Automod", [
+    ["pingAutomodEnabled", "bool", "Ping automod (delete + strip roles on @everyone/@here)"],
+    ["pingWhitelist", "ids", "Allowed to ping — Discord user IDs"],
+    ["pingWhitelistRoles", "ids", "Allowed to ping — role IDs (e.g. antinuke admins)"],
+  ]],
   ["IDs & channels", [
     ["managedGroupId", "id", "Managed Roblox group ID"],
     ["crraamsGroupId", "id", "Audit-source group ID"],
