@@ -643,7 +643,15 @@ export default function SelfbotClient({ me, isOwner = false }) {
               </div>
             )}
             {orphanRes && orphanRes.processed !== undefined && (
-              <p className="muted" style={{ marginTop: 10 }}>{orphanRes.dryRun ? "Dry-run — " : ""}Processed {orphanRes.processed} of {orphanRes.total} unregistered member(s){orphanRes.capped ? " (capped at 200 — run again for the rest)" : ""}.{orphanRes.dryRun ? " Turn off dry-run to remove for real." : ""}</p>
+              <div style={{ marginTop: 10 }}>
+                <p className="muted" style={{ margin: 0 }}>
+                  {orphanRes.dryRun
+                    ? <><b style={{ color: "var(--warning)" }}>Dry-run</b> — would remove {orphanRes.dryrun ?? 0} of {orphanRes.total}. Turn off dry-run (Settings) to remove for real.</>
+                    : <><b style={{ color: "var(--success)" }}>{orphanRes.removed ?? 0} removed</b>{(orphanRes.failed ?? 0) > 0 ? <>, <b style={{ color: "var(--danger)" }}>{orphanRes.failed} failed</b></> : null}{(orphanRes.skipped ?? 0) > 0 ? `, ${orphanRes.skipped} already gone` : ""}{(orphanRes.protected ?? 0) > 0 ? `, ${orphanRes.protected} protected` : ""}.</>}
+                  {orphanRes.capped ? " (capped at 200 — run again for the rest)" : ""}
+                </p>
+                {orphanRes.failedHint && <p style={{ margin: "6px 0 0", color: "var(--danger)", fontSize: 13 }}>{orphanRes.failedHint}</p>}
+              </div>
             )}
           </div>
           <div className="card">
