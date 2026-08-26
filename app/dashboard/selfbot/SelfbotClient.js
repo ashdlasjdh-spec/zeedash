@@ -16,7 +16,8 @@ const TABS = [
   ["presence", "Presence"],
   ["tools", "Tools"],
   ["settings", "Settings"],
-  ["creds", "Credentials"],
+  ["creds", "Credentials", true], // owner-only (sets token/cookie)
+  ["access", "Access", true], // owner-only (who can view this page)
 ];
 
 const FIELD_GROUPS = [
@@ -75,7 +76,7 @@ function uptime(readyAt) {
   return [d ? `${d}d` : "", h ? `${h}h` : "", `${m}m`].filter(Boolean).join(" ");
 }
 
-export default function SelfbotClient({ me }) {
+export default function SelfbotClient({ me, isOwner = false }) {
   const [tab, setTab] = useState("overview");
   const [state, setState] = useState(null);
   const [err, setErr] = useState("");
@@ -93,6 +94,7 @@ export default function SelfbotClient({ me }) {
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
   const [whitelistAdd, setWhitelistAdd] = useState("");
+  const [viewerAdd, setViewerAdd] = useState("");
   const [purgeTarget, setPurgeTarget] = useState("");
   const [purgeLimit, setPurgeLimit] = useState(50);
   const [purgeRes, setPurgeRes] = useState(null);
@@ -183,6 +185,8 @@ export default function SelfbotClient({ me }) {
   const setWhitelist = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelist: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelist: list })); flash("Whitelist updated"); await load(); } finally { setBusy(""); } };
   const addWhitelist = (v) => { v = String(v || "").trim().replace(/^@+/, ""); if (!v) return; const cur = (cfg.whitelist || []).map(String); if (cur.some((x) => x.toLowerCase() === v.toLowerCase())) return; setWhitelistAdd(""); setWhitelist([...cur, v]); };
   const removeWhitelist = (v) => setWhitelist((cfg.whitelist || []).map(String).filter((x) => x !== String(v)));
+  const addViewer = async (id) => { id = String(id || "").trim(); if (!/^\d{17,20}$/.test(id)) { flash("Enter a valid Discord ID"); return; } setBusy("access"); try { const j = await post("access", { action: "add", id }); if (j.error) flash(j.error); else { setViewerAdd(""); flash("Viewer added"); await load(); } } finally { setBusy(""); } };
+  const removeViewer = async (id) => { setBusy("access"); try { const j = await post("access", { action: "remove", id: String(id) }); if (j.error) flash(j.error); else { flash("Viewer removed"); await load(); } } finally { setBusy(""); } };
   const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
   const applyPresenceNow = () => act("presence", null, "presence");
   const purgeOpts = () => ({ close: purgeClose, olderThanDays: Number(purgeOlder) || 0 });
@@ -305,7 +309,7 @@ export default function SelfbotClient({ me }) {
 
       {/* Tabs */}
       <div className="sb-tabs">
-        {TABS.map(([id, label]) => (
+        {TABS.filter(([, , ownerOnly]) => !ownerOnly || isOwner).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} className="btn ghost"
             style={{ color: tab === id ? "var(--text)" : "var(--muted)", borderBottom: tab === id ? "2px solid var(--brand)" : "2px solid transparent" }}>
             {label}
@@ -745,6 +749,30 @@ export default function SelfbotClient({ me }) {
             </div>
           </div>
         </>
+      )}
+
+      {tab === "access" && isOwner && (
+        <div className="card">
+          <b>Dashboard access</b>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>By default only super owners can open this page. Add a Discord <b>user ID</b> here to let that person view and use the dashboard too. Only you (super owner) can change this list, set credentials, or manage access.</p>
+
+          <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            <span className="chip" style={{ opacity: 0.7 }}>You (super owner)<span className="mono muted" style={{ fontSize: 11 }}>&nbsp;{me}</span></span>
+            {(cfg.dashboardViewers || []).length === 0 && <span className="muted">No extra viewers.</span>}
+            {(cfg.dashboardViewers || []).map((id) => (
+              <span key={id} className="chip">
+                <span className="mono">{id}</span>
+                <button title="Remove" disabled={!!busy} onClick={() => removeViewer(id)}>×</button>
+              </span>
+            ))}
+          </div>
+
+          <div className="row">
+            <input value={viewerAdd} onChange={(e) => setViewerAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addViewer(viewerAdd); }} placeholder="Discord user ID (17–20 digits)" style={{ minWidth: 260 }} />
+            <button className="btn" disabled={!viewerAdd.trim() || !!busy} onClick={() => addViewer(viewerAdd)}>Grant access</button>
+          </div>
+          <p className="muted" style={{ margin: "10px 0 0", fontSize: 12 }}>They sign in with Discord at the same URL — access is checked against this list on every request.</p>
+        </div>
       )}
 
       </div>

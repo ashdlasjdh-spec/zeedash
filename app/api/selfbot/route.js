@@ -52,6 +52,16 @@ async function requireOwner() {
   return s && isSuperOwner(s.id) ? s : null;
 }
 
+// Anyone allowed to VIEW/use the dashboard: super owners + whitelisted viewers.
+async function requireAccess() {
+  const s = await getSession();
+  if (!s) return null;
+  if (isSuperOwner(s.id)) return s;
+  const cfg = (await kvGet("config")) || {};
+  const viewers = Array.isArray(cfg.dashboardViewers) ? cfg.dashboardViewers.map(String) : [];
+  return viewers.includes(String(s.id)) ? s : null;
+}
+
 function publicView(cfg) {
   const c = { ...DEFAULTS, ...(cfg || {}) };
   const view = {};
@@ -61,6 +71,7 @@ function publicView(cfg) {
   view.tokenHint = c.discordToken ? "••••" + String(c.discordToken).slice(-4) : "(unset)";
   view.cookieHint = c.roblosecurity ? "••••" + String(c.roblosecurity).slice(-4) : "(unset)";
   view.desiredConnected = c.desiredConnected !== false;
+  view.dashboardViewers = Array.isArray(c.dashboardViewers) ? c.dashboardViewers.map(String) : [];
   return view;
 }
 
@@ -79,9 +90,9 @@ export async function GET(req) {
       return NextResponse.json({ error: e.message }, { status: 500 });
     }
   }
-  if (!(await requireOwner())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     await ensureTable();
+    if (!(await requireAccess())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     const [cfg, status, result] = await Promise.all([kvGet("config"), kvGet("status"), kvGet("command_result")]);
     return NextResponse.json({
       settings: publicView(cfg),
@@ -115,11 +126,29 @@ export async function POST(req) {
       return NextResponse.json({ error: e.message }, { status: 500 });
     }
   }
-  if (!(await requireOwner())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     await ensureTable();
+    // Managing viewers and setting credentials are super-owner-only; everything
+    // else is available to any whitelisted viewer.
+    const owner = await requireOwner();
+    const access = owner || (await requireAccess());
+    if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     const body = await req.json().catch(() => ({}));
     const cfg = (await kvGet("config")) || {};
+
+    // Super-owner-only: manage who can view the dashboard.
+    if (body.kind === "access") {
+      if (!owner) return NextResponse.json({ error: "Owner only" }, { status: 403 });
+      const p = body.payload || {};
+      const cur = Array.isArray(cfg.dashboardViewers) ? cfg.dashboardViewers.map(String) : [];
+      let next = cur;
+      const id = String(p.id || "").trim();
+      if (p.action === "add" && /^\d{17,20}$/.test(id) && !cur.includes(id)) next = [...cur, id];
+      else if (p.action === "remove") next = cur.filter((x) => x !== id);
+      else if (p.action !== "remove" && !/^\d{17,20}$/.test(id)) return NextResponse.json({ error: "invalid Discord id" }, { status: 400 });
+      await kvSet("config", { ...cfg, dashboardViewers: next });
+      return NextResponse.json({ ok: true, dashboardViewers: next });
+    }
 
     if (body.kind === "settings") {
       const patch = {};
@@ -130,6 +159,7 @@ export async function POST(req) {
       return NextResponse.json({ ok: true, settings: publicView(next) });
     }
     if (body.kind === "secrets") {
+      if (!owner) return NextResponse.json({ error: "Owner only" }, { status: 403 });
       const p = body.payload || {};
       const patch = {};
       if (p.discordToken) patch.discordToken = String(p.discordToken);
