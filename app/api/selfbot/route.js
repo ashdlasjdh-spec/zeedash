@@ -20,7 +20,7 @@ const DEFAULTS = {
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
   whitelistDiscord: [], // Discord user ids whose every linked account is protected
-  dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false,
+  dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false, auditWatcherEnabled: true,
   auditPollSeconds: 100, roleReconcileSeconds: 60, staffRefreshSeconds: 30, kickCooldownSeconds: 300, memberRefreshSeconds: 60, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
   // Presence / RPC
   presenceStatus: "online", presenceType: "none", presenceName: "", presenceDetails: "", presenceState: "",
