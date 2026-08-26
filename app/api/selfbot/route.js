@@ -16,6 +16,7 @@ const DEFAULTS = {
   guildId: "1447037325380157452", staffInfoChannelId: "1494154502851268748",
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
+  whitelistDiscord: [], // Discord user ids whose every linked account is protected
   dryRun: false, kickOnStaffRoleRemoved: true, requireStaffRoleForFire: false,
   auditPollSeconds: 100, roleReconcileSeconds: 60, staffRefreshSeconds: 30, kickCooldownSeconds: 300, memberRefreshSeconds: 300, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
   // Presence / RPC

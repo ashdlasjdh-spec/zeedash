@@ -94,6 +94,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
   const [whitelistAdd, setWhitelistAdd] = useState("");
+  const [whitelistDiscordAdd, setWhitelistDiscordAdd] = useState("");
   const [viewerAdd, setViewerAdd] = useState("");
   const [purgeTarget, setPurgeTarget] = useState("");
   const [purgeLimit, setPurgeLimit] = useState(50);
@@ -185,6 +186,9 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const setWhitelist = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelist: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelist: list })); flash("Whitelist updated"); await load(); } finally { setBusy(""); } };
   const addWhitelist = (v) => { v = String(v || "").trim().replace(/^@+/, ""); if (!v) return; const cur = (cfg.whitelist || []).map(String); if (cur.some((x) => x.toLowerCase() === v.toLowerCase())) return; setWhitelistAdd(""); setWhitelist([...cur, v]); };
   const removeWhitelist = (v) => setWhitelist((cfg.whitelist || []).map(String).filter((x) => x !== String(v)));
+  const setWhitelistDiscord = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelistDiscord: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelistDiscord: list })); flash("Discord whitelist updated"); await load(); } finally { setBusy(""); } };
+  const addWhitelistDiscord = (v) => { v = String(v || "").trim(); if (!/^\d{17,20}$/.test(v)) { flash("Enter a valid Discord ID"); return; } const cur = (cfg.whitelistDiscord || []).map(String); if (cur.includes(v)) return; setWhitelistDiscordAdd(""); setWhitelistDiscord([...cur, v]); };
+  const removeWhitelistDiscord = (v) => setWhitelistDiscord((cfg.whitelistDiscord || []).map(String).filter((x) => x !== String(v)));
   const addViewer = async (id) => { id = String(id || "").trim(); if (!/^\d{17,20}$/.test(id)) { flash("Enter a valid Discord ID"); return; } setBusy("access"); try { const j = await post("access", { action: "add", id }); if (j.error) flash(j.error); else { setViewerAdd(""); flash("Viewer added"); await load(); } } finally { setBusy(""); } };
   const removeViewer = async (id) => { setBusy("access"); try { const j = await post("access", { action: "remove", id: String(id) }); if (j.error) flash(j.error); else { flash("Viewer removed"); await load(); } } finally { setBusy(""); } };
   const setF = (k, v) => setForm((f) => ({ ...(f || {}), [k]: v }));
@@ -392,7 +396,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
               )}
               {!(Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1) && <>
                 <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
-                <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : lookupRes.whitelisted ? "no — whitelisted" : lookupRes.hasStaffRole === true ? "no — currently has a staff role" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
+                <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : lookupRes.discordWhitelisted ? "no — whitelisted (Discord user)" : lookupRes.whitelisted ? "no — whitelisted" : lookupRes.hasStaffRole === true ? "no — currently has a staff role" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
               </>}
               {lookupRes.staffRec && <KV k="Staff-info record" v={<span className="mono">{lookupRes.staffRec.rblxUser || ""} {lookupRes.staffRec.userId ? `#${lookupRes.staffRec.userId}` : ""}</span>} />}
               {Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1 && (
@@ -510,6 +514,21 @@ export default function SelfbotClient({ me, isOwner = false }) {
             <button className="btn" disabled={!whitelistAdd.trim() || !!busy} onClick={() => addWhitelist(whitelistAdd)}>Add to whitelist</button>
           </div>
           <p className="muted" style={{ margin: "10px 0 0", fontSize: 12 }}>Tip: a Roblox ID can't be changed, a username can — prefer the ID for accounts you must never touch.</p>
+
+          <div style={{ borderTop: "1px solid var(--line)", margin: "18px 0 0", paddingTop: 16 }}>
+            <b>Discord-user whitelist</b>
+            <p className="muted" style={{ margin: "4px 0 12px" }}>Protect a <b>whole person</b> by their Discord ID — <b>every</b> Roblox account linked to them is safe, even if they lose their role or leave. Best when someone has multiple accounts.</p>
+            <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+              {(cfg.whitelistDiscord || []).length === 0 && <span className="muted">No Discord users whitelisted.</span>}
+              {(cfg.whitelistDiscord || []).map((v) => (
+                <span key={v} className="chip"><span className="mono">{v}</span><button title="Remove" disabled={!!busy} onClick={() => removeWhitelistDiscord(v)}>×</button></span>
+              ))}
+            </div>
+            <div className="row">
+              <input value={whitelistDiscordAdd} onChange={(e) => setWhitelistDiscordAdd(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addWhitelistDiscord(whitelistDiscordAdd); }} placeholder="Discord user ID (17–20 digits)" style={{ minWidth: 240 }} />
+              <button className="btn" disabled={!whitelistDiscordAdd.trim() || !!busy} onClick={() => addWhitelistDiscord(whitelistDiscordAdd)}>Protect user</button>
+            </div>
+          </div>
         </div>
       )}
 
