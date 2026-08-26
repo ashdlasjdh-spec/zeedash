@@ -24,6 +24,7 @@
   background: linear-gradient(135deg, var(--brand-2), var(--brand));
   box-shadow: 0 10px 26px -12px var(--brand-glow); border: 0;
 }
+.land-btn svg { width: 17px; height: 17px; flex: none; } /* icons render sizeless otherwise → oversized buttons */
 .land-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .land-btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
 .land-btn.ghost:hover { background: var(--surface-2); border-color: var(--brand-line); }
