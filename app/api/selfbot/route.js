@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { isSuperOwner } from "@/lib/permissions";
+import { botAuthed, guardBot } from "@/lib/botauth";
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -62,7 +63,21 @@ function publicView(cfg) {
   return view;
 }
 
-export async function GET() {
+export async function GET(req) {
+  // Bot-facing branch: the in-process runner pulls its live config + queued command over HTTP with a
+  // Bearer CRON_SECRET (no session cookie). This is the control channel — the two apps don't share a
+  // Postgres, so the runner can't read selfbot_kv directly.
+  if ((req.headers.get("authorization") || "").length) {
+    const denied = guardBot(req);
+    if (denied) return denied;
+    try {
+      await ensureTable();
+      const [cfg, command] = await Promise.all([kvGet("config"), kvGet("command")]);
+      return NextResponse.json({ config: cfg || {}, command: command || null });
+    } catch (e) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+  }
   if (!(await requireOwner())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     await ensureTable();
@@ -78,6 +93,27 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  // Bot-facing branch: the runner reports its heartbeat/status and command results back over HTTP.
+  if ((req.headers.get("authorization") || "").length) {
+    const denied = guardBot(req);
+    if (denied) return denied;
+    try {
+      await ensureTable();
+      const body = await req.json().catch(() => ({}));
+      const writes = [];
+      if (body.status !== undefined) writes.push(kvSet("status", body.status));
+      if (body.commandResult !== undefined) writes.push(kvSet("command_result", body.commandResult));
+      // The runner acks a consumed command by echoing its id; clear the queue so it isn't re-run.
+      if (body.consumedCommandId !== undefined) {
+        const cur = await kvGet("command");
+        if (cur && cur.id === body.consumedCommandId) writes.push(kvSet("command", null));
+      }
+      await Promise.all(writes);
+      return NextResponse.json({ ok: true });
+    } catch (e) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+  }
   if (!(await requireOwner())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     await ensureTable();
