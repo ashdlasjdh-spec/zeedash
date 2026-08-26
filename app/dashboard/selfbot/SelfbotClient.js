@@ -103,6 +103,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [preview, setPreview] = useState(null);
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
+  const [roleGuild, setRoleGuild] = useState("main"); // 'main' | 'leaderboard'
   const [whitelistAdd, setWhitelistAdd] = useState("");
   const [whitelistDiscordAdd, setWhitelistDiscordAdd] = useState("");
   const [viewerAdd, setViewerAdd] = useState("");
@@ -193,10 +194,13 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const doOrphanPurge = async () => { setBusy("orphan"); try { const r = await runCommand("orphanpurge", null, 120); setOrphanRes(r); setConfirmOrphan(false); if (r && r.error) flash(r.error); else flash(`Processed ${r ? r.processed : 0}`); await load(); } finally { setBusy(""); } };
   const loadRoster = async () => { setBusy("roster"); try { const r = await runCommand("roster"); setRoster((r && r.roster) || []); } finally { setBusy(""); } };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
-  const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles"); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
-  const setStaffRoles = async (ids) => { setBusy("roles"); try { const j = await post("settings", { staffRoleIds: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), staffRoleIds: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
-  const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg.staffRoleIds || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
-  const removeStaffRole = (id) => setStaffRoles((cfg.staffRoleIds || []).map(String).filter((x) => x !== String(id)));
+  const roleKey = () => (roleGuild === "leaderboard" ? "leaderboardStaffRoleIds" : "staffRoleIds");
+  const roleGuildId = () => (roleGuild === "leaderboard" ? (cfg.leaderboardGuildId || "") : (cfg.guildId || ""));
+  const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles", roleGuildId()); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
+  const switchRoleGuild = (g) => { setRoleGuild(g); setGuildRoles(null); setRoleAdd(""); };
+  const setStaffRoles = async (ids) => { const k = roleKey(); setBusy("roles"); try { const j = await post("settings", { [k]: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), [k]: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
+  const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg[roleKey()] || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
+  const removeStaffRole = (id) => setStaffRoles((cfg[roleKey()] || []).map(String).filter((x) => x !== String(id)));
   const setWhitelist = async (list) => { setBusy("whitelist"); try { const j = await post("settings", { whitelist: list }); if (j.settings) setForm((f) => ({ ...(f || {}), whitelist: list })); flash("Whitelist updated"); await load(); } finally { setBusy(""); } };
   const addWhitelist = (v) => { v = String(v || "").trim().replace(/^@+/, ""); if (!v) return; const cur = (cfg.whitelist || []).map(String); if (cur.some((x) => x.toLowerCase() === v.toLowerCase())) return; setWhitelistAdd(""); setWhitelist([...cur, v]); };
   const removeWhitelist = (v) => setWhitelist((cfg.whitelist || []).map(String).filter((x) => x !== String(v)));
@@ -475,15 +479,22 @@ export default function SelfbotClient({ me, isOwner = false }) {
 
       {tab === "roles" && (
         <div className="card">
-          <div className="row" style={{ alignItems: "center" }}>
+          <div className="row" style={{ alignItems: "center", gap: 8 }}>
             <b style={{ marginRight: "auto" }}>Staff roles</b>
+            <select value={roleGuild} onChange={(e) => switchRoleGuild(e.target.value)} style={{ minWidth: 170 }}>
+              <option value="main">Main guild</option>
+              <option value="leaderboard">Leaderboard guild</option>
+            </select>
             <button className="btn ghost" disabled={!!busy} onClick={loadGuildRoles}>{guildRoles ? "Refresh role names" : "Load role names"}</button>
           </div>
-          <p className="muted" style={{ margin: "4px 0 12px" }}>Anyone with one of these Discord roles is staff. Losing the last one triggers an automatic removal (rank-guarded).</p>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>Staff roles for the <b>{roleGuild === "leaderboard" ? "leaderboard" : "main"} guild</b> (each guild has its own set). Anyone with one of these roles is staff there; losing the last one triggers an automatic removal (rank-guarded).</p>
+          {roleGuild === "leaderboard" && !cfg.leaderboardGuildId && (
+            <p style={{ margin: "0 0 12px", color: "var(--warning)", fontSize: 13 }}>Set the Leaderboard guild ID first (Settings → Leaderboard staff guild).</p>
+          )}
 
           <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-            {(cfg.staffRoleIds || []).length === 0 && <span className="muted">No staff roles set.</span>}
-            {(cfg.staffRoleIds || []).map((id) => (
+            {(cfg[roleKey()] || []).length === 0 && <span className="muted">No staff roles set for this guild.</span>}
+            {(cfg[roleKey()] || []).map((id) => (
               <span key={id} className="chip">
                 {roleName(id) || id}
                 {roleName(id) ? <span className="mono muted" style={{ fontSize: 11 }}>&nbsp;{id}</span> : null}
@@ -496,7 +507,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
             {guildRoles && guildRoles.length > 0 ? (
               <select value={roleAdd} onChange={(e) => setRoleAdd(e.target.value)} style={{ minWidth: 240 }}>
                 <option value="">Pick a role to add…</option>
-                {guildRoles.filter((r) => !(cfg.staffRoleIds || []).map(String).includes(String(r.id))).map((r) => (
+                {guildRoles.filter((r) => !(cfg[roleKey()] || []).map(String).includes(String(r.id))).map((r) => (
                   <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
               </select>
@@ -505,6 +516,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
             )}
             <button className="btn" disabled={!roleAdd || !!busy} onClick={() => addStaffRole(roleAdd)}>Add role</button>
           </div>
+          <p className="muted" style={{ margin: "10px 0 0", fontSize: 12 }}>Click "Load role names" to pick roles by name (needs the self-bot to be in the selected guild), or paste a role ID.</p>
         </div>
       )}
 
