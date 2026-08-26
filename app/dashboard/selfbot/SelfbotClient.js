@@ -44,9 +44,13 @@ const FIELD_GROUPS = [
     ["logChannelId", "id", "Log channel ID (optional)"],
     ["authorizedUserIds", "ids", "Authorized command user IDs"],
   ]],
-  ["Performance", [
+  ["Performance & timing", [
+    ["roleReconcileSeconds", "int", "Role reconcile interval (s) — backstop sweep"],
+    ["memberRefreshSeconds", "int", "Member cache refresh (s) — keeps live kicks instant"],
+    ["staffRefreshSeconds", "int", "Staff-info poll (s) — indexes new posts"],
+    ["kickCooldownSeconds", "int", "Kick cooldown (s) — anti-spam re-kick window"],
     ["auditPollSeconds", "int", "Audit poll seconds"],
-    ["staffInfoHistoryLimit", "int", "Staff-info history limit"],
+    ["staffInfoHistoryLimit", "int", "Staff-info history limit (0 = whole channel)"],
     ["membershipCacheSeconds", "int", "Membership cache seconds"],
     ["robloxConcurrency", "int", "Roblox concurrency"],
   ]],
