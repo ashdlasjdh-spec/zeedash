@@ -383,15 +383,18 @@ export default function SelfbotClient({ me }) {
                 </p>
               )}
               {lookupRes.history && lookupRes.history.length > 0 && <KV k="Past names" v={<span className="mono" style={{ fontSize: 12 }}>{lookupRes.history.join(", ")}</span>} />}
+              {lookupRes.source === "discord" && lookupRes.hasStaffRole != null && (
+                <KV k="Currently staff" v={<b style={{ color: lookupRes.hasStaffRole ? "var(--success)" : "var(--warning)" }}>{lookupRes.hasStaffRole ? "yes — holds a staff role" : lookupRes.inGuildDiscord === false ? "no — not in the server" : "no — has no staff role"}</b>} />
+              )}
               {!(Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1) && <>
                 <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
-                <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
+                <KV k="Would be removed" v={<b style={{ color: lookupRes.removable ? "var(--danger)" : "var(--success)" }}>{!lookupRes.robloxId ? "no Roblox account on file" : lookupRes.whitelisted ? "no — whitelisted" : lookupRes.hasStaffRole === true ? "no — currently has a staff role" : !lookupRes.role ? "no — not in group" : lookupRes.removable ? "YES" : "no — protected rank"}</b>} />
               </>}
               {lookupRes.staffRec && <KV k="Staff-info record" v={<span className="mono">{lookupRes.staffRec.rblxUser || ""} {lookupRes.staffRec.userId ? `#${lookupRes.staffRec.userId}` : ""}</span>} />}
               {Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1 && (
                 <div style={{ marginTop: 12 }}>
                   <b style={{ fontSize: 13 }}>Linked Roblox accounts ({lookupRes.accounts.length})</b>
-                  <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>This Discord user has {lookupRes.accounts.length} Roblox accounts on file. Removing them (role loss / departure / the button below) kicks every account that would be removed.</p>
+                  <p className="muted" style={{ margin: "2px 0 8px", fontSize: 12 }}>{lookupRes.hasStaffRole ? "This user currently holds a staff role, so nothing will be removed while they do. If they lose it, every removable account below is kicked." : `This Discord user has ${lookupRes.accounts.length} Roblox accounts on file. Removing them (role loss / departure / the button below) kicks every account that would be removed.`}</p>
                   <div style={{ overflowX: "auto" }}><table><thead><tr><th>Roblox user</th><th>Recorded</th><th>Roblox ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                     <tbody>{lookupRes.accounts.map((a, i) => (
                       <tr key={i}>
