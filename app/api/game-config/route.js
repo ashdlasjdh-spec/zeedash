@@ -15,6 +15,12 @@ export const GAME_DEFAULTS = {
   gameUrl: "https://www.roblox.com/games/122577517724086/Zee",
   placeId: "122577517724086",
   discordUrl: "https://discord.gg/zhd",
+  // Landing-page hero subtitle under the "Zee Hood" title.
+  tagline: "A remade Da Hood experience on Roblox",
+  // Optional site-wide banner shown at the top of the landing page. Empty = hidden.
+  announcement: "",
+  // Extra link buttons (group page, YouTube, TikTok, …) — [label, url] rows. Discord stays its own field.
+  socials: [],
   passes: [
     { id: "1952883102", item: "Aimview" },
     { id: "1952247201", item: "Armor" },
@@ -70,6 +76,15 @@ function clean(raw) {
     gameUrl: str(c.gameUrl, GAME_DEFAULTS.gameUrl),
     placeId: /^\d{1,20}$/.test(String(c.placeId || "")) ? String(c.placeId) : GAME_DEFAULTS.placeId,
     discordUrl: str(c.discordUrl, GAME_DEFAULTS.discordUrl),
+    tagline: str(c.tagline, GAME_DEFAULTS.tagline, 160),
+    // Announcement may be intentionally empty (hidden) — trim + cap, don't fall back to a default.
+    announcement: typeof c.announcement === "string" ? c.announcement.trim().slice(0, 240) : GAME_DEFAULTS.announcement,
+    socials: Array.isArray(c.socials)
+      ? c.socials
+          .map((r) => (Array.isArray(r) ? [str(r[0], "", 40), str(r[1], "", 300)] : null))
+          .filter((r) => r && r[0] && r[1])
+          .slice(0, 10)
+      : GAME_DEFAULTS.socials,
     passes: Array.isArray(c.passes)
       ? c.passes
           .map((p) => ({ id: String(p?.id || "").replace(/\D/g, ""), item: str(p?.item, "", 80) }))

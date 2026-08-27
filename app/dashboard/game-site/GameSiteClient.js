@@ -44,6 +44,10 @@ export default function GameSiteClient() {
   const setShop = (i, k, v) => setCfg((c) => { const s = (c.shop || []).map((r, j) => (j === i ? (k === 0 ? [v, r[1]] : [r[0], v]) : r)); return { ...c, shop: s }; });
   const addShop = () => setCfg((c) => ({ ...c, shop: [...(c.shop || []), ["", ""]] }));
   const delShop = (i) => setCfg((c) => ({ ...c, shop: (c.shop || []).filter((_, j) => j !== i) }));
+  const socials = cfg.socials || [];
+  const setSocial = (i, k, v) => setCfg((c) => { const s = (c.socials || []).map((r, j) => (j === i ? (k === 0 ? [v, r[1]] : [r[0], v]) : r)); return { ...c, socials: s }; });
+  const addSocial = () => setCfg((c) => ({ ...c, socials: [...(c.socials || []), ["", ""]] }));
+  const delSocial = (i) => setCfg((c) => ({ ...c, socials: (c.socials || []).filter((_, j) => j !== i) }));
 
   async function resetDefaults() {
     try {
@@ -104,6 +108,24 @@ export default function GameSiteClient() {
           <input style={input} value={cfg.placeId} onChange={(e) => set("placeId", e.target.value.replace(/\D/g, ""))} placeholder="122577517724086" /></div>
         <div style={box}><span style={label}>Discord invite</span>
           <input style={input} value={cfg.discordUrl} onChange={(e) => set("discordUrl", e.target.value)} placeholder="https://discord.gg/…" /></div>
+        <div style={box}><span style={label}>Hero tagline (under the title)</span>
+          <input style={input} value={cfg.tagline || ""} onChange={(e) => set("tagline", e.target.value)} placeholder="A remade Da Hood experience on Roblox" /></div>
+        <div style={box}><span style={label}>Announcement banner (leave empty to hide)</span>
+          <input style={input} value={cfg.announcement || ""} onChange={(e) => set("announcement", e.target.value)} placeholder="e.g. Double XP this weekend!" /></div>
+      </div>
+
+      <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="between"><h2 style={{ margin: 0, fontSize: 16 }}>Extra links</h2>
+          <button className="btn ghost" onClick={addSocial}>+ Add link</button></div>
+        <p style={{ color: "var(--muted)", margin: "0 0 2px", fontSize: 13 }}>Shown as buttons next to Play/Discord (group page, YouTube, TikTok, …).</p>
+        {socials.map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input style={{ ...input, width: 160 }} value={r[0]} onChange={(e) => setSocial(i, 0, e.target.value)} placeholder="Label" />
+            <input style={input} value={r[1]} onChange={(e) => setSocial(i, 1, e.target.value)} placeholder="https://…" />
+            <button className="btn ghost" style={{ padding: "8px 10px" }} onClick={() => delSocial(i)} aria-label="Remove">✕</button>
+          </div>
+        ))}
+        {!socials.length && <p style={{ color: "var(--muted)", margin: 0 }}>No extra links.</p>}
       </div>
 
       <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
