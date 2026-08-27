@@ -137,6 +137,16 @@ export default function GameDocs() {
         <Link className="inl" href="/bot/commands">commands page</Link>.
       </p>
 
+      <h2>Editing the public game site</h2>
+      <p>
+        The public game site at <Link className="inl" href="https://zeehood.org">zeehood.org</Link> is
+        editable from the dashboard under <strong>Site → Game Site</strong> (super owners only). You can
+        change the Roblox game link, the Discord invite, the place ID (which drives the live player count
+        and screenshots), and the game&nbsp;passes, staff&nbsp;roles, shop&nbsp;items and powers lists —
+        each as add/remove rows. Saved changes appear on the live site within about a minute, and the site
+        keeps its built-in values as a fallback so it always renders even if the dashboard is unreachable.
+      </p>
+
       <Pager prev={{ href: "/docs/access", title: "Access & roles" }} next={{ href: "/docs/moderation", title: "Moderation" }} />
     </>
   );
