@@ -30,6 +30,11 @@ export const GAME_DEFAULTS = {
     ["Server Manager", "$240"], ["Management", "$300"], ["Head Management", "$410"],
     ["Staff Advisor", "$550"], ["Overseer", "$700"], ["Director", "$950"], ["Co-Owner", "$2,000"],
   ],
+  // Shop extras — [name, price] rows, same shape as roles.
+  shop: [
+    ["Crew Tag", "$10"], ["Crew Tag + Icon", "$15"], ["Ingame Emoji", "$5"],
+    ["Star Rank", "$30"], ["Content Creator Rank", "$15"],
+  ],
   // [category, [ [name, price, unavailable?], ... ]]
   powers: [
     ["Spiderman", [["Spiderman", "$150"]]],
@@ -77,6 +82,12 @@ function clean(raw) {
           .filter((r) => r && r[0])
           .slice(0, 100)
       : GAME_DEFAULTS.roles,
+    shop: Array.isArray(c.shop)
+      ? c.shop
+          .map((r) => (Array.isArray(r) ? [str(r[0], "", 80), str(r[1], "", 40)] : null))
+          .filter((r) => r && r[0])
+          .slice(0, 100)
+      : GAME_DEFAULTS.shop,
     powers: Array.isArray(c.powers)
       ? c.powers
           .map((cat) => {

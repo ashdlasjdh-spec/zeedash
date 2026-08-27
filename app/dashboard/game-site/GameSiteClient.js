@@ -40,6 +40,10 @@ export default function GameSiteClient() {
   const setRole = (i, k, v) => setCfg((c) => { const roles = c.roles.map((r, j) => (j === i ? (k === 0 ? [v, r[1]] : [r[0], v]) : r)); return { ...c, roles }; });
   const addRole = () => setCfg((c) => ({ ...c, roles: [...c.roles, ["", ""]] }));
   const delRole = (i) => setCfg((c) => ({ ...c, roles: c.roles.filter((_, j) => j !== i) }));
+  const shop = cfg.shop || [];
+  const setShop = (i, k, v) => setCfg((c) => { const s = (c.shop || []).map((r, j) => (j === i ? (k === 0 ? [v, r[1]] : [r[0], v]) : r)); return { ...c, shop: s }; });
+  const addShop = () => setCfg((c) => ({ ...c, shop: [...(c.shop || []), ["", ""]] }));
+  const delShop = (i) => setCfg((c) => ({ ...c, shop: (c.shop || []).filter((_, j) => j !== i) }));
 
   async function save() {
     setPowersErr("");
@@ -113,6 +117,19 @@ export default function GameSiteClient() {
             <button className="btn ghost" style={{ padding: "8px 10px" }} onClick={() => delRole(i)} aria-label="Remove">✕</button>
           </div>
         ))}
+      </div>
+
+      <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="between"><h2 style={{ margin: 0, fontSize: 16 }}>Shop extras</h2>
+          <button className="btn ghost" onClick={addShop}>+ Add item</button></div>
+        {shop.map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input style={input} value={r[0]} onChange={(e) => setShop(i, 0, e.target.value)} placeholder="Item name" />
+            <input style={{ ...input, width: 120 }} value={r[1]} onChange={(e) => setShop(i, 1, e.target.value)} placeholder="$Price" />
+            <button className="btn ghost" style={{ padding: "8px 10px" }} onClick={() => delShop(i)} aria-label="Remove">✕</button>
+          </div>
+        ))}
+        {!shop.length && <p style={{ color: "var(--muted)", margin: 0 }}>No shop items.</p>}
       </div>
 
       <div className="card" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
