@@ -108,6 +108,21 @@ function clean(raw) {
   return out;
 }
 
+// After a save, ask the game site to purge its cache now so the edit is live in seconds instead of
+// waiting out the ISR window. Best-effort and time-boxed — a save never fails or hangs on this, and if
+// the env isn't configured it's simply skipped (the site still refreshes on its own timer).
+async function pingGameSiteRevalidate() {
+  const url = process.env.GAME_SITE_REVALIDATE_URL; // e.g. https://zeehood.org/api/revalidate
+  const secret = process.env.GAME_SITE_REVALIDATE_SECRET;
+  if (!url || !secret) return;
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3000);
+    await fetch(url, { method: "POST", headers: { authorization: `Bearer ${secret}` }, signal: ctrl.signal }).catch(() => {});
+    clearTimeout(t);
+  } catch { /* ignore — ISR still refreshes */ }
+}
+
 async function readConfig() {
   try {
     const rows = await query("select value from config where key = 'game_site'");
@@ -147,6 +162,7 @@ export async function POST(req) {
        on conflict (key) do update set value = $1, updated_by = $2, updated_at = now()`,
       [JSON.stringify(cfg), String(session.id)],
     );
+    await pingGameSiteRevalidate(); // make the edit live now (best-effort)
     return NextResponse.json({ ok: true, config: cfg });
   } catch (e) {
     console.error("[game-config] save:", e?.message || e);
