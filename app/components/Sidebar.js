@@ -85,6 +85,9 @@ const NAV = [
   { href: "/dashboard/blacklist", label: "Blacklist", need: "cofounder" },
   { href: "/dashboard/settings", label: "Settings", need: "cofounder" },
   { href: "/dashboard/purge", label: "Remove All", needPurge: true },
+
+  { sec: "Site", needOwner: true },
+  { href: "/dashboard/game-site", label: "Game Site", needOwner: true },
 ];
 
 export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan, canConfig, isCofounderPlus, canPurge, gameAccess = true, serverAccess = false }) {
@@ -145,8 +148,10 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
           if (n.needGroup && !canGroup) return null;
           if (n.needConfig && !canConfig) return null;
           if (n.needManage && !isCofounderPlus && !canPurge) return null;
+          if (n.needOwner && !user.isOwner) return null;
           return <div key={i} className="navsec">{n.sec}</div>;
         }
+        if (n.needOwner && !user.isOwner) return null;
         if (n.need === "cofounder" && !isCofounderPlus) return null;
         if (n.needAnyGrant && !grants.length) return null;
         if (n.needPurge && !canPurge) return null;
