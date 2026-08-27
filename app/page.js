@@ -41,6 +41,7 @@ export default async function Landing() {
             <a className="link" href="#stats">Community</a>
             <a className="link" href="#leaderboard">Leaderboard</a>
             <Link className="link" href="/docs">Docs</Link>
+            <Link className="link" href="/changelog">Changelog</Link>
             <Link className="link" href="/catalog">Catalog</Link>
             {session
               ? <Link className="land-login" href="/dashboard"><FIcon name="grid" /> Dashboard</Link>
@@ -147,6 +148,7 @@ export default async function Landing() {
             <a href={GAME_URL} target="_blank" rel="noopener noreferrer">Play</a>
             <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>
             <Link href="/docs">Docs</Link>
+            <Link href="/changelog">Changelog</Link>
             <Link href="/catalog">Catalog</Link>
             <Link href="/status">Status</Link>
             <Link href="/login">Staff login</Link>

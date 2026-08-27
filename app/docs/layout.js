@@ -21,6 +21,7 @@ export default function DocsLayout({ children }) {
         <DocNav />
         <div className="docs-rail-foot">
           <a href="/">← Sign in</a>
+          <a href="/changelog">Changelog</a>
           <a href="/catalog">Perk catalog</a>
           <a href="/status">Status</a>
         </div>

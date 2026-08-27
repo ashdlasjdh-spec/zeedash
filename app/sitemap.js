@@ -4,7 +4,7 @@ const DOCS = ["", "access", "architecture", "automation", "crew-tags", "emojis",
 // Public, indexable pages only — the dashboard/bot/api are private and excluded (see robots.js).
 export default function sitemap() {
   const now = new Date();
-  const top = ["", "/catalog", "/status", "/bot/commands"];
+  const top = ["", "/catalog", "/status", "/bot/commands", "/changelog"];
   const docs = DOCS.map((d) => (d ? `/docs/${d}` : "/docs"));
   return [...top, ...docs].map((r) => ({
     url: `${BASE}${r}`,
