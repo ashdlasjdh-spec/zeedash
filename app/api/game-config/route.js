@@ -21,6 +21,13 @@ export const GAME_DEFAULTS = {
   announcement: "",
   // Extra link buttons (group page, YouTube, TikTok, …) — [label, url] rows. Discord stays its own field.
   socials: [],
+  // Landing hero title (the big word under the logo).
+  heroTitle: "Zee Hood",
+  // Show the live player-count / visits bar on the landing.
+  liveStats: true,
+  // Shared purchase line + button label on the Roles / Powers / Shop pages.
+  purchaseNote: "Purchases are handled in our Discord.",
+  buyLabel: "Buy via Discord",
   passes: [
     { id: "1952883102", item: "Aimview" },
     { id: "1952247201", item: "Armor" },
@@ -85,6 +92,10 @@ function clean(raw) {
           .filter((r) => r && r[0] && r[1])
           .slice(0, 10)
       : GAME_DEFAULTS.socials,
+    heroTitle: str(c.heroTitle, GAME_DEFAULTS.heroTitle, 60),
+    liveStats: c.liveStats !== false, // default on
+    purchaseNote: str(c.purchaseNote, GAME_DEFAULTS.purchaseNote, 160),
+    buyLabel: str(c.buyLabel, GAME_DEFAULTS.buyLabel, 40),
     passes: Array.isArray(c.passes)
       ? c.passes
           .map((p) => ({ id: String(p?.id || "").replace(/\D/g, ""), item: str(p?.item, "", 80) }))

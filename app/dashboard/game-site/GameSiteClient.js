@@ -112,6 +112,20 @@ export default function GameSiteClient() {
           <input style={input} value={cfg.tagline || ""} onChange={(e) => set("tagline", e.target.value)} placeholder="A remade Da Hood experience on Roblox" /></div>
         <div style={box}><span style={label}>Announcement banner (leave empty to hide)</span>
           <input style={input} value={cfg.announcement || ""} onChange={(e) => set("announcement", e.target.value)} placeholder="e.g. Double XP this weekend!" /></div>
+        <div style={box}><span style={label}>Hero title</span>
+          <input style={input} value={cfg.heroTitle || ""} onChange={(e) => set("heroTitle", e.target.value)} placeholder="Zee Hood" /></div>
+        <label style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, cursor: "pointer" }}>
+          <input type="checkbox" checked={cfg.liveStats !== false} onChange={(e) => set("liveStats", e.target.checked)} />
+          Show the live player-count bar on the landing page
+        </label>
+      </div>
+
+      <div className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 16 }}>Purchase text (Roles / Powers / Shop pages)</h2>
+        <div style={box}><span style={label}>Purchase note</span>
+          <input style={input} value={cfg.purchaseNote || ""} onChange={(e) => set("purchaseNote", e.target.value)} placeholder="Purchases are handled in our Discord." /></div>
+        <div style={box}><span style={label}>Buy button label</span>
+          <input style={{ ...input, width: 240 }} value={cfg.buyLabel || ""} onChange={(e) => set("buyLabel", e.target.value)} placeholder="Buy via Discord" /></div>
       </div>
 
       <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
