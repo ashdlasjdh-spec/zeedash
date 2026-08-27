@@ -168,13 +168,18 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
         <div><div className="who">{user.name}</div><span className={`role-pill role-t-${roleTone(user.level)}`}>{user.role}</span></div>
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}><ThemeControls /><NotifBell /></div>
-      <Link href="/docs" className="navlink" style={{ marginTop: 10, fontSize: 13 }} onClick={() => setOpen(false)}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" /><path d="M19 3v16" /></svg>
-        <span>Docs</span>
-      </Link>
-      <form action="/api/auth/logout" method="post" style={{ marginTop: 10 }}>
-        <button className="btn ghost" style={{ fontSize: 13, padding: "9px" }}>Sign out</button>
-      </form>
+      <div className="side-actions">
+        <Link href="/docs" className="side-action" onClick={() => setOpen(false)}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" /><path d="M19 3v16" /></svg>
+          <span>Docs</span>
+        </Link>
+        <form action="/api/auth/logout" method="post" style={{ display: "contents" }}>
+          <button type="submit" className="side-action">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>
+          <span>Sign out</span>
+          </button>
+        </form>
+      </div>
       </aside>
     </>
   );
