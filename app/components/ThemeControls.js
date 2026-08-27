@@ -32,17 +32,17 @@ export default function ThemeControls() {
 
   return (
     <div className="theme-controls">
-      <button className={`tc-btn ${theme === "dark" ? "on" : ""}`} onClick={() => applyTheme("dark")} title="Dark theme" aria-label="Dark theme">
+      <button className={`tc-btn ${theme === "dark" ? "on" : ""}`} onClick={() => applyTheme("dark")} title="Dark theme" aria-label="Dark theme" aria-pressed={theme === "dark"}>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
       </button>
-      <button className={`tc-btn ${theme === "light" ? "on" : ""}`} onClick={() => applyTheme("light")} title="Light theme" aria-label="Light theme">
+      <button className={`tc-btn ${theme === "light" ? "on" : ""}`} onClick={() => applyTheme("light")} title="Light theme" aria-label="Light theme" aria-pressed={theme === "light"}>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4.5" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" /></svg>
       </button>
       <span className="tc-sep" />
-      <button className={`tc-btn ${density === "comfortable" ? "on" : ""}`} onClick={() => applyDensity("comfortable")} title="Comfortable spacing" aria-label="Comfortable spacing">
+      <button className={`tc-btn ${density === "comfortable" ? "on" : ""}`} onClick={() => applyDensity("comfortable")} title="Comfortable spacing" aria-label="Comfortable spacing" aria-pressed={density === "comfortable"}>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
-      <button className={`tc-btn ${density === "compact" ? "on" : ""}`} onClick={() => applyDensity("compact")} title="Compact spacing" aria-label="Compact spacing">
+      <button className={`tc-btn ${density === "compact" ? "on" : ""}`} onClick={() => applyDensity("compact")} title="Compact spacing" aria-label="Compact spacing" aria-pressed={density === "compact"}>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 5h16M4 9h16M4 13h16M4 17h16M4 21h16" /></svg>
       </button>
     </div>
