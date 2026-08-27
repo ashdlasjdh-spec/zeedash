@@ -1,5 +1,16 @@
 "use client";
-export default function Error({ reset }) {
+import { useEffect } from "react";
+
+export default function Error({ error, reset }) {
+  useEffect(() => {
+    try {
+      fetch("/api/client-error", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: error?.message, stack: error?.stack, digest: error?.digest, where: typeof location !== "undefined" ? location.pathname : "" }),
+      }).catch(() => {});
+    } catch { /* ignore */ }
+  }, [error]);
   return (
     <div style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 20 }}>
       <div className="card" style={{ maxWidth: 440, textAlign: "center" }}>
