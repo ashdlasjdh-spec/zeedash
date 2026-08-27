@@ -3,7 +3,12 @@ import { Inter } from "next/font/google";
 // Loads Inter (the first choice in --sans) so it actually resolves instead of falling back to
 // system-ui. `variable` exposes it as --font-inter; the className is applied to <html> below.
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
-export const metadata = { title: "ZHD Dashboard", description: "Zee [MACRO!] control panel" };
+export const metadata = {
+  metadataBase: new URL("https://zhd.lol"),
+  title: { default: "zhd.lol — Zee Hood", template: "%s · zhd.lol" },
+  description: "The Zee Hood staff control panel — game grants, moderation, Roblox group management and Discord server tools.",
+  openGraph: { title: "zhd.lol — Zee Hood", description: "The Zee Hood staff control panel.", url: "https://zhd.lol", siteName: "zhd.lol", type: "website" },
+};
 // Explicit mobile viewport (device-width + safe-area for notched phones).
 export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#060607" };
 // Everything here is auth-gated and reads live session/DB data — nothing should

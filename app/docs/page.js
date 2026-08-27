@@ -10,7 +10,7 @@ export default function DocsOverview() {
       <span className="docs-kicker"><Icon name="book" size={13} /> &nbsp;Documentation</span>
       <h1>The zhd.lol control panel</h1>
       <p className="docs-lede">
-        <strong>zhd.lol</strong> is the staff control panel for the Zee&nbsp;[MACRO!] community — one
+        <strong>zhd.lol</strong> is the staff control panel for the Zee&nbsp;Hood community — one
         place to hand out in-game perks, moderate players, and configure the Discord server and bot.
         This guide covers every part of the panel, who can use it, and how the pieces fit together.
       </p>

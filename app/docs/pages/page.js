@@ -138,7 +138,7 @@ export default function PagesReference() {
       <Figure url="zhd.lol/bot" caption={<><b>Overview.</b> A live summary of what&apos;s enabled for the selected server.</>}>
         <div className="mock">
           <div className="m-card">
-            <div className="m-head"><div className="m-title">Zee [MACRO!]</div><div className="m-sub">18 features on</div></div>
+            <div className="m-head"><div className="m-title">Zee Hood</div><div className="m-sub">18 features on</div></div>
             <div className="m-row" style={{ flexWrap: "wrap", gap: 8 }}>
               <span className="pill good">Automod</span><span className="pill good">Welcome</span><span className="pill good">Levels</span>
               <span className="pill good">Tickets</span><span className="pill good">Logs</span><span className="pill brand">+13</span>

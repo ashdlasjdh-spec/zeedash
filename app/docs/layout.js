@@ -4,7 +4,7 @@ import DocNav from "./DocNav";
 
 export const metadata = {
   title: "zhd.lol · Documentation",
-  description: "How the Zee [MACRO!] control panel works — game grants, moderation, and Discord server management.",
+  description: "How the Zee Hood control panel works — game grants, moderation, and Discord server management.",
 };
 
 // Docs are public and fully static — no session, no DB. Let Next prerender them.

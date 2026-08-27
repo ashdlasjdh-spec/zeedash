@@ -58,9 +58,9 @@ export default function ServerDocs() {
       <Figure url="Discord — #welcome" caption={<><b>What members see.</b> A clean, branded welcome embed with the new member&apos;s avatar.</>}>
         <div className="mock">
           <div className="embed-mock">
-            <div className="em-author">Zee [MACRO!]</div>
-            <div className="em-title">Welcome to Zee [MACRO!]</div>
-            <div className="em-desc">Hey @newmember — welcome to <b>Zee [MACRO!]</b>! You&apos;re member <b>#1,204</b>. Glad to have you here.</div>
+            <div className="em-author">Zee Hood</div>
+            <div className="em-title">Welcome to Zee Hood</div>
+            <div className="em-desc">Hey @newmember — welcome to <b>Zee Hood</b>! You&apos;re member <b>#1,204</b>. Glad to have you here.</div>
             <div className="em-foot">Welcome</div>
           </div>
         </div>
