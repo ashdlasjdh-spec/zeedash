@@ -910,3 +910,18 @@ tr.skeleton-row{height:auto;border:0;background:none;animation:none}
 .sg-fb{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--surface-3);font-weight:800;color:var(--muted);flex:0 0 auto}
 .sg-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;color:var(--white)}
 .sg-arrow{color:var(--muted)}
+
+/* ── Accessibility: keyboard focus ring ────────────────────────────────────── */
+/* The dashboard is heavily keyboard-driven; give every interactive element a clear focus ring.
+   :focus-visible keeps it keyboard-only so mouse clicks stay clean. Uses the brand accent. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand, #e11d2a);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
