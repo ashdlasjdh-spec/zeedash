@@ -45,6 +45,18 @@ export default function GameSiteClient() {
   const addShop = () => setCfg((c) => ({ ...c, shop: [...(c.shop || []), ["", ""]] }));
   const delShop = (i) => setCfg((c) => ({ ...c, shop: (c.shop || []).filter((_, j) => j !== i) }));
 
+  async function resetDefaults() {
+    try {
+      const d = await (await fetch("/api/game-config?defaults=1")).json();
+      setCfg(d);
+      setPowersText(JSON.stringify(d.powers || [], null, 2));
+      setPowersErr("");
+      setStatus({ kind: "", msg: "Form reset to defaults — press Save to apply." });
+    } catch {
+      setStatus({ kind: "err", msg: "Could not load defaults." });
+    }
+  }
+
   async function save() {
     setPowersErr("");
     let powers;
@@ -147,10 +159,14 @@ export default function GameSiteClient() {
         {powersErr && <span style={{ color: "var(--danger)", fontSize: 13 }}>{powersErr}</span>}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <button className="btn" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
+        <button className="btn ghost" onClick={resetDefaults} disabled={saving}>Reset to defaults</button>
         {status.msg && <span style={{ color: status.kind === "ok" ? "var(--good, #16a34a)" : "var(--danger)", fontSize: 14 }}>{status.msg}</span>}
       </div>
+      <p style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
+        Reset repopulates the form with the built-in defaults — nothing is saved until you press Save.
+      </p>
     </div>
   );
 }
