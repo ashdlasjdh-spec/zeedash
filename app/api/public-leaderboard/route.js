@@ -26,6 +26,7 @@ export async function GET(req) {
     const leaderboard = rows.map((r, i) => ({ rank: i + 1, id: r.user_id, name: r.username, avatar: avatars[String(r.user_id)] || null, messages: Number(r.m) || 0 }));
     return NextResponse.json({ leaderboard }, { headers: { "cache-control": "public, s-maxage=120, stale-while-revalidate=600" } });
   } catch (e) {
-    return NextResponse.json({ leaderboard: [], error: e.message }, { headers: { "cache-control": "no-store" } });
+    console.error(`[public-leaderboard]`, e?.message || e);
+    return NextResponse.json({ leaderboard: [], error: "unavailable" }, { headers: { "cache-control": "no-store" } });
   }
 }

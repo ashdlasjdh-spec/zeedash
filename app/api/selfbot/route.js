@@ -63,6 +63,13 @@ async function kvSet(key, value) {
   );
 }
 
+// Never hand a raw exception message (DB errors, internal paths) to a browser client. Log it
+// server-side for debugging and return a generic 500.
+function fail(e, where) {
+  console.error(`[selfbot-api] ${where}:`, e?.message || e);
+  return NextResponse.json({ error: "Server error." }, { status: 500 });
+}
+
 async function requireOwner() {
   const s = await getSession();
   return s && isSuperOwner(s.id) ? s : null;
@@ -103,7 +110,7 @@ export async function GET(req) {
       const [cfg, command] = await Promise.all([kvGet("config"), kvGet("command")]);
       return NextResponse.json({ config: cfg || {}, command: command || null });
     } catch (e) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
+      return fail(e, "GET bot");
     }
   }
   try {
@@ -116,7 +123,7 @@ export async function GET(req) {
       result: result || null,
     });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return fail(e, "GET");
   }
 }
 
@@ -139,7 +146,7 @@ export async function POST(req) {
       await Promise.all(writes);
       return NextResponse.json({ ok: true });
     } catch (e) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
+      return fail(e, "POST bot");
     }
   }
   try {
@@ -204,6 +211,6 @@ export async function POST(req) {
     }
     return NextResponse.json({ error: "unknown kind" }, { status: 400 });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return fail(e, "POST");
   }
 }

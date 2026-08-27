@@ -79,9 +79,10 @@ export async function GET(req) {
       { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   } catch (e) {
+    console.error(`[public-stats]`, e?.message || e);
     // Never break the landing page on a stats hiccup — return an empty, valid shape.
     return NextResponse.json(
-      { totals: { servers: 0, members: 0, messages30d: 0, playersInGame: null }, guilds: [], error: e.message },
+      { totals: { servers: 0, members: 0, messages30d: 0, playersInGame: null }, guilds: [], error: "unavailable" },
       { headers: { "cache-control": "no-store" } },
     );
   }
