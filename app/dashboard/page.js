@@ -11,8 +11,12 @@ import { getLivePlayers } from "@/lib/gamestats";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "../components/ProfileLinks";
 import LocalTime from "../components/LocalTime";
 import PortalChooser from "../components/PortalChooser";
+import { getChangelog } from "@/lib/changelog.mjs";
 
 export const dynamic = "force-dynamic";
+
+// Per-project tag tone for the "What's new" card (mirrors /changelog).
+const NEWS_TONE = { "Zee-hood": "bot", zeedash: "dash", "zee-hood-game": "game", "zee-hood-transcript": "ts", idkutoldmetomakeit: "api" };
 
 // ---- inline monochrome line-icons (stroke = currentColor), matching the sidebar set ----
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -70,12 +74,14 @@ export default async function Overview({ searchParams }) {
 
   // --- stats (each independent + best-effort so one failure never blanks the page) ---
   const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };
-  const [livePlayers, tempCount, auditTotal, auditToday] = await Promise.all([
+  const [livePlayers, tempCount, auditTotal, auditToday, changelogGroups] = await Promise.all([
     getLivePlayers().catch(() => null),
     one("select count(*)::int n from grant_expiry"),
     seesActivity ? one("select count(*)::int n from audit_log") : Promise.resolve(0),
     seesActivity ? one("select count(*)::int n from audit_log where created_at >= date_trunc('day', now())") : Promise.resolve(0),
+    getChangelog(12).catch(() => []),
   ]);
+  const whatsNew = (Array.isArray(changelogGroups) ? changelogGroups : []).flatMap((g) => g.items).slice(0, 6);
 
   let log = [], movers = [];
   if (seesActivity) {
@@ -209,6 +215,25 @@ export default async function Overview({ searchParams }) {
                 <span className="ov-mname"><DiscordLink id={m.actor_id}>{m.actor_name || "—"}</DiscordLink></span>
                 <span className="ov-mbar" style={{ width: `${Math.max(8, Math.round((Number(m.n) / moverMax) * 96))}px` }} />
                 <span className="ov-mcount">{m.n}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {whatsNew.length > 0 && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="between" style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>What&apos;s new</div>
+            <Link className="muted" href="/changelog" style={{ fontSize: 12.5 }}>Full changelog →</Link>
+          </div>
+          <div className="ov-news">
+            {whatsNew.map((it, i) => (
+              <div className="ov-news-row" key={i}>
+                <span className={`cl-tag cl-tag-${NEWS_TONE[it.repo] || "dash"}`}>{it.label}</span>
+                {it.url
+                  ? <a className="ov-news-text" href={it.url} target="_blank" rel="noopener noreferrer">{it.text}</a>
+                  : <span className="ov-news-text">{it.text}</span>}
               </div>
             ))}
           </div>

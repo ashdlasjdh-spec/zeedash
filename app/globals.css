@@ -955,3 +955,9 @@ select:focus-visible,
 a.cl-text:hover{border-bottom-color:var(--muted)}
 .cl-foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media(max-width:560px){.cl-head h1{font-size:28px}.cl-item{gap:9px}.cl-tag{min-width:60px;font-size:9.5px}}
+
+/* Dashboard "What's new" card rows (reuses .cl-tag chips from the changelog page). */
+.ov-news{display:flex;flex-direction:column;gap:9px}
+.ov-news-row{display:flex;gap:11px;align-items:flex-start}
+.ov-news-text{color:var(--text);font-size:14px;line-height:1.45;text-decoration:none;border-bottom:1px solid transparent}
+a.ov-news-text:hover{border-bottom-color:var(--muted)}
