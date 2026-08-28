@@ -367,6 +367,11 @@ export default function SelfbotClient({ me, isOwner = false }) {
             <Stat label="Removed" value={(st.counters && st.counters.removed) ?? 0} />
             <Stat label="Protected" value={(st.counters && st.counters.protected) ?? 0} tone="var(--success)" />
             <Stat label="Errors" value={(st.counters && st.counters.errors) ?? 0} tone="var(--danger)" />
+            <Stat
+              label="Last reconcile"
+              value={st.lastReconcileAt ? `${uptime(st.lastReconcileAt)} ago` : "—"}
+              tone={st.lastReconcileAt && Date.now() - st.lastReconcileAt > 5 * 60 * 1000 ? "var(--danger)" : undefined}
+            />
           </div>
           <div className="card">
             <div className="sb-card-actions">
