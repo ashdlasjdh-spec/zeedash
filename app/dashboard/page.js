@@ -79,7 +79,7 @@ export default async function Overview({ searchParams }) {
     one("select count(*)::int n from grant_expiry"),
     seesActivity ? one("select count(*)::int n from audit_log") : Promise.resolve(0),
     seesActivity ? one("select count(*)::int n from audit_log where created_at >= date_trunc('day', now())") : Promise.resolve(0),
-    getChangelog(12).catch(() => []),
+    getChangelog().catch(() => []), // default perRepo so this shares the /changelog page's cached fetch
   ]);
   const whatsNew = (Array.isArray(changelogGroups) ? changelogGroups : []).flatMap((g) => g.items).slice(0, 6);
 
