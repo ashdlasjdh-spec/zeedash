@@ -93,6 +93,15 @@ function uptime(readyAt) {
   const m = Math.floor(s / 60);
   return [d ? `${d}d` : "", h ? `${h}h` : "", `${m}m`].filter(Boolean).join(" ");
 }
+// Friendly text for the in-progress indicator instead of the raw action key ("reindex" → "Rebuilding…").
+const BUSY_LABELS = {
+  reindex: "Rebuilding staff index", sync: "Running sync", roster: "Loading roster", ranks: "Loading ranks",
+  orphan: "Scanning group", preview: "Building preview", lookup: "Looking up", save: "Saving",
+  roles: "Updating roles", whitelist: "Updating whitelist", ping: "Updating automod", access: "Updating access",
+  guilds: "Loading servers", connect: "Connecting", disconnect: "Disconnecting", restart: "Restarting",
+  kick: "Removing", purge: "Purging DMs", purgeall: "Purging DMs", blast: "Sending", say: "Sending", nick: "Setting nickname",
+};
+const busyLabel = (b) => (BUSY_LABELS[b] || (b.charAt(0).toUpperCase() + b.slice(1))) + "…";
 
 export default function SelfbotClient({ me, isOwner = false }) {
   const [tab, setTab] = useState("overview");
@@ -106,6 +115,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [lookupQ, setLookupQ] = useState("");
   const [lookupRes, setLookupRes] = useState(null);
   const [roster, setRoster] = useState(null);
+  const [rosterErr, setRosterErr] = useState("");
   const [staffFilter, setStaffFilter] = useState("");
   const [ranks, setRanks] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -199,10 +209,21 @@ export default function SelfbotClient({ me, isOwner = false }) {
     finally { setBusy(""); }
   };
   const doPreview = async () => { setBusy("preview"); try { const r = await runCommand("wouldkick"); setPreview((r && r.hits) || []); flash("Preview ready"); } finally { setBusy(""); } };
+  const doReindex = async () => { setBusy("reindex"); try { const r = await runCommand("reindex"); await load(); const n = r && r.indexed ? r.indexed.size : null; flash(n != null ? `Staff index rebuilt — ${n} record${n === 1 ? "" : "s"}` : "Reindex done"); } finally { setBusy(""); } };
+  const doSync = async () => { setBusy("sync"); try { await runCommand("sync"); await load(); flash("Sync complete"); } finally { setBusy(""); } };
   const doLookup = async () => { if (!lookupQ.trim()) return; setBusy("lookup"); try { setLookupRes(await runCommand("lookup", lookupQ.trim())); } finally { setBusy(""); } };
   const doOrphanPreview = async () => { setBusy("orphan"); setConfirmOrphan(false); try { const r = await runCommand("orphanpreview", null, 90); setOrphanRes(r); if (r && r.error) flash(r.error); else flash("Scan complete"); } finally { setBusy(""); } };
   const doOrphanPurge = async () => { setBusy("orphan"); try { const r = await runCommand("orphanpurge", null, 120); setOrphanRes(r); setConfirmOrphan(false); if (r && r.error) flash(r.error); else flash(`Processed ${r ? r.processed : 0}`); await load(); } finally { setBusy(""); } };
-  const loadRoster = async () => { setBusy("roster"); try { const r = await runCommand("roster"); setRoster((r && r.roster) || []); } finally { setBusy(""); } };
+  const loadRoster = async () => {
+    setBusy("roster"); setRosterErr("");
+    try {
+      // The roster resolves a Roblox name + rank per record, so a big staff list is slow — give it
+      // plenty of polling time instead of timing out to an empty "0" that looks like no staff.
+      const r = await runCommand("roster", null, 45);
+      if (r && Array.isArray(r.roster)) setRoster(r.roster);
+      else { setRoster([]); setRosterErr("failed"); }
+    } finally { setBusy(""); }
+  };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
   const roleKey = () => (roleGuild === "leaderboard" ? "leaderboardStaffRoleIds" : "staffRoleIds");
   const roleGuildId = () => (roleGuild === "leaderboard" ? (cfg.leaderboardGuildId || "") : (cfg.guildId || ""));
@@ -389,8 +410,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
           <div className="card">
             <div className="sb-card-actions">
               <b style={{ marginRight: "auto" }}>Quick actions</b>
-              <button className="btn ghost" disabled={!!busy} onClick={() => act("reindex", null, "reindex")}>Reindex staff</button>
-              <button className="btn ghost" disabled={!!busy} onClick={() => act("sync", null, "sync")}>Sync now</button>
+              <button className="btn ghost" disabled={!!busy} onClick={doReindex}>Reindex staff</button>
+              <button className="btn ghost" disabled={!!busy} onClick={doSync}>Sync now</button>
               <button className="btn" disabled={!!busy} onClick={doPreview}>Dry-run preview</button>
             </div>
             {preview && (
@@ -484,8 +505,18 @@ export default function SelfbotClient({ me, isOwner = false }) {
             <input value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} placeholder="Filter…" style={{ minWidth: 160 }} />
             <button className="btn ghost" disabled={!!busy} onClick={loadRoster}>{roster ? "Reload" : "Load roster"}</button>
           </div>
-          {!roster && <p className="muted" style={{ marginTop: 8 }}>Loads everyone the bot has registered from staff-info, with their Roblox username, group rank, and whether they'd be removed.</p>}
-          {roster && (
+          {!roster && busy !== "roster" && <p className="muted" style={{ marginTop: 8 }}>Loads everyone the bot has registered from staff-info, with their Roblox username, group rank, and whether they&apos;d be removed.</p>}
+          {busy === "roster" && <p className="muted" style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span className="sb-spin" />Loading roster… (resolving Roblox names — a big list can take a moment)</p>}
+          {roster && roster.length === 0 && busy !== "roster" && (
+            <div style={{ marginTop: 12, padding: "14px 16px", border: "1px solid var(--line)", borderRadius: 12, background: "var(--surface-2)", color: "var(--muted)", fontSize: 13.5, lineHeight: 1.5 }}>
+              {rosterErr === "failed"
+                ? <>Couldn&apos;t load the roster — the self-bot may be offline, or it timed out resolving Roblox names. Hit <b>Reload</b> to try again.</>
+                : (st.staffIndexSize || 0) === 0
+                  ? <>No staff indexed yet. The bot builds this list from the <b>staff-info channel</b> — run <b>Reindex staff</b> on the Overview tab, and make sure the staff-info channel is set under Settings.</>
+                  : <>The index holds {st.staffIndexSize} record(s) but none came back — the bot may still be resolving them. Hit <b>Reload</b> in a moment.</>}
+            </div>
+          )}
+          {roster && roster.length > 0 && (
             <div style={{ overflowX: "auto", marginTop: 10 }}>
               <table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Discord ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                 <tbody>{filteredStaff.map((s, i) => (
@@ -869,8 +900,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
           <div className="card">
             <div className="sb-card-actions">
               <b style={{ marginRight: "auto" }}>Maintenance</b>
-              <button className="btn ghost" disabled={!!busy} onClick={() => act("reindex", null, "reindex")}>Reindex staff</button>
-              <button className="btn ghost" disabled={!!busy} onClick={() => act("sync", null, "sync")}>Sync now</button>
+              <button className="btn ghost" disabled={!!busy} onClick={doReindex}>Reindex staff</button>
+              <button className="btn ghost" disabled={!!busy} onClick={doSync}>Sync now</button>
               <button className="btn ghost" disabled={!!busy} onClick={applyPresenceNow}>Re-apply presence</button>
             </div>
           </div>
@@ -953,7 +984,11 @@ export default function SelfbotClient({ me, isOwner = false }) {
       </div>
 
       {toast && <div style={{ position: "fixed", right: 18, bottom: 18, background: "var(--surface-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 14px", boxShadow: "var(--shadow)", animation: "sbRise .25s ease" }}>{toast}</div>}
-      {busy && <div style={{ position: "fixed", left: 18, bottom: 18 }} className="muted"><span className="sb-spin" />{busy}…</div>}
+      {busy && (
+        <div style={{ position: "fixed", left: 18, bottom: 18, display: "flex", alignItems: "center", gap: 9, background: "var(--surface-3)", border: "1px solid var(--line)", borderRadius: 12, padding: "9px 14px", boxShadow: "var(--shadow)", fontSize: 13, fontWeight: 500, animation: "sbRise .2s ease", zIndex: 40 }}>
+          <span className="sb-spin" />{busyLabel(busy)}
+        </div>
+      )}
     </Shell>
   );
 }
