@@ -23,6 +23,16 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Discord domain verification fetches this file and expects plain text. A file with no
+        // extension is otherwise served as application/octet-stream, which its validator rejects —
+        // so pin text/plain explicitly. Short cache so a re-verify always sees the current token.
+        source: "/.well-known/discord",
+        headers: [
+          { key: "Content-Type", value: "text/plain; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=300" },
+        ],
+      },
+      {
         // The public landing is session-aware (logged-in vs not), so it must never be served from a
         // shared/edge cache — otherwise a stale copy (e.g. the old login page that redirected to
         // /dashboard) can linger after a deploy. force-dynamic already sets this; pin it explicitly.
