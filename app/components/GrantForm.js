@@ -82,6 +82,19 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
     setLoadingList(false);
   }
 
+  // Download the loaded "currently granted" list as a CSV (user id · items · granted by).
+  function exportCsv() {
+    const rows = list || [];
+    if (!rows.length) return;
+    const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["user_id", category, "granted_by"].map(esc).join(",")];
+    for (const r of rows) lines.push([r.userId, (r.items || []).join("; "), r.by || ""].map(esc).join(","));
+    const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = `${category}-grants-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
   // Co-founder+ only: revoke every item this user has in this category, straight from
   // the "currently granted" list.
   async function removeUser(userId, rowItems) {
@@ -166,9 +179,14 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
               <div style={{ fontWeight: 700, fontSize: 15 }}>Currently granted</div>
               <div className="muted" style={{ fontSize: 13 }}>Everyone with a {category} in the shared database. Co founder+ can remove.</div>
             </div>
-            <button className="btn ghost" style={{ width: "auto" }} disabled={loadingList} onClick={loadGranted}>
-              {loadingList ? "Loading…" : list ? "Refresh" : "Load"}
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              {list && list.length > 0 && (
+                <button className="btn ghost" style={{ width: "auto" }} onClick={exportCsv} title="Download this list as CSV">Export CSV</button>
+              )}
+              <button className="btn ghost" style={{ width: "auto" }} disabled={loadingList} onClick={loadGranted}>
+                {loadingList ? "Loading…" : list ? "Refresh" : "Load"}
+              </button>
+            </div>
           </div>
           {list && (
             list.length === 0 ? (
