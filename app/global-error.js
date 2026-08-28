@@ -20,7 +20,7 @@ export default function GlobalError({ error, reset }) {
           <div>
             <h1 style={{ margin: "0 0 8px" }}>Something went wrong</h1>
             <p style={{ color: "#9a9aa2", margin: "0 0 18px" }}>The page couldn&apos;t load. Try again.</p>
-            <button onClick={() => reset()} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #333", background: "#e11d2a", color: "#fff", cursor: "pointer", fontWeight: 600 }}>Try again</button>
+            <button onClick={() => reset()} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #333", background: "#e01f1f", color: "#fff", cursor: "pointer", fontWeight: 600 }}>Try again</button>
           </div>
         </div>
       </body>

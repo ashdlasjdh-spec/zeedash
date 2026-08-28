@@ -921,7 +921,7 @@ textarea:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--brand, #e11d2a);
+  outline: 2px solid var(--brand, #e01f1f);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -946,7 +946,7 @@ select:focus-visible,
 .cl-tag{flex:0 0 auto;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
   padding:3px 9px;border-radius:6px;margin-top:1px;border:1px solid var(--line);color:var(--muted);
   background:var(--surface-2);min-width:74px;text-align:center}
-.cl-tag-bot{color:#e6b3b8;border-color:rgba(225,29,42,.4);background:rgba(225,29,42,.1)}
+.cl-tag-bot{color:#e6b3b8;border-color:rgba(224, 31, 31,.4);background:rgba(224, 31, 31,.1)}
 .cl-tag-dash{color:#cbd5ff;border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.1)}
 .cl-tag-game{color:#bff0d0;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)}
 .cl-tag-ts{color:#ffe0b3;border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.1)}
