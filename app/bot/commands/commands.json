@@ -5,7 +5,7 @@
   "categories": [
     {
       "name": "Moderation",
-      "emoji": "🔨",
+      "emoji": "",
       "commands": [
         {
           "name": "nick",
@@ -783,7 +783,7 @@
     },
     {
       "name": "Roblox Group",
-      "emoji": "👥",
+      "emoji": "",
       "commands": [
         {
           "name": "groupinfo",
@@ -1045,7 +1045,7 @@
     },
     {
       "name": "Game",
-      "emoji": "🎮",
+      "emoji": "",
       "commands": [
         {
           "name": "antinuke",
@@ -1161,7 +1161,7 @@
     },
     {
       "name": "Info & Lookup",
-      "emoji": "📖",
+      "emoji": "",
       "commands": [
         {
           "name": "ping",
@@ -1384,7 +1384,7 @@
     },
     {
       "name": "Fun & Utility",
-      "emoji": "🎲",
+      "emoji": "",
       "commands": [
         {
           "name": "banner",
@@ -1663,7 +1663,7 @@
         },
         {
           "name": "clap",
-          "description": "Put 👏 between 👏 words. Usage: clap <text>.",
+          "description": "Put between words. Usage: clap <text>.",
           "aliases": [],
           "usage": ".clap <text>",
           "level": "Everyone",
@@ -1721,7 +1721,7 @@
     },
     {
       "name": "Economy",
-      "emoji": "🪙",
+      "emoji": "",
       "commands": [
         {
           "name": "balance",
@@ -1903,7 +1903,7 @@
     },
     {
       "name": "Configuration",
-      "emoji": "⚙️",
+      "emoji": "",
       "commands": [
         {
           "name": "prefix",
@@ -1957,7 +1957,7 @@
     },
     {
       "name": "Server Tools",
-      "emoji": "🛠️",
+      "emoji": "",
       "commands": [
         {
           "name": "giveaway",
@@ -2194,7 +2194,7 @@
     },
     {
       "name": "Community & Members",
-      "emoji": "🌐",
+      "emoji": "",
       "commands": [
         {
           "name": "afk",
@@ -2421,7 +2421,7 @@
     },
     {
       "name": "Integrations",
-      "emoji": "🔌",
+      "emoji": "",
       "commands": [
         {
           "name": "crypto",
@@ -2832,7 +2832,7 @@
     },
     {
       "name": "Embeds & Panels",
-      "emoji": "📝",
+      "emoji": "",
       "commands": [
         {
           "name": "makeembed",

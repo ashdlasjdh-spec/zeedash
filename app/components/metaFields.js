@@ -59,7 +59,7 @@ export function useGuildMeta(guild, active) {
 export function metaOptions(meta, type) {
   if (!meta) return [];
   if (type === "channel") return (meta.text || []).map((c) => ({ value: c.id, label: `# ${c.name}` }));
-  if (type === "voice") return (meta.voice || []).map((c) => ({ value: c.id, label: `🔊 ${c.name}` }));
+  if (type === "voice") return (meta.voice || []).map((c) => ({ value: c.id, label: `${c.name}` }));
   if (type === "category") return (meta.categories || []).map((c) => ({ value: c.id, label: c.name }));
   if (type === "role") return (meta.roles || []).map((r) => ({ value: r.id, label: `@ ${r.name}` }));
   return [];

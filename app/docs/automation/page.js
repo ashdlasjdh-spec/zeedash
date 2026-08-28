@@ -56,7 +56,7 @@ export default function AutomationDocs() {
       <h2>Channel helpers</h2>
       <h3>Starboard</h3>
       <Figure url="starboard — star threshold" caption={<><b>The community pins the best.</b> Once a message hits the star threshold, it&apos;s reposted to the starboard.</>}>
-        <MiniFlow items={[{ t: "Message gets ⭐", s: "from members" }, { t: "Threshold reached", s: "e.g. 5 stars" }, { t: "Posted to starboard" }]} />
+        <MiniFlow items={[{ t: "Message gets", s: "from members" }, { t: "Threshold reached", s: "e.g. 5 stars" }, { t: "Posted to starboard" }]} />
       </Figure>
       <h3>Sticky message</h3>
       <Figure url="sticky — stays at the bottom" caption={<><b>Always visible.</b> The bot re-posts the sticky so it stays at the bottom as chat moves.</>}>

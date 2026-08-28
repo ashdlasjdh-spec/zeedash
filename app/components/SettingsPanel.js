@@ -25,7 +25,7 @@ export default function SettingsPanel() {
       if (!r.ok) throw new Error(d.error || "Sync failed");
       const bits = [`${d.perksSynced} perk entries written`, `${d.whitelistPowers ?? 0} power whitelists rebuilt`, `${d.tagsSynced} tags pushed`, `${d.pinged} online pings sent`];
       if (d.perksSkipped) bits.push(`${d.perksSkipped} empty rows skipped`);
-      setST({ ok: !(d.errors || []).length, msg: `Synced — ${bits.join(", ")}.` + ((d.errors || []).length ? ` ⚠ ${d.errors.length} errors: ${d.errors.slice(0, 3).join(" · ")}` : " Players get perks on next spawn.") });
+      setST({ ok: !(d.errors || []).length, msg: `Synced — ${bits.join(", ")}.` + ((d.errors || []).length ? ` ${d.errors.length} errors: ${d.errors.slice(0, 3).join(" · ")}` : " Players get perks on next spawn.") });
     } catch (e) { setST({ bad: true, msg: e.message }); }
     setS(false);
   }

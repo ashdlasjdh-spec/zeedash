@@ -19,11 +19,11 @@ const FIELDS = [
     { key: "category", label: "Category (blank = panel's)", type: "category", flex: 1 },
     { key: "roles", label: "Support roles", type: "roles", flex: 1.1 },
     { key: "openMessage", label: "Opening message (blank = default)", placeholder: "Thanks — a staffer will help you.", flex: 1.2 },
-    { key: "emoji", label: "Emoji", placeholder: "🎫", flex: 0.4 },
+    { key: "emoji", label: "Emoji", placeholder: "", flex: 0.4 },
   ] },
   { key: "supportRoles", label: "Support roles (pinged + given access on every ticket)", type: "roles", hint: "These are added on top of any per-button roles above." },
   { key: "openMessage", label: "Default opening message", type: "textarea", rows: 2, placeholder: "Thanks for opening a ticket — a staff member will be with you shortly.", hint: "Used when a button has no opening message of its own. {user} = the opener's mention." },
-  { key: "closeMessage", label: "Close message", type: "textarea", rows: 2, placeholder: "🔒 Ticket closed by {user} — saving transcript, deleting in 5 seconds…", hint: "Posted in the ticket when it's closed. {user} = whoever closed it. Blank = the default." },
+  { key: "closeMessage", label: "Close message", type: "textarea", rows: 2, placeholder: "Ticket closed by {user} — saving transcript, deleting in 5 seconds…", hint: "Posted in the ticket when it's closed. {user} = whoever closed it. Blank = the default." },
   { key: "transcriptChannel", label: "Transcript channel (where closed-ticket transcripts are saved)", type: "channel", hint: "Leave blank to fall back to your Logs channel. Blank + no Logs channel = no transcript saved." },
 ];
 

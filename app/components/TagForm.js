@@ -151,7 +151,7 @@ export default function TagForm() {
             <div className="grid g2">
               <div><label>Group ID</label><input className="mono" value={f.groupId} onChange={(e) => up("groupId", e.target.value)} placeholder="1099600954" /></div>
               <div><label>Rank (blank = whole group)</label><input className="mono" value={f.rank} onChange={(e) => up("rank", e.target.value)} placeholder="e.g. 255" /></div>
-              <div><label>Tag text</label><input value={f.name} onChange={(e) => up("name", e.target.value)} placeholder="🍋 CREW" /></div>
+              <div><label>Tag text</label><input value={f.name} onChange={(e) => up("name", e.target.value)} placeholder="CREW" /></div>
               <div>
                 <label>Icon (asset id, or upload a PNG)</label>
                 <div className="row" style={{ gap: 8 }}>

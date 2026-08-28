@@ -54,7 +54,7 @@ export default function CommandsBrowser({ data }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "16px 0 22px" }}>
         {cats.map((c) => (
           <a key={c.name} href={`#${slug(c.name)}`} style={chip}>
-            <span aria-hidden>{c.emoji}</span> {c.name} <span className="muted">{c.commands.length}</span>
+            {c.name} <span className="muted">{c.commands.length}</span>
           </a>
         ))}
       </div>
@@ -65,7 +65,7 @@ export default function CommandsBrowser({ data }) {
       {cats.map((c) => (
         <section key={c.name} id={slug(c.name)} style={{ marginBottom: 34, scrollMarginTop: 20 }}>
           <h2 style={{ fontSize: 19, fontWeight: 800, display: "flex", alignItems: "center", gap: 9, margin: "0 0 12px" }}>
-            <span aria-hidden style={{ fontSize: 22 }}>{c.emoji}</span> {c.name}
+            {c.name}
             <span className="muted" style={{ fontSize: 13, fontWeight: 600 }}>{c.commands.length}</span>
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>

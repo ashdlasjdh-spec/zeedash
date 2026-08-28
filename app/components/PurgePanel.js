@@ -33,7 +33,7 @@ export default function PurgePanel() {
       const res = await fetch("/api/wipe-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: u }) });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.warn?.length, msg: `Wiped ${d.target.username} (${d.target.userId}) — ${d.done.join(", ") || "nothing found"}.` + (d.warn?.length ? ` ⚠ ${d.warn.join("; ")}` : "") });
+      setToast({ ok: !d.warn?.length, msg: `Wiped ${d.target.username} (${d.target.userId}) — ${d.done.join(", ") || "nothing found"}.` + (d.warn?.length ? ` ${d.warn.join("; ")}` : "") });
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setWBusy(false);
   }
@@ -51,7 +51,7 @@ export default function PurgePanel() {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.warn, msg: `Removed ${d.removed.items} ${label} grant(s) from ${d.removed.users} player(s).` + (d.warn ? " ⚠ " + d.warn : "") });
+      setToast({ ok: !d.warn, msg: `Removed ${d.removed.items} ${label} grant(s) from ${d.removed.users} player(s).` + (d.warn ? " " + d.warn : "") });
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(null);
   }
@@ -72,7 +72,7 @@ export default function PurgePanel() {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.warn, msg: `Revoked ${d.removed.items} grant(s) made by ${g} across ${d.removed.users} player(s).` + (d.warn ? " ⚠ " + d.warn : "") });
+      setToast({ ok: !d.warn, msg: `Revoked ${d.removed.items} grant(s) made by ${g} across ${d.removed.users} player(s).` + (d.warn ? " " + d.warn : "") });
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setGBusy(false);
   }

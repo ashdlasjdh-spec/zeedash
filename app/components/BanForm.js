@@ -20,7 +20,7 @@ export default function BanForm() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
-      const wh = d.webhook && d.webhook !== "sent" ? ` ⚠ ${d.webhook}` : "";
+      const wh = d.webhook && d.webhook !== "sent" ? ` ${d.webhook}` : "";
       setT({
         ok: !wh,
         msg: `${action === "ban" ? "Banned" : "Unbanned"} ${d.user?.username || user}` +

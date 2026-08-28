@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 const FIELDS = [
   { key: "channel", label: "Channel", type: "channel" },
-  { key: "message", label: "Sticky message", type: "textarea", rows: 3, placeholder: "📌 Read the rules before posting!" },
+  { key: "message", label: "Sticky message", type: "textarea", rows: 3, placeholder: "Read the rules before posting!" },
 ];
 
 export default featurePage({

@@ -87,7 +87,7 @@ export default function GroupPanel({ scoped = false, scope = [], capLevel = null
             <button className="btn ghost" style={{ width: "auto" }} disabled={loadingReqs} onClick={loadReqs}>{loadingReqs ? "Loading…" : reqs ? "Refresh" : "Load"}</button>
           </div>
         </div>
-        {reqs && (reqs.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No pending requests. 🎉</p> : (
+        {reqs && (reqs.length === 0 ? <p className="muted" style={{ marginTop: 14 }}>No pending requests.</p> : (
           <div className="stack" style={{ marginTop: 14 }}>
             {reqs.map((r) => (
               <div key={r.userId} className="between" style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 13px" }}>

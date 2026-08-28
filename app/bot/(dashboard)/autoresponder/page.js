@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const COLS = [
   { key: "trigger", label: "Trigger", placeholder: "hello", flex: 1 },
-  { key: "response", label: "Response", type: "textarea", placeholder: "Hey there! 👋", flex: 2 },
+  { key: "response", label: "Response", type: "textarea", placeholder: "Hey there!", flex: 2 },
   { key: "exact", label: "Exact", type: "bool", flex: 0.4 },
 ];
 

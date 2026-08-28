@@ -41,7 +41,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       const temp = data.expiresIn ? ` (auto-revokes in ${data.expiresIn})` : "";
-      setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}${temp}.` + (data.warn ? " ⚠ " + data.warn : "") });
+      setToast({ ok: !data.warn, msg: `${action === "revoke" ? "Revoked" : "Granted"} ${sel} ${action === "revoke" ? "from" : "to"} ${data.target.username}${temp}.` + (data.warn ? " " + data.warn : "") });
       loadStats();
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }
@@ -61,7 +61,7 @@ export default function GrantForm({ category, items, verb = "Grant", canManage =
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.failed, msg: `${action === "grant" ? "Granted" : "Revoked"} ${sel} ${action === "grant" ? "to" : "from"} ${d.done}/${d.total}.` + (d.failed ? ` ⚠ ${d.failed} failed: ${d.errors.join("; ")}` : "") });
+      setToast({ ok: !d.failed, msg: `${action === "grant" ? "Granted" : "Revoked"} ${sel} ${action === "grant" ? "to" : "from"} ${d.done}/${d.total}.` + (d.failed ? ` ${d.failed} failed: ${d.errors.join("; ")}` : "") });
       loadStats();
       if (list) loadGranted();
     } catch (e) { setToast({ bad: true, msg: e.message }); }

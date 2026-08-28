@@ -12,8 +12,8 @@ export default function Topbar({ user, links = [], allGroups = [], canSettings =
   const [menu, setMenu] = useState(false);   // account menu
   const [all, setAll] = useState(false);      // mega menu
   const [copied, setCopied] = useState(false);
-  const [shortcut, setShortcut] = useState("Ctrl K"); // platform-aware; avoids the ugly ⌘ box on Windows
-  useEffect(() => { if (typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)) setShortcut("⌘K"); }, []);
+  const [shortcut, setShortcut] = useState("Ctrl K"); // platform-aware; avoids the ugly box on Windows
+  useEffect(() => { if (typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)) setShortcut("K"); }, []);
   const accRef = useRef(null);
   const allRef = useRef(null);
 

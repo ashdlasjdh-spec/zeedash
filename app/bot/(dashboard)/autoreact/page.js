@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const COLS = [
   { key: "trigger", label: "Trigger word (optional)", placeholder: "gg", flex: 1 },
   { key: "channel", label: "Channel ID (optional)", mono: true, placeholder: "123…", flex: 1 },
-  { key: "emojis", label: "Emojis", placeholder: "⭐ 🔥", flex: 1 },
+  { key: "emojis", label: "Emojis", placeholder: "", flex: 1 },
 ];
 
 export default async function Page() {

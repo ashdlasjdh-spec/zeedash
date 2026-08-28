@@ -27,22 +27,22 @@ Variables. `.env.local` is git-ignored; **never commit real values**.
 
 | Var | Required | What |
 |---|---|---|
-| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | ✅ | OAuth2 app credentials. |
-| `DISCORD_REDIRECT_URI` | ✅ | `https://zhd.lol/api/auth/callback`. |
-| `DISCORD_GUILD_ID` | ✅ | Your server id (to read member roles). |
-| `DISCORD_BOT_TOKEN` | ✅ | Bot token — reads roles **and** posts the action log. |
-| `DISCORD_ROLE_MAP` | ✅ | JSON `{ "<roleId>": <level 0-255> }`. **Mirror the bot's levels.** |
-| `DISCORD_LOG_CHANNEL_ID` | ➖ | Channel actions are mirrored to (defaults to `1533027437145882684`). |
-| `SESSION_SECRET` | ✅ | Long random string that signs the login cookie. |
-| `BOOTSTRAP_OWNER_IDS` | ➖ | Break-glass Discord ids that always get in (level 255). |
-| `ROBLOX_API_KEY` | ✅ | Open Cloud key (DataStore + Messaging + Assets). |
-| `ROBLOX_CREATOR_ID` | ✅* | Roblox user id that **owns the API key** (`11080769482`). *Required for PNG icon upload.* |
-| `ROBLOX_UNIVERSE_ID` | ✅ | `10631060249`. |
-| `ROBLOX_GROUP_ID` | ✅ | `1099600954`. |
-| `ROBLOX_GROUP_COOKIE` | ✅* | `.ROBLOSECURITY` for group kicks / join-requests. |
-| `DATABASE_URL` | ✅ | Same Postgres as the perks-api (whitelist/config/audit tables auto-create). |
-| `PERKS_API_URL` / `PERKS_API_SECRET` | ✅ | Perks-api base URL + shared secret (crew-tag + perk mirror). |
-| `POWER_GRANT_TOPIC`, `ADMIN_GRANT_TOPIC`, … | ➖ | MessagingService topic overrides — leave default. |
+| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | | OAuth2 app credentials. |
+| `DISCORD_REDIRECT_URI` | | `https://zhd.lol/api/auth/callback`. |
+| `DISCORD_GUILD_ID` | | Your server id (to read member roles). |
+| `DISCORD_BOT_TOKEN` | | Bot token — reads roles **and** posts the action log. |
+| `DISCORD_ROLE_MAP` | | JSON `{ "<roleId>": <level 0-255> }`. **Mirror the bot's levels.** |
+| `DISCORD_LOG_CHANNEL_ID` | | Channel actions are mirrored to (defaults to `1533027437145882684`). |
+| `SESSION_SECRET` | | Long random string that signs the login cookie. |
+| `BOOTSTRAP_OWNER_IDS` | | Break-glass Discord ids that always get in (level 255). |
+| `ROBLOX_API_KEY` | | Open Cloud key (DataStore + Messaging + Assets). |
+| `ROBLOX_CREATOR_ID` |* | Roblox user id that **owns the API key** (`11080769482`). *Required for PNG icon upload.* |
+| `ROBLOX_UNIVERSE_ID` | | `10631060249`. |
+| `ROBLOX_GROUP_ID` | | `1099600954`. |
+| `ROBLOX_GROUP_COOKIE` |* | `.ROBLOSECURITY` for group kicks / join-requests. |
+| `DATABASE_URL` | | Same Postgres as the perks-api (whitelist/config/audit tables auto-create). |
+| `PERKS_API_URL` / `PERKS_API_SECRET` | | Perks-api base URL + shared secret (crew-tag + perk mirror). |
+| `POWER_GRANT_TOPIC`, `ADMIN_GRANT_TOPIC`, … | | MessagingService topic overrides — leave default. |
 
 ## Permission levels
 `lib/permissions.js` defines the thresholds; `DISCORD_ROLE_MAP` supplies each role's level.

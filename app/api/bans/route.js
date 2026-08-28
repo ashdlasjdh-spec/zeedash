@@ -312,7 +312,7 @@ export async function POST(req) {
         (evidenceText ? `> Evidence: ${evidenceText}\n` : "") +
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
-        `-# ⏱️ Action taken on: <t:${unix}:F> - ${actionLabel}`;
+        `-# Action taken on: <t:${unix}:F> - ${actionLabel}`;
       const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}) };
       const payload = { embeds: [embed], allowed_mentions: { parse: [] } };
       try {

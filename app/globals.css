@@ -361,7 +361,7 @@ button.tb-kv:hover{background:var(--surface-3)}
 @media(max-width:1080px){.tb-links .tb-link:not(.tb-all){display:none}.tb-search-t{display:none}}
 @media(max-width:860px){.topbar{display:none}}
 
-/* command palette (⌘K) */
+/* command palette (K) */
 .cmdk-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
   display:flex;align-items:flex-start;justify-content:center;padding:14vh 16px 16px;animation:fade .14s ease}
 .cmdk{width:100%;max-width:560px;background:linear-gradient(180deg,var(--surface-2),var(--surface));

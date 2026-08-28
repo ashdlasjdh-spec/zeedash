@@ -345,7 +345,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
       {/* Risk banner — always visible */}
       <div className="card" style={{ borderColor: "var(--brand-line)", padding: 14, marginTop: 4 }}>
         <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 18, lineHeight: 1 }}>⚠️</span>
+          <span style={{ fontSize: 18, lineHeight: 1 }}></span>
           <div>
             <b>Self-bot — account risk</b>
             <p className="muted" style={{ margin: "3px 0 0", fontSize: 13, lineHeight: 1.5 }}>
@@ -358,7 +358,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
       {diagnostic && (
         <div className="card" style={{ borderColor: diagnostic.bad ? "var(--danger)" : "var(--brand-line)", padding: 14, marginTop: 10 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 18, lineHeight: 1 }}>{diagnostic.bad ? "🛑" : "⏳"}</span>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{diagnostic.bad ? "" : ""}</span>
             <div>
               <b>{diagnostic.t}</b>
               <p className="muted" style={{ margin: "3px 0 0", fontSize: 13, lineHeight: 1.5 }}>{diagnostic.d}</p>
@@ -458,8 +458,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
               {lookupRes.usernameChanged && (
                 <p style={{ margin: "8px 0 0", padding: "8px 10px", borderRadius: 10, background: "var(--danger-soft)", color: lookupRes.recordedIsSameAccount ? "var(--warning)" : "var(--danger)", fontSize: 13 }}>
                   {lookupRes.recordedIsSameAccount
-                    ? `⚠ Username changed since recorded ("${lookupRes.recordedName}" → "${lookupRes.currentUsername}"). Same account — confirmed in history. Consider updating the staff-info record.`
-                    : `⚠ Recorded name "${lookupRes.recordedName}" is NOT in this account's username history — this may be a different person who took that name. Verify before removing.`}
+                    ? `Username changed since recorded ("${lookupRes.recordedName}" → "${lookupRes.currentUsername}"). Same account — confirmed in history. Consider updating the staff-info record.`
+                    : `Recorded name "${lookupRes.recordedName}" is NOT in this account's username history — this may be a different person who took that name. Verify before removing.`}
                 </p>
               )}
               {lookupRes.history && lookupRes.history.length > 0 && <KV k="Past names" v={<span className="mono" style={{ fontSize: 12 }}>{lookupRes.history.join(", ")}</span>} />}
@@ -478,7 +478,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
                   <div style={{ overflowX: "auto" }}><table><thead><tr><th>Roblox user</th><th>Recorded</th><th>Roblox ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                     <tbody>{lookupRes.accounts.map((a, i) => (
                       <tr key={i}>
-                        <td>{a.username || <span className="muted">—</span>}{a.username && a.recorded && a.username.toLowerCase() !== a.recorded.toLowerCase() ? <span title="renamed since recorded" style={{ color: "var(--warning)" }}> ⚠</span> : null}</td>
+                        <td>{a.username || <span className="muted">—</span>}{a.username && a.recorded && a.username.toLowerCase() !== a.recorded.toLowerCase() ? <span title="renamed since recorded" style={{ color: "var(--warning)" }}></span> : null}</td>
                         <td className="muted">{a.recorded || "—"}</td>
                         <td className="mono">{a.robloxId}</td>
                         <td>{a.inGroup ? `${a.rankName} (${a.rank})` : <span className="muted">not in group</span>}</td>
@@ -702,7 +702,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
           </div>
           {form.presenceType === "custom" && (
             <>
-              <div className="sb-field"><span className="muted">Emoji</span><input value={form.customEmoji || ""} onChange={(e) => setF("customEmoji", e.target.value)} placeholder="😎 or :name:" /></div>
+              <div className="sb-field"><span className="muted">Emoji</span><input value={form.customEmoji || ""} onChange={(e) => setF("customEmoji", e.target.value)} placeholder="or :name:" /></div>
               <div className="sb-field"><span className="muted">Status text</span><input value={form.presenceName || ""} onChange={(e) => setF("presenceName", e.target.value)} placeholder="feeling good" /></div>
             </>
           )}
@@ -766,7 +766,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
                 )}
                 {Array.isArray(orphanRes.failedRanks) && orphanRes.failedRanks.length > 0 && (
                   <>
-                    {orphanRes.failHint && <p style={{ margin: "0 0 6px", color: "var(--danger)", fontSize: 13 }}>⚠ {orphanRes.failHint}</p>}
+                    {orphanRes.failHint && <p style={{ margin: "0 0 6px", color: "var(--danger)", fontSize: 13 }}>{orphanRes.failHint}</p>}
                     <p style={{ margin: "0 0 8px", color: "var(--muted)", fontSize: 12 }}>Ranks not read: {orphanRes.failedRanks.join(", ")}</p>
                   </>
                 )}
@@ -831,7 +831,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
                 </label>
               </div>
               <p className="muted" style={{ margin: "6px 0 10px" }}>Auto-responds to incoming DMs with this message.</p>
-              <p style={{ margin: "0 0 10px", padding: "8px 10px", borderRadius: 10, background: "var(--danger-soft)", color: "var(--warning)", fontSize: 12.5 }}>⚠ Auto-replying to DMs is the single biggest self-bot flag trigger — it can get the account limited. This build now waits 30–90s before each reply, spaces replies out, and caps them per day, but nothing makes it 100% safe. Keep the daily cap low and the message plain.</p>
+              <p style={{ margin: "0 0 10px", padding: "8px 10px", borderRadius: 10, background: "var(--danger-soft)", color: "var(--warning)", fontSize: 12.5 }}>Auto-replying to DMs is the single biggest self-bot flag trigger — it can get the account limited. This build now waits 30–90s before each reply, spaces replies out, and caps them per day, but nothing makes it 100% safe. Keep the daily cap low and the message plain.</p>
               <textarea value={form.autoReplyMessage || ""} onChange={(e) => setF("autoReplyMessage", e.target.value)} placeholder="I'm away right now — I'll get back to you soon." style={{ width: "100%", minHeight: 70 }} />
               <div className="sb-field" style={{ marginTop: 8 }}><span className="muted">Only reply once per user</span><input type="checkbox" checked={form.autoReplyOncePerUser !== false} onChange={(e) => setF("autoReplyOncePerUser", e.target.checked)} /></div>
               <div className="row" style={{ marginTop: 8, gap: 12 }}>

@@ -184,7 +184,7 @@ export function EmojiAnatomy() {
         {baseDefs()}
         <rect x="150" y="52" width="260" height="46" rx="12" fill={C.surface3} stroke={C.line} />
         <text x="170" y="82" fontSize="16" fontWeight="750" fill={C.text}>Builderman</text>
-        <g {...hot("emojis")}><rect x="292" y="60" width="70" height="30" rx="7" fill={sel === "emojis" ? "rgba(224,31,31,.18)" : "transparent"} stroke={sel === "emojis" ? "#fff" : "none"} strokeWidth="1.5" /><text x="300" y="83" fontSize="18">⭐💖🔥</text></g>
+        <g {...hot("emojis")}><rect x="292" y="60" width="70" height="30" rx="7" fill={sel === "emojis" ? "rgba(224,31,31,.18)" : "transparent"} stroke={sel === "emojis" ? "#fff" : "none"} strokeWidth="1.5" /><text x="300" y="83" fontSize="18"></text></g>
         <path d="M320 60 L340 22" stroke={C.line} strokeWidth="1.2" fill="none" />
         <text {...hot("emojis")} x="360" y="20" fontSize="11.5" fontWeight="700" fill={sel === "emojis" ? "#fff" : C.brand2}>Assigned emojis</text>
         <text x="280" y="122" textAnchor="middle" fontSize="12" fill={C.muted}>shown next to the player in-game</text>

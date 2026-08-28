@@ -80,7 +80,7 @@ export default function PublicPreview() {
   const rmColor = (i) => setColors((c) => (c.length > 1 ? c.filter((_, idx) => idx !== i) : c));
 
   const [eName, setEName] = useState("YourName");
-  const [emojis, setEmojis] = useState("⭐💖🔥");
+  const [emojis, setEmojis] = useState("");
   const [copied, setCopied] = useState(false);
 
   // Hydrate the design from a shared link (?name=&colors=&anim=&dir=&speed=).
@@ -182,7 +182,7 @@ export default function PublicPreview() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}>
           <div><label style={lbl}>Test name</label><input style={inp} value={eName} maxLength={20} onChange={(e) => setEName(e.target.value)} placeholder="YourName" /></div>
-          <div><label style={lbl}>Emojis (paste any)</label><input style={inp} value={emojis} onChange={(e) => setEmojis(e.target.value)} placeholder="⭐💖🔥" /></div>
+          <div><label style={lbl}>Emojis (paste any)</label><input style={inp} value={emojis} onChange={(e) => setEmojis(e.target.value)} placeholder="" /></div>
         </div>
       </div>
 

@@ -50,7 +50,7 @@ export default async function DashLayout({ children }) {
   if (canPurge(user.id)) manage.push({ label: "Remove All", href: "/dashboard/purge" });
   if (manage.length) allGroups.push({ sec: "Manage", items: manage });
 
-  // Flattened, de-duplicated list for the ⌘K command palette.
+  // Flattened, de-duplicated list for theK command palette.
   const seen = new Set();
   const cmdItems = [];
   for (const g of allGroups) for (const it of g.items) { if (seen.has(it.href)) continue; seen.add(it.href); cmdItems.push({ ...it, group: g.sec }); }

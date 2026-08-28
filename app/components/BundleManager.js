@@ -62,7 +62,7 @@ export default function BundleManager() {
     const u = (applyUser[bn] || "").trim();
     if (!u) { setToast({ bad: true, msg: "Enter a player to apply to." }); return; }
     const d = await post({ action: "apply", name: bn, username: u });
-    if (d) setToast({ ok: !d.errors?.length, msg: `Applied "${bn}" to ${d.user?.username || u}: ${d.done} granted.` + (d.skipped?.length ? ` (${d.skipped.length} skipped — no permission)` : "") + (d.errors?.length ? ` ⚠ ${d.errors.join("; ")}` : "") });
+    if (d) setToast({ ok: !d.errors?.length, msg: `Applied "${bn}" to ${d.user?.username || u}: ${d.done} granted.` + (d.skipped?.length ? ` (${d.skipped.length} skipped — no permission)` : "") + (d.errors?.length ? ` ${d.errors.join("; ")}` : "") });
   }
 
   return (

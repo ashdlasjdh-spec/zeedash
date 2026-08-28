@@ -259,4 +259,4 @@
 .dgm-cap-t { font-size: 13.5px; font-weight: 750; color: var(--white); }
 .dgm-cap-b { font-size: 12.8px; line-height: 1.5; color: #cdcdd6; }
 .dgm-cap-hint { font-size: 12.5px; color: var(--faint); display: flex; align-items: center; gap: 7px; }
-.dgm-cap-hint::before { content: "👆"; font-size: 13px; }
+.dgm-cap-hint::before { content: ""; font-size: 13px; }

@@ -70,7 +70,7 @@ export default function CommandPalette({ items = [] }) {
             </button>
           ))}
         </div>
-        <div className="cmdk-foot"><span><kbd className="cmdk-kbd">↑</kbd><kbd className="cmdk-kbd">↓</kbd> navigate</span><span><kbd className="cmdk-kbd">↵</kbd> open</span></div>
+        <div className="cmdk-foot"><span><kbd className="cmdk-kbd">↑</kbd><kbd className="cmdk-kbd">↓</kbd> navigate</span><span><kbd className="cmdk-kbd"></kbd> open</span></div>
       </div>
     </div>
   );

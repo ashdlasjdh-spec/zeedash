@@ -13,7 +13,7 @@ const FIELDS = [
     { key: "label", label: "Label", placeholder: "Verify", flex: 1 },
     { key: "role", label: "Role", type: "role", flex: 1.3 },
     { key: "style", label: "Style", placeholder: "green / blurple / gray / red", flex: 1 },
-    { key: "emoji", label: "Emoji", placeholder: "✅", flex: 0.5 },
+    { key: "emoji", label: "Emoji", placeholder: "", flex: 0.5 },
   ] },
 ];
 

@@ -50,7 +50,7 @@ export default function TempGrants() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Failed");
       const who = g.username || g.userId;
-      setToast({ ok: !d.warn, msg: action === "revoke" ? `Revoked ${g.itemKey} from ${who}.` : `Extended ${g.itemKey} for ${who}${d.expiresIn ? ` (now ${d.expiresIn})` : ""}.` + (d.warn ? " ⚠ " + d.warn : "") });
+      setToast({ ok: !d.warn, msg: action === "revoke" ? `Revoked ${g.itemKey} from ${who}.` : `Extended ${g.itemKey} for ${who}${d.expiresIn ? ` (now ${d.expiresIn})` : ""}.` + (d.warn ? " " + d.warn : "") });
       load(true);
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBusy(null);

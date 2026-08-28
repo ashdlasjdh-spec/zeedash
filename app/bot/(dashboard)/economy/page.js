@@ -3,7 +3,7 @@ import { featurePage } from "@/app/components/featurePage";
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
-  { key: "currency", label: "Currency symbol / name", placeholder: "🪙", hint: "Shown next to every amount. Emoji or a short word." },
+  { key: "currency", label: "Currency symbol / name", placeholder: "", hint: "Shown next to every amount. Emoji or a short word." },
   { key: "dailyMin", label: "Daily reward — minimum", placeholder: "200", numeric: true },
   { key: "dailyMax", label: "Daily reward — maximum", placeholder: "500", numeric: true },
   { key: "workMin", label: "Work reward — minimum", placeholder: "80", numeric: true },

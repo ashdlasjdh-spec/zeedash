@@ -18,7 +18,7 @@ export async function POST(req) {
     if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
     return NextResponse.json(r);
   } catch (e) {
-    // Surface the real reason to the bot's ❌ reply instead of a blank "Emoji update failed (500)".
+    // Surface the real reason to the bot's reply instead of a blank "Emoji update failed (500)".
     return serverError(e.message || "Emoji update failed.");
   }
 }

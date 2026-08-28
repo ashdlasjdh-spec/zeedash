@@ -99,8 +99,8 @@ export default function BansDashboard({ canBulk = false }) {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
-      const wh = d.webhook && d.webhook !== "sent" ? ` ⚠ webhook: ${d.webhook}` : "";
-      const note = d.note ? ` ⚠ ${d.note}` : "";
+      const wh = d.webhook && d.webhook !== "sent" ? ` webhook: ${d.webhook}` : "";
+      const note = d.note ? ` ${d.note}` : "";
       const verb = act === "ban" ? "Banned" : act === "warn" ? "Warned" : act === "kick" ? "Kicked" : "Unbanned";
       setToast({ ok: !wh && !note, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}${note}` });
       if (act !== "unban") { setReason(""); setDuration(""); setEvidence(""); }
@@ -124,7 +124,7 @@ export default function BansDashboard({ canBulk = false }) {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Failed");
-      setToast({ ok: !d.failed, msg: `${act === "ban" ? "Banned" : "Unbanned"} ${d.done}/${d.total} player(s).` + (d.failed ? ` ⚠ ${d.failed} failed: ${d.errors.join("; ")}` : "") });
+      setToast({ ok: !d.failed, msg: `${act === "ban" ? "Banned" : "Unbanned"} ${d.done}/${d.total} player(s).` + (d.failed ? ` ${d.failed} failed: ${d.errors.join("; ")}` : "") });
       loadBans(true);
     } catch (e) { setToast({ bad: true, msg: e.message }); }
     setBulkBusy(false);
@@ -172,7 +172,7 @@ export default function BansDashboard({ canBulk = false }) {
       <div className="grid g2" style={{ alignItems: "start" }}>
         {/* ---- take action ---- */}
         <div className="card">
-          <div style={{ fontWeight: 800, fontSize: 15 }}>⚡ Take action</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>Take action</div>
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>Identify a player and apply a ban or unban to this game scope.</p>
 
           <div className="row" style={{ marginTop: 6, marginBottom: 14, flexWrap: "wrap" }}>
@@ -276,7 +276,7 @@ export default function BansDashboard({ canBulk = false }) {
           <div className="between">
             <div>
               <div style={{ fontWeight: 800, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
-                🚫 Active bans <span className="livedot" title="Auto-updating live" />
+                Active bans <span className="livedot" title="Auto-updating live" />
               </div>
               <div className="muted" style={{ fontSize: 13 }}>Everyone currently banned in this scope. Auto-updates live from Roblox.</div>
             </div>

@@ -37,7 +37,7 @@ export default function LevelsDocs() {
         rows={[
           [<>Enabled</>, "Master switch for the whole feature in this server."],
           [<>XP range</>, "The min–max XP granted per eligible message."],
-          [<>Level-up message</>, <>Custom announcement text, e.g. <code>🎉 {"{user.mention}"} reached level {"{level.new_rank}"}!</code></>],
+          [<>Level-up message</>, <>Custom announcement text, e.g. <code>{"{user.mention}"} reached level {"{level.new_rank}"}!</code></>],
           [<>Role rewards</>, "Roles automatically granted when a member hits a level."],
           [<>Leaderboard</>, "The public XP ranking, shown on the Leaderboard page."],
         ]}
@@ -52,7 +52,7 @@ export default function LevelsDocs() {
               <div style={{ flex: 1 }}><label>Max XP / msg</label><div className="m-input">25</div></div>
             </div>
             <label>Level-up message</label>
-            <div className="m-input" style={{ marginBottom: 14, height: "auto", padding: "10px 12px" }}>🎉 {"{user.mention}"} reached level {"{level.new_rank}"}!</div>
+            <div className="m-input" style={{ marginBottom: 14, height: "auto", padding: "10px 12px" }}>{"{user.mention}"} reached level {"{level.new_rank}"}!</div>
             <label>Role rewards</label>
             <div className="m-row"><span className="pill brand">Lvl 5 → Regular</span><span className="pill brand">Lvl 10 → Veteran</span><button className="m-btn" style={{ marginLeft: "auto" }}>Save</button></div>
           </div>
