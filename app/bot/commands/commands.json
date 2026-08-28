@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-28T18:06:32.057Z",
+  "generatedAt": "2026-08-28T18:16:21.412Z",
   "prefix": ".",
-  "total": 226,
+  "total": 229,
   "categories": [
     {
       "name": "Moderation",
@@ -1705,6 +1705,17 @@
           "level": "Everyone",
           "hybrid": false,
           "subcommands": []
+        },
+        {
+          "name": "trivia",
+          "description": "Answer a trivia question — first correct answer in 20s wins.",
+          "aliases": [
+            "quiz"
+          ],
+          "usage": ".trivia",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
         }
       ]
     },
@@ -1760,6 +1771,30 @@
           "usage": ".gamble <amount>",
           "level": "Everyone",
           "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "slots",
+          "description": "Spin the slot machine. Usage: slots <amount|all>.",
+          "aliases": [
+            "slot",
+            "spin"
+          ],
+          "usage": ".slots <amount>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "betflip",
+          "description": "Bet coins on a coin flip. Usage: betflip <heads|tails> <amount|all>.",
+          "aliases": [
+            "cf",
+            "flipbet"
+          ],
+          "usage": ".betflip <side> <amount>",
+          "level": "Everyone",
+          "hybrid": false,
           "subcommands": []
         },
         {
