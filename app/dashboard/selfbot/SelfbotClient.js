@@ -211,7 +211,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const doPreview = async () => { setBusy("preview"); try { const r = await runCommand("wouldkick"); setPreview((r && r.hits) || []); flash("Preview ready"); } finally { setBusy(""); } };
   const doReindex = async () => { setBusy("reindex"); try { const r = await runCommand("reindex"); await load(); const n = r && r.indexed ? r.indexed.size : null; flash(n != null ? `Staff index rebuilt — ${n} record${n === 1 ? "" : "s"}` : "Reindex done"); } finally { setBusy(""); } };
   const doSync = async () => { setBusy("sync"); try { await runCommand("sync"); await load(); flash("Sync complete"); } finally { setBusy(""); } };
-  const doLookup = async () => { if (!lookupQ.trim()) return; setBusy("lookup"); try { setLookupRes(await runCommand("lookup", lookupQ.trim())); } finally { setBusy(""); } };
+  const doLookup = async () => { if (!lookupQ.trim()) return; setBusy("lookup"); setLookupRes(null); try { const r = await runCommand("lookup", lookupQ.trim(), 25); if (r) setLookupRes(r); else flash("Lookup timed out — the bot may be busy. Try again."); } finally { setBusy(""); } };
   const doOrphanPreview = async () => { setBusy("orphan"); setConfirmOrphan(false); try { const r = await runCommand("orphanpreview", null, 90); setOrphanRes(r); if (r && r.error) flash(r.error); else flash("Scan complete"); } finally { setBusy(""); } };
   const doOrphanPurge = async () => { setBusy("orphan"); try { const r = await runCommand("orphanpurge", null, 120); setOrphanRes(r); setConfirmOrphan(false); if (r && r.error) flash(r.error); else flash(`Processed ${r ? r.processed : 0}`); await load(); } finally { setBusy(""); } };
   const loadRoster = async () => {
