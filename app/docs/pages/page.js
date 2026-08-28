@@ -205,6 +205,8 @@ export default function PagesReference() {
           [<Link className="inl" href="/preview">Preview</Link>, "/preview", "See a crew tag or emoji before it goes live."],
           [<Link className="inl" href="/status">Status</Link>, "/status", "Live service status."],
           [<>Settings</>, "/dashboard/settings", "Your account + backup/restore of server settings."],
+          [<>Game Site</>, "/dashboard/game-site", <>Edit the public zeehood.org site — see <Link className="inl" href="/docs/game-site">Game Site editor</Link>.</>],
+          [<>Self-bot</>, "/dashboard/selfbot", <>Control the Roblox group sync — see <Link className="inl" href="/docs/staff-sync">Staff Sync</Link>.</>],
           [<Link className="inl" href="/login">Login</Link>, "/login", "The Discord sign-in card for staff."],
         ]}
       />
@@ -212,6 +214,8 @@ export default function PagesReference() {
       <Callout kind="good">
         That&apos;s every page in the panel. For the mechanics behind specific features, jump to the deep
         dives — <Link className="inl" href="/docs/crew-tags">crew tags</Link>,{" "}
+        <Link className="inl" href="/docs/game-site">the game site editor</Link>,{" "}
+        <Link className="inl" href="/docs/staff-sync">Staff Sync</Link>,{" "}
         <Link className="inl" href="/docs/security">security</Link>,{" "}
         <Link className="inl" href="/docs/automation">automation</Link> and more.
       </Callout>
