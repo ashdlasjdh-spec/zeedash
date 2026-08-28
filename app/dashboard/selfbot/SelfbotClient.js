@@ -30,6 +30,7 @@ const FIELD_GROUPS = [
   ]],
   ["Triggers", [
     ["kickOnStaffRoleRemoved", "bool", "Kick when a staff role is removed"],
+    ["kickUnknownJoins", "bool", "Kick new joiners with no staff info"],
     ["requireStaffRoleForFire", "bool", "Require staff role for Fired/Resigns"],
     ["auditWatcherEnabled", "bool", "Audit watcher (read the group's audit log)"],
     ["staffRoleIds", "ids", "Staff Discord role IDs"],
