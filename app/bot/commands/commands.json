@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-28T07:10:58.824Z",
+  "generatedAt": "2026-08-28T18:06:32.057Z",
   "prefix": ".",
-  "total": 225,
+  "total": 226,
   "categories": [
     {
       "name": "Moderation",
@@ -983,6 +983,63 @@
           "level": "Lvl 248",
           "hybrid": false,
           "subcommands": []
+        },
+        {
+          "name": "selfbot",
+          "description": "Drive the staff-sync self-bot (bot owner only) — same actions as the dashboard.",
+          "aliases": [
+            "sb",
+            "staffsync"
+          ],
+          "usage": ".selfbot <status|account|sync|reindex|reconcile|preview|lookup|roster|ranks|orphanpreview|orphanpurge>",
+          "level": "Owner",
+          "hybrid": true,
+          "subcommands": [
+            {
+              "name": "status",
+              "description": "Connection, linked accounts, staff index size, last sweeps."
+            },
+            {
+              "name": "account",
+              "description": "Show the Discord + Roblox accounts the self-bot acts as."
+            },
+            {
+              "name": "sync",
+              "description": "Run one full sync now (audit + reconcile + join sweep)."
+            },
+            {
+              "name": "reindex",
+              "description": "Rebuild the staff-info index."
+            },
+            {
+              "name": "reconcile",
+              "description": "Run the role-reconcile backstop now."
+            },
+            {
+              "name": "preview",
+              "description": "Dry-run: who currently holds a staff record but no staff role."
+            },
+            {
+              "name": "lookup",
+              "description": "Look up a Discord/Roblox user and whether they’d be removed."
+            },
+            {
+              "name": "roster",
+              "description": "Summary of registered staff (count + a sample)."
+            },
+            {
+              "name": "ranks",
+              "description": "Managed group ranks + which are removable."
+            },
+            {
+              "name": "orphanpreview",
+              "description": "Scan for group members on a removable rank with no staff record."
+            },
+            {
+              "name": "orphanpurge",
+              "description": "Remove the orphans found by the last preview (destructive, capped at 200)."
+            }
+          ]
         }
       ]
     },
@@ -995,7 +1052,7 @@
           "description": "Manage the antinuke whitelist & admins (server owner only).",
           "aliases": [],
           "usage": ".antinuke <whitelist|admin|list>",
-          "level": "Everyone",
+          "level": "Owner",
           "hybrid": true,
           "subcommands": [
             {
@@ -2007,7 +2064,7 @@
             "autotask"
           ],
           "usage": ".autotasks [task] [value]",
-          "level": "Everyone",
+          "level": "Owner",
           "hybrid": false,
           "subcommands": []
         },
@@ -2016,7 +2073,7 @@
           "description": "Post the weekly stats digest now (owner only).",
           "aliases": [],
           "usage": ".digest",
-          "level": "Everyone",
+          "level": "Owner",
           "hybrid": false,
           "subcommands": []
         },
@@ -2025,7 +2082,7 @@
           "description": "Post a JSON backup of the bot data store now (owner only).",
           "aliases": [],
           "usage": ".backup",
-          "level": "Everyone",
+          "level": "Owner",
           "hybrid": false,
           "subcommands": []
         },
@@ -2048,7 +2105,7 @@
             "postchangelog"
           ],
           "usage": ".changelog [mode]",
-          "level": "Everyone",
+          "level": "Owner",
           "hybrid": false,
           "subcommands": []
         }
