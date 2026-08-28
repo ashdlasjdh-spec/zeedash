@@ -7,7 +7,8 @@ export const metadata = {
   metadataBase: new URL("https://zhd.lol"),
   title: { default: "zhd.lol — Zee Hood", template: "%s · zhd.lol" },
   description: "The Zee Hood staff control panel — game grants, moderation, Roblox group management and Discord server tools.",
-  openGraph: { title: "zhd.lol — Zee Hood", description: "The Zee Hood staff control panel.", url: "https://zhd.lol", siteName: "zhd.lol", type: "website" },
+  openGraph: { title: "zhd.lol — Zee Hood", description: "The Zee Hood staff control panel.", url: "https://zhd.lol", siteName: "zhd.lol", type: "website", images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "zhd.lol — Zee Hood control panel" }] },
+  twitter: { card: "summary_large_image", title: "zhd.lol — Zee Hood", description: "The Zee Hood staff control panel.", images: ["/opengraph-image"] },
 };
 // Explicit mobile viewport (device-width + safe-area for notched phones).
 export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#060607" };

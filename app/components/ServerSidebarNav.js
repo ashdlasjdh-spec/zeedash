@@ -87,6 +87,9 @@ export default function ServerSidebarNav({ Icon, onNavigate, superOwner = false 
           <Link className={`navlink ${path === "/bot/role-access" ? "active" : ""}`} href="/bot/role-access" onClick={onNavigate}>
             <Icon label="Security" /><span>Role Access</span>
           </Link>
+          <Link className={`navlink ${path === "/dashboard/selfbot" ? "active" : ""}`} href="/dashboard/selfbot" onClick={onNavigate}>
+            <Icon label="Group" /><span>Self-bot</span>
+          </Link>
         </>
       )}
     </>

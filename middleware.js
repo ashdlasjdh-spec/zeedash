@@ -106,5 +106,5 @@ export async function middleware(req) {
 // Run on API routes (guards) and document routes (CSP), but skip static assets & the metadata icons —
 // they don't need a nonce and shouldn't pay the middleware cost.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|\\.well-known).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|opengraph-image|twitter-image|\\.well-known).*)"],
 };

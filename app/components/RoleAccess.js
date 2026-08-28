@@ -34,6 +34,24 @@ const ACTION_GROUPS = [
     ],
   },
   {
+    label: "Scoped accept queues",
+    hint: "Limit a role to accepting + ranking ONE staff track. Leave the broad “Accept requests” above unticked to keep them scoped to just these.",
+    actions: [
+      { k: "crewAccept", desc: "Accept a user and rank them Crew." },
+      { k: "lbAccept", desc: "Accept a user and rank them Leaderboard Staff." },
+      { k: "starAccept", desc: "Accept a user and rank them Stars." },
+    ],
+  },
+  {
+    label: "Scoped kick queues",
+    hint: "Limit a role to kicking members of ONE staff track only.",
+    actions: [
+      { k: "crewKick", desc: "Kick a member — only if they are Crew." },
+      { k: "lbKick", desc: "Kick a member — only if they are Leaderboard Staff." },
+      { k: "starKick", desc: "Kick a member — only if they are Stars." },
+    ],
+  },
+  {
     label: "Other",
     actions: [
       { k: "kick", desc: "Kick / exile a member from the group." },
@@ -175,6 +193,7 @@ export default function RoleAccess() {
             {ACTION_GROUPS.map((grp) => (
               <div key={grp.label} style={{ marginTop: 10 }}>
                 <div className="ra-grp">{grp.label}</div>
+                {grp.hint && <p className="muted" style={{ fontSize: 12, margin: "0 0 6px" }}>{grp.hint}</p>}
                 <div className="ra-caps">
                   {grp.actions.map((c) => (
                     <button key={c.k} type="button" className={`ra-cap ${editActions.includes(c.k) ? "on" : ""}`} onClick={() => toggleAction(c.k)}>

@@ -178,6 +178,16 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" /><path d="M19 3v16" /></svg>
           <span>Docs</span>
         </Link>
+        <Link href="/changelog" className="side-action" onClick={() => setOpen(false)}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 8v4l3 2" /><path d="M3.05 11a9 9 0 1 1 .5 4" /><path d="M3 5v5h5" /></svg>
+          <span>Changelog</span>
+        </Link>
+        {user.isOwner && (
+          <Link href="/dashboard/selfbot" className="side-action" onClick={() => setOpen(false)}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 8V4M9 4h6" /><path d="M9 13h.01M15 13h.01" /></svg>
+            <span>Self-bot</span>
+          </Link>
+        )}
         <form action="/api/auth/logout" method="post" style={{ display: "contents" }}>
           <button type="submit" className="side-action">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>
