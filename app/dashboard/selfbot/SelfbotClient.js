@@ -390,6 +390,11 @@ export default function SelfbotClient({ me, isOwner = false }) {
             />
             <Stat label="Uptime" value={connected ? uptime(st.readyAt) : "—"} />
             <Stat label="Staff records" value={st.staffIndexSize ?? "—"} />
+            <Stat
+              label="Kicking"
+              value={!connected ? "—" : st.indexReady ? "Armed" : "Paused (reindexing)"}
+              tone={!connected ? undefined : st.indexReady ? "var(--success)" : "var(--warning)"}
+            />
             <Stat label="Audit watcher" value={st.auditEnabled ? "On" : "Off"} />
             <Stat label="Dry run" value={cfg.dryRun ? "ON" : "off"} tone={cfg.dryRun ? "var(--warning)" : undefined} />
             <Stat label="Removed" value={(st.counters && st.counters.removed) ?? 0} />
