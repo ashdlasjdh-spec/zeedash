@@ -361,7 +361,12 @@ export default function SelfbotClient({ me, isOwner = false }) {
         <>
           <div className="sb-stats">
             <Stat label="Connection" value={connected ? "Online" : "Offline"} tone={connected ? "var(--success)" : "var(--danger)"} />
-            <Stat label="Account" value={st.tag || "—"} />
+            <Stat label="Discord account" value={st.tag || "—"} />
+            <Stat
+              label="Roblox account"
+              value={st.robloxUser ? st.robloxUser.name : connected ? "checking…" : "—"}
+              tone={st.robloxUser ? undefined : connected ? "var(--warning)" : undefined}
+            />
             <Stat label="Uptime" value={connected ? uptime(st.readyAt) : "—"} />
             <Stat label="Staff records" value={st.staffIndexSize ?? "—"} />
             <Stat label="Audit watcher" value={st.auditEnabled ? "On" : "Off"} />
