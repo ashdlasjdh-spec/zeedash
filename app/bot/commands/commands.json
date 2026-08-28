@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-28T18:16:21.412Z",
+  "generatedAt": "2026-08-28T18:24:12.472Z",
   "prefix": ".",
-  "total": 229,
+  "total": 233,
   "categories": [
     {
       "name": "Moderation",
@@ -1746,11 +1746,57 @@
         },
         {
           "name": "work",
-          "description": "Work for coins (once per hour).",
+          "description": "Work a shift for coins (once per hour). Pay scales with your job — see `jobs`/`apply`.",
           "aliases": [],
           "usage": ".work",
           "level": "Everyone",
           "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "jobs",
+          "description": "Browse the career ladder — pay, experience needed, and what you can apply for.",
+          "aliases": [
+            "careers",
+            "joblist"
+          ],
+          "usage": ".jobs",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "apply",
+          "description": "Apply for a job. Usage: apply <job id> (see `jobs`).",
+          "aliases": [
+            "getjob"
+          ],
+          "usage": ".apply <job>",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "job",
+          "description": "Show your current job, experience, and next promotion.",
+          "aliases": [
+            "career",
+            "myjob"
+          ],
+          "usage": ".job",
+          "level": "Everyone",
+          "hybrid": false,
+          "subcommands": []
+        },
+        {
+          "name": "quit",
+          "description": "Quit your current job (back to odd jobs). Your experience stays.",
+          "aliases": [
+            "resign"
+          ],
+          "usage": ".quit",
+          "level": "Everyone",
+          "hybrid": false,
           "subcommands": []
         },
         {
