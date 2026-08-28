@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-24T17:56:56.381Z",
+  "generatedAt": "2026-08-28T07:10:58.824Z",
   "prefix": ".",
-  "total": 224,
+  "total": 225,
   "categories": [
     {
       "name": "Moderation",
@@ -1703,6 +1703,17 @@
           "usage": ".gamble <amount>",
           "level": "Everyone",
           "hybrid": true,
+          "subcommands": []
+        },
+        {
+          "name": "rob",
+          "description": "Try to rob another member’s wallet (once per hour). Banked coins are safe.",
+          "aliases": [
+            "mug"
+          ],
+          "usage": ".rob <member>",
+          "level": "Everyone",
+          "hybrid": false,
           "subcommands": []
         },
         {
