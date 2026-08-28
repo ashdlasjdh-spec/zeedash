@@ -31,6 +31,8 @@ const FIELD_GROUPS = [
   ["Triggers", [
     ["kickOnStaffRoleRemoved", "bool", "Kick when a staff role is removed"],
     ["kickUnknownJoins", "bool", "Kick new joiners with no staff info"],
+    ["autoOrphanSweep", "bool", "Auto orphan cleanup (scheduled — removes members with no staff info)"],
+    ["orphanSweepHours", "int", "Orphan sweep interval (hours)"],
     ["requireStaffRoleForFire", "bool", "Require staff role for Fired/Resigns"],
     ["auditWatcherEnabled", "bool", "Audit watcher (read the group's audit log)"],
     ["staffRoleIds", "ids", "Staff Discord role IDs"],
@@ -372,6 +374,12 @@ export default function SelfbotClient({ me, isOwner = false }) {
               value={st.lastReconcileAt ? `${uptime(st.lastReconcileAt)} ago` : "—"}
               tone={st.lastReconcileAt && Date.now() - st.lastReconcileAt > 5 * 60 * 1000 ? "var(--danger)" : undefined}
             />
+            {st.orphanSweepEnabled && (
+              <Stat
+                label="Last orphan sweep"
+                value={st.lastOrphanSweepAt ? `${uptime(st.lastOrphanSweepAt)} ago` : "waiting…"}
+              />
+            )}
           </div>
           <div className="card">
             <div className="sb-card-actions">
