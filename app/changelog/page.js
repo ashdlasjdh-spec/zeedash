@@ -6,6 +6,7 @@ export const revalidate = 600;
 export const metadata = {
   title: "Changelog",
   description: "What's new across Zee Hood — the bot, dashboard, game site, transcripts and perks API.",
+  alternates: { types: { "application/rss+xml": "/feed.xml" } },
 };
 
 const TONE = {
@@ -61,7 +62,7 @@ export default async function ChangelogPage() {
       )}
 
       <footer className="cl-foot">
-        <Link className="inl" href="/docs">Docs</Link> · <Link className="inl" href="/bot/commands">Commands</Link> · <Link className="inl" href="/status">Status</Link>
+        <Link className="inl" href="/docs">Docs</Link> · <Link className="inl" href="/bot/commands">Commands</Link> · <Link className="inl" href="/status">Status</Link> · <a className="inl" href="/feed.xml">RSS</a>
       </footer>
     </main>
   );
