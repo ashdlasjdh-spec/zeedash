@@ -231,8 +231,9 @@ export default function SelfbotClient({ me, isOwner = false }) {
   };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
   const roleKey = () => (roleGuild === "leaderboard" ? "leaderboardStaffRoleIds" : roleGuild === "content" ? "contentStaffRoleIds" : "staffRoleIds");
-  const roleGuildId = () => (roleGuild === "leaderboard" ? (cfg.leaderboardGuildId || "") : roleGuild === "content" ? (cfg.contentGuildId || "") : (cfg.guildId || ""));
-  const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles", roleGuildId()); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
+  // Pass the SOURCE ('main'/'leaderboard'/'content'), not a cached guild id — the bot resolves the
+  // real guild from its own config, so a stale/empty cached id can never load the wrong guild's roles.
+  const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles", roleGuild); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
   const switchRoleGuild = (g) => { setRoleGuild(g); setGuildRoles(null); setRoleAdd(""); };
   const setStaffRoles = async (ids) => { const k = roleKey(); setBusy("roles"); try { const j = await post("settings", { [k]: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), [k]: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
   const addStaffRole = (id) => { id = String(id || "").trim(); if (!/^\d+$/.test(id)) return; const cur = (cfg[roleKey()] || []).map(String); if (cur.includes(id)) return; setRoleAdd(""); setStaffRoles([...cur, id]); };
