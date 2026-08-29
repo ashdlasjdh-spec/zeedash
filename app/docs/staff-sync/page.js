@@ -63,6 +63,7 @@ export default function StaffSyncDocs() {
           ["Kick when a staff role is removed", "The core sync — remove the linked Roblox account when the Discord staff role is lost."],
           ["Kick new joiners with no staff info", "Remove someone who is accepted into the group but has no staff-info record (an un-vetted join)."],
           ["Auto orphan cleanup", "On a schedule, remove anyone on a removable rank in the group who has no staff-info record. Interval is configurable."],
+          ["Sweep on every startup", "After each restart (once the full index rebuilds), run one orphan cleanup — re-scans the group for members with no staff info and removes them. Same guards as the scheduled sweep."],
           ["Dry run", "Log every action it would take without removing anyone — the safe way to preview before going live."],
         ]}
       />

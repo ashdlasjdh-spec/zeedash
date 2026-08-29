@@ -33,6 +33,7 @@ const FIELD_GROUPS = [
     ["kickUnknownJoins", "bool", "Kick new joiners with no staff info"],
     ["autoOrphanSweep", "bool", "Auto orphan cleanup (scheduled — removes members with no staff info)"],
     ["orphanSweepHours", "int", "Orphan sweep interval (hours)"],
+    ["orphanSweepOnStart", "bool", "Sweep on every startup (re-scan for no-staff-info members and remove)"],
     ["requireStaffRoleForFire", "bool", "Require staff role for Fired/Resigns"],
     ["auditWatcherEnabled", "bool", "Audit watcher (read the group's audit log)"],
     ["staffRoleIds", "ids", "Staff Discord role IDs"],

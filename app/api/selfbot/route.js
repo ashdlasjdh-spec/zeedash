@@ -30,6 +30,7 @@ const DEFAULTS = {
   pingAutomodEnabled: false, pingWhitelist: [], pingWhitelistRoles: [],
   dryRun: false, kickOnStaffRoleRemoved: true, kickUnknownJoins: false, requireStaffRoleForFire: false, auditWatcherEnabled: true,
   autoOrphanSweep: false, orphanSweepHours: 12, // scheduled orphan cleanup (off by default; honors dry-run + all guards)
+  orphanSweepOnStart: false, // run one guarded orphan sweep on every bot startup (off by default)
   auditPollSeconds: 100, roleReconcileSeconds: 60, staffRefreshSeconds: 30, kickCooldownSeconds: 300, memberRefreshSeconds: 60, staffInfoHistoryLimit: 0, membershipCacheSeconds: 30, robloxConcurrency: 2,
   // Presence / RPC
   presenceStatus: "online", presenceType: "none", presenceName: "", presenceDetails: "", presenceState: "",
