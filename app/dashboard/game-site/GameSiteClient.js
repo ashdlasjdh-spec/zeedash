@@ -105,7 +105,7 @@ export default function GameSiteClient() {
         <div style={box}><span style={label}>Game link (Roblox)</span>
           <input style={input} value={cfg.gameUrl} onChange={(e) => set("gameUrl", e.target.value)} placeholder="https://www.roblox.com/games/…" /></div>
         <div style={box}><span style={label}>Place ID (used for live player count & media)</span>
-          <input style={input} value={cfg.placeId} onChange={(e) => set("placeId", e.target.value.replace(/\D/g, ""))} placeholder="122577517724086" /></div>
+          <input style={input} value={cfg.placeId} onChange={(e) => set("placeId", e.target.value.replace(/\D/g, ""))} placeholder="134743974543044" /></div>
         <div style={box}><span style={label}>Discord invite</span>
           <input style={input} value={cfg.discordUrl} onChange={(e) => set("discordUrl", e.target.value)} placeholder="https://discord.gg/…" /></div>
         <div style={box}><span style={label}>Hero tagline (under the title)</span>

@@ -10,7 +10,7 @@ export const metadata = {
   description: "The home of Zee Hood: play the game, join the community, and — for staff — run everything from the zhd.lol control panel.",
 };
 
-const GAME_URL = "https://www.roblox.com/games/122577517724086/Zee";
+const GAME_URL = "https://www.roblox.com/games/134743974543044/Zee";
 const DISCORD_URL = "https://discord.gg/zhd";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };

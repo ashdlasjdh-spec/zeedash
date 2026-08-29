@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 // Defaults mirror what the game site currently ships, so the very first load of the editor shows the
 // real, live content instead of blanks.
 export const GAME_DEFAULTS = {
-  gameUrl: "https://www.roblox.com/games/122577517724086/Zee",
-  placeId: "122577517724086",
+  gameUrl: "https://www.roblox.com/games/134743974543044/Zee",
+  placeId: "134743974543044",
   discordUrl: "https://discord.gg/zhd",
   // Landing-page hero subtitle under the "Zee Hood" title.
   tagline: "A remade Da Hood experience on Roblox",
