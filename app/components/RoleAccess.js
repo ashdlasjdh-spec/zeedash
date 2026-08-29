@@ -132,6 +132,16 @@ export default function RoleAccess() {
   const toggleSection = (k) => setEditSections((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const needsCeiling = editActions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
 
+  // "Everything" = every group action + transcripts + every dashboard section, with the rank ceiling
+  // set to the group's top rank (so they can assign any rank). This is the maximum Role Access can
+  // grant — it delegates group + dashboard access; it can't hand out bot ownership.
+  const topRank = () => (groupRanks.length ? Math.max(...groupRanks.map((r) => Number(r.rank) || 0)) : 255);
+  const everythingOn = GROUP_ACTIONS.every((a) => editActions.includes(a)) && editTranscripts && SECTION_GRANTS.every((s) => editSections.includes(s));
+  const toggleEverything = () => {
+    if (everythingOn) { setEditActions([]); setEditTranscripts(false); setEditSections([]); setEditMaxRank(""); }
+    else { setEditActions([...GROUP_ACTIONS]); setEditTranscripts(true); setEditSections([...SECTION_GRANTS]); setEditMaxRank(String(topRank())); }
+  };
+
   // Persist a full item list to the server RIGHT NOW and reflect the server's saved truth back into the
   // UI. Every add/remove goes through here, so there is no separate "did you click Save?" step to miss —
   // a change is written to the DB immediately. On failure we reload the server's real state so the UI
@@ -217,6 +227,13 @@ export default function RoleAccess() {
             </div>
 
             <label style={{ marginTop: 16 }}>This role can…</label>
+            <div className="ra-caps" style={{ marginTop: 6 }}>
+              <button type="button" className={`ra-cap ${everythingOn ? "on" : ""}`} onClick={toggleEverything}
+                style={{ borderColor: everythingOn ? "var(--brand)" : undefined }}>
+                <span className="ra-check" aria-hidden="true">{everythingOn ? "✓" : ""}</span>
+                <span><span className="ra-cap-t">Everything (full access)</span><span className="ra-cap-d">Do anything: every group action, ticket transcripts and all dashboard sections, ranking up to the top rank.</span></span>
+              </button>
+            </div>
             {ACTION_GROUPS.map((grp) => (
               <div key={grp.label} style={{ marginTop: 10 }}>
                 <div className="ra-grp">{grp.label}</div>

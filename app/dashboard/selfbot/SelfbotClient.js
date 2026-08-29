@@ -169,6 +169,12 @@ export default function SelfbotClient({ me, isOwner = false }) {
 
   useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, [load]);
 
+  // Auto-load the selected guild's roles the moment the Staff-roles tab is opened (or the guild is
+  // switched) — no manual "Load role names" click. guildRoles becomes non-null once loaded, so this
+  // fires once per guild; switchRoleGuild resets it to null to reload the new guild.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (tab === "roles" && !!state?.status?.connected && guildRoles === null && busy !== "guildroles") loadGuildRoles(); }, [tab, roleGuild, guildRoles, state]);
+
   const post = async (kind, payload) => {
     const r = await fetch("/api/selfbot", {
       method: "POST",
