@@ -29,6 +29,32 @@ export default function StaffSyncDocs() {
         { icon: "gear", title: "Staff-info index", body: "Continuously indexes the staff-info channel so it always knows which Roblox account belongs to which staffer." },
       ]} />
 
+      <h2>Multi-server coverage</h2>
+      <p>
+        Staff live across three servers, and Staff Sync watches all of them. Each server has its own
+        staff-info channel and its own set of staff roles, and each is reconciled independently — losing
+        your last staff role in any one of the three removes your linked account from the group
+        (rank-guarded, as always).
+      </p>
+      <SpecTable
+        head={["Server", "Reads its own", "Reconcile"]}
+        rows={[
+          ["Main", "Staff-info channel + staff roles", "Active — kick on last-role loss"],
+          ["Leaderboard", "Its own channel + its own staff roles", "Active once its staff roles are set"],
+          ["Content", "Its own channel + its own staff roles", "Active once its staff roles are set (read-only until then)"],
+        ]}
+      />
+      <Tiles items={[
+        { icon: "robot", title: "Main bot preferred", body: "Every server is read through the main bot first — it has the real member intent, so its role data is fast and reliable." },
+        { icon: "shield", title: "Self-bot fallback", body: "Only where the main bot isn’t in a server (or a read fails) does the self-bot account step in, so coverage never has a gap." },
+        { icon: "info", title: "Unknown is never a kick", body: "If neither bot can read a member, that person’s state is left untouched — an unreadable member is never removed." },
+      ]} />
+      <Callout kind="good">
+        The self-bot page shows a live coverage strip — one pill per watched server — telling you which
+        bot is reading each one (main, self-bot fallback, or no coverage). The Roster and person Lookup
+        both tag which server each staffer belongs to.
+      </Callout>
+
       <h2>The optional triggers</h2>
       <p>Everything below is off by default. Turn a trigger on, hit Save, and it applies within seconds.</p>
       <SpecTable

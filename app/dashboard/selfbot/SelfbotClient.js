@@ -126,7 +126,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
   const [preview, setPreview] = useState(null);
   const [guildRoles, setGuildRoles] = useState(null);
   const [roleAdd, setRoleAdd] = useState("");
-  const [roleGuild, setRoleGuild] = useState("main"); // 'main' | 'leaderboard'
+  const [roleGuild, setRoleGuild] = useState("main"); // 'main' | 'leaderboard' | 'content'
   const [whitelistAdd, setWhitelistAdd] = useState("");
   const [whitelistDiscordAdd, setWhitelistDiscordAdd] = useState("");
   const [pingWlAdd, setPingWlAdd] = useState("");
@@ -311,7 +311,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
     if (!roster) return [];
     const q = staffFilter.trim().toLowerCase();
     if (!q) return roster;
-    return roster.filter((s) => [s.discordId, s.username, s.robloxId, s.rankName].some((v) => String(v || "").toLowerCase().includes(q)));
+    return roster.filter((s) => [s.discordId, s.username, s.robloxId, s.rankName, s.source].some((v) => String(v || "").toLowerCase().includes(q)));
   }, [roster, staffFilter]);
   const roleName = useCallback((id) => {
     const r = guildRoles && guildRoles.find((x) => String(x.id) === String(id));
@@ -491,7 +491,23 @@ export default function SelfbotClient({ me, isOwner = false }) {
               )}
               {lookupRes.history && lookupRes.history.length > 0 && <KV k="Past names" v={<span className="mono" style={{ fontSize: 12 }}>{lookupRes.history.join(", ")}</span>} />}
               {lookupRes.source === "discord" && lookupRes.hasStaffRole != null && (
-                <KV k="Currently staff" v={<b style={{ color: lookupRes.hasStaffRole ? "var(--success)" : "var(--warning)" }}>{lookupRes.hasStaffRole ? "yes — holds a staff role" : lookupRes.inGuildDiscord === false ? "no — not in the server" : "no — has no staff role"}</b>} />
+                <KV k="Currently staff" v={<b style={{ color: lookupRes.hasStaffRole ? "var(--success)" : "var(--warning)" }}>{lookupRes.hasStaffRole ? "yes — holds a staff role (in a watched server)" : lookupRes.inGuildDiscord === false ? "no — not in any watched server" : "no — has no staff role"}</b>} />
+              )}
+              {lookupRes.source === "discord" && Array.isArray(lookupRes.guilds) && lookupRes.guilds.length > 0 && (
+                <div style={{ margin: "8px 0 0" }}>
+                  <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Per watched server (main bot preferred, self-bot fallback):</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {lookupRes.guilds.map((g) => {
+                      const tone = g.hasStaffRole === true ? "var(--success)" : g.present === null ? "var(--warning)" : g.present ? "var(--warning)" : "var(--danger)";
+                      const label = g.present === null ? "unreadable (neither bot)" : !g.present ? "not in server" : g.hasStaffRole ? "staff role held" : "no staff role";
+                      return (
+                        <span key={g.guildId} className="pill" style={{ color: tone, border: `1px solid ${tone}`, borderRadius: 8, padding: "3px 9px", fontSize: 12 }}>
+                          {(g.name || g.guildId)}{g.source ? ` (${g.source})` : ""} · {label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
               {!(Array.isArray(lookupRes.accounts) && lookupRes.accounts.length > 1) && <>
                 <KV k="Group rank" v={lookupRes.role ? `${lookupRes.role.name} (rank ${lookupRes.role.rank})` : "not in group"} />
@@ -545,7 +561,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
           )}
           {roster && roster.length > 0 && (
             <div style={{ overflowX: "auto", marginTop: 10 }}>
-              <table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Discord ID</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
+              <table><thead><tr><th>Roblox user</th><th>Roblox ID</th><th>Discord ID</th><th>Server</th><th>Group rank</th><th>Status</th><th></th></tr></thead>
                 <tbody>{filteredStaff.map((s, i) => (
                   <tr key={i}>
                     <td>
@@ -554,6 +570,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
                     </td>
                     <td className="mono">{s.robloxId || <span className="muted">—</span>}</td>
                     <td className="mono">{s.discordId}</td>
+                    <td>{s.source ? <span className="pill" style={{ padding: "1px 7px" }}>{s.source}</span> : <span className="muted">—</span>}</td>
                     <td>{s.inGroup ? <>{s.rankName} <span className="muted">({s.rank})</span></> : <span className="muted">not in group</span>}</td>
                     <td><span className="pill" style={{ color: s.removable ? "var(--danger)" : "var(--success)" }}>{s.removable ? "removable" : "protected"}</span></td>
                     <td style={{ whiteSpace: "nowrap" }}>
@@ -561,7 +578,7 @@ export default function SelfbotClient({ me, isOwner = false }) {
                       {s.removable && s.robloxId ? <button className="btn danger" style={{ padding: "4px 10px", marginLeft: 6 }} disabled={!!busy} onClick={() => act("kickRoblox", s.robloxId, "kick")}>Remove</button> : null}
                     </td>
                   </tr>
-                ))}{filteredStaff.length === 0 && <tr><td colSpan={6} className="muted">No matches.</td></tr>}</tbody>
+                ))}{filteredStaff.length === 0 && <tr><td colSpan={7} className="muted">No matches.</td></tr>}</tbody>
               </table>
             </div>
           )}
