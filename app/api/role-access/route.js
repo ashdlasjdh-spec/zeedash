@@ -95,9 +95,12 @@ export async function GET(req) {
 
     const rows = await query("select config from guild_settings where guild_id=$1 and feature='role-access'", [guild]);
     const rawItems = Array.isArray(rows[0]?.config?.items) ? rows[0].config.items : [];
-    // Sanitize, then drop role-targeted items whose role no longer exists (auto-cleanup). User-targeted
-    // items are always kept.
-    const items = rawItems.map(cleanItem).filter((it) => it && (it.user || liveRoleIds.has(String(it.role))));
+    // Sanitize and ALWAYS return every saved mapping — never hide one just because the live role list
+    // didn't happen to include it (a partial/stale Discord fetch must not make saved grants "disappear").
+    // We only annotate a role-targeted item whose role isn't currently visible, so the UI can flag it.
+    const items = rawItems.map(cleanItem).filter(Boolean).map((it) => (
+      it.role && !liveRoleIds.has(String(it.role)) ? { ...it, missingRole: true } : it
+    ));
     return NextResponse.json({ roles: meta.roles || [], groupRanks, items });
   } catch (e) {
     return serverError(e.message);
@@ -112,18 +115,17 @@ export async function POST(req) {
   if (!guild || !SITE_ROLE_GUILDS.includes(String(guild))) return badRequest("Bad server.");
   if (!Array.isArray(items)) return badRequest("Bad items.");
 
-  // Only keep roles that actually exist in the guild — deleting a role clears its mapping.
-  let liveRoleIds = null;
-  try { const meta = await getGuildMeta(String(guild)); if (Array.isArray(meta?.roles)) liveRoleIds = new Set(meta.roles.map((r) => String(r.id))); } catch { /* fall through */ }
-
+  // Persist EXACTLY what the super-owner set. We deliberately do NOT drop a mapping because the live
+  // Discord role list didn't include it — a partial/stale/rate-limited role fetch was silently deleting
+  // valid grants on save ("role access doesn't save"). Deduplicate only.
   const seen = new Set();
   const clean = [];
   for (const raw of items) {
     const it = cleanItem(raw);
     if (!it) continue;
+    delete it.missingRole; // never persist the UI-only flag
     const key = it.role ? `r:${it.role}` : `u:${it.user}`;
     if (seen.has(key)) continue;
-    if (it.role && liveRoleIds && !liveRoleIds.has(it.role)) continue; // role deleted -> drop
     seen.add(key);
     clean.push(it);
   }
