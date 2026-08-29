@@ -132,6 +132,29 @@ export default function RoleAccess() {
   const toggleSection = (k) => setEditSections((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const needsCeiling = editActions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
 
+  // Persist a full item list to the server RIGHT NOW and reflect the server's saved truth back into the
+  // UI. Every add/remove goes through here, so there is no separate "did you click Save?" step to miss —
+  // a change is written to the DB immediately. On failure we reload the server's real state so the UI
+  // never shows a grant that didn't actually save.
+  async function persist(nextItems, okMsg) {
+    setBusy(true); setT(null);
+    try {
+      const r = await fetch("/api/role-access", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guild, items: nextItems }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Save failed.");
+      setItems((d.items || []).map(normItem));
+      setT({ ok: true, msg: okMsg || "Saved." });
+      return true;
+    } catch (e) {
+      setT({ bad: true, msg: `Couldn't save: ${e.message}` });
+      await loadGuild(guild); // pull the real server state so the UI matches what's actually stored
+      return false;
+    } finally { setBusy(false); }
+  }
+
   function addOrUpdate() {
     const user = String(editUser || "").trim();
     if (user && !/^\d{5,}$/.test(user)) { setT({ bad: true, msg: "That user ID doesn't look right (it should be a Discord ID)." }); return; }
@@ -141,26 +164,14 @@ export default function RoleAccess() {
     const maxRank = needsCeiling && editMaxRank !== "" ? Number(editMaxRank) : null;
     const item = normItem({ role: user ? undefined : editRole, user: user || undefined, group: { actions: editActions, maxRank }, transcripts: editTranscripts, sections: editSections });
     const k = keyOf(item);
-    setItems((list) => [...list.filter((i) => keyOf(i) !== k), item]);
-    resetEdit(); setT(null);
+    const next = [...items.filter((i) => keyOf(i) !== k), item];
+    resetEdit();
+    persist(next, "Saved this role's access."); // auto-saves immediately — no separate Save step needed
   }
-  const removeItem = (key) => setItems((list) => list.filter((i) => keyOf(i) !== key));
+  const removeItem = (key) => persist(items.filter((i) => keyOf(i) !== key), "Removed.");
   function editItem(it) { setEditRole(it.user ? "" : (it.role || "")); setEditUser(it.user || ""); setEditActions(it.group?.actions || []); setEditMaxRank(it.group?.maxRank != null ? String(it.group.maxRank) : ""); setEditTranscripts(!!it.transcripts); setEditSections(Array.isArray(it.sections) ? it.sections : []); }
 
-  async function save() {
-    setBusy(true); setT(null);
-    try {
-      const r = await fetch("/api/role-access", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guild, items }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error);
-      setItems((d.items || []).map(normItem));
-      setT({ ok: true, msg: "Saved — these roles and users now have the access you set on the site." });
-    } catch (e) { setT({ bad: true, msg: e.message }); }
-    setBusy(false);
-  }
+  const save = () => persist(items, "Saved — these roles and users now have the access you set.");
 
   if (guilds === null) return <div className="card"><p className="muted" style={{ margin: 0 }}>Loading servers…</p></div>;
 
@@ -245,8 +256,9 @@ export default function RoleAccess() {
               ))}
             </div>
 
-            <div className="row" style={{ marginTop: 16 }}>
-              <button className="btn" style={{ width: "auto" }} onClick={addOrUpdate}>Add / update role</button>
+            <div className="row" style={{ marginTop: 16, alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <button className="btn" style={{ width: "auto" }} disabled={busy} onClick={addOrUpdate}>{busy ? "Saving…" : "Add role & save"}</button>
+              <span className="muted" style={{ fontSize: 12 }}>Saves instantly — no separate step.</span>
             </div>
 
             {toast && <div className={`toast ${toast.bad ? "bad" : "ok"}`} style={{ marginTop: 14 }}>{toast.msg}</div>}
@@ -254,7 +266,7 @@ export default function RoleAccess() {
             <div style={{ marginTop: 22 }}>
               <div className="between" style={{ marginBottom: 10 }}>
                 <div style={{ fontWeight: 750, color: "var(--white)" }}>Role access ({items.length})</div>
-                <button className="btn" style={{ width: "auto" }} disabled={busy} onClick={save}>{busy ? "Saving…" : "Save changes"}</button>
+                <button className="btn ghost" style={{ width: "auto" }} disabled={busy} onClick={save}>{busy ? "Saving…" : "Re-save all"}</button>
               </div>
               {items.length === 0
                 ? <p className="muted" style={{ margin: 0 }}>No roles mapped yet. Pick a role and its group actions above, add it, then Save.</p>

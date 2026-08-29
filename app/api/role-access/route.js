@@ -155,7 +155,11 @@ export async function POST(req) {
       }).join("; ").slice(0, 600);
       await logAudit({ actorId: s.id, actorName: s.name, action: "role-access", target: String(guild), detail: `${clean.length} mapping(s) — ${snap || "cleared"}` });
     } catch { /* audit is best-effort */ }
-    return NextResponse.json({ ok: true, items: clean });
+    // Re-read the row we just wrote and return THAT — so the client reflects what is actually stored,
+    // not merely what we attempted. If the write somehow didn't land, this surfaces it immediately.
+    const back = await query("select config from guild_settings where guild_id=$1 and feature='role-access'", [String(guild)]);
+    const saved = (Array.isArray(back[0]?.config?.items) ? back[0].config.items : []).map(cleanItem).filter(Boolean);
+    return NextResponse.json({ ok: true, items: saved });
   } catch (e) {
     return serverError(e.message);
   }
