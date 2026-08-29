@@ -412,6 +412,23 @@ export default function SelfbotClient({ me, isOwner = false }) {
               />
             )}
           </div>
+
+          {connected && Array.isArray(st.guildCoverage) && st.guildCoverage.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Who is reading each watched server (main bot preferred, self-bot fallback):</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {st.guildCoverage.map((g) => {
+                  const tone = g.reader === "main" ? "var(--success)" : g.reader === "self" ? "var(--warning)" : "var(--danger)";
+                  const label = g.reader === "main" ? "main bot" : g.reader === "self" ? "self-bot (fallback)" : "NO COVERAGE";
+                  return (
+                    <span key={g.guildId} className="pill" style={{ color: tone, border: `1px solid ${tone}`, borderRadius: 8, padding: "3px 9px", fontSize: 12 }}>
+                      {g.name || g.guildId} · {label}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="card">
             <div className="sb-card-actions">
               <b style={{ marginRight: "auto" }}>Quick actions</b>
