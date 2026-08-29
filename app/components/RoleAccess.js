@@ -40,6 +40,8 @@ const ACTION_GROUPS = [
       { k: "crewAccept", desc: "Accept a user and rank them Crew." },
       { k: "lbAccept", desc: "Accept a user and rank them Leaderboard Staff." },
       { k: "starAccept", desc: "Accept a user and rank them Stars." },
+      { k: "contentAccept", desc: "Accept a user and rank them Content." },
+      { k: "contentStaffAccept", desc: "Accept a user and rank them Content Staff." },
     ],
   },
   {
@@ -49,6 +51,8 @@ const ACTION_GROUPS = [
       { k: "crewKick", desc: "Kick a member — only if they are Crew." },
       { k: "lbKick", desc: "Kick a member — only if they are Leaderboard Staff." },
       { k: "starKick", desc: "Kick a member — only if they are Stars." },
+      { k: "contentKick", desc: "Kick a member — only if they are Content." },
+      { k: "contentStaffKick", desc: "Kick a member — only if they are Content Staff." },
     ],
   },
   {
