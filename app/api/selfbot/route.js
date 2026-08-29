@@ -21,7 +21,7 @@ const DEFAULTS = {
   // like the leaderboard source. Shows in the coverage panel once the guild id is set; the
   // reconcile only removes people here once this guild's own staff role IDs are filled in
   // (empty = read-only, never a kick).
-  contentGuildId: "1496219608800170004", contentChannels: ["1498891974516805652"], contentStaffRoleIds: [],
+  contentGuildId: "1494327144829026354", contentChannels: ["1538696184376328222"], contentStaffRoleIds: [],
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
   whitelistDiscord: [], // Discord user ids whose every linked account is protected
