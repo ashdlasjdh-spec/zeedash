@@ -1,5 +1,6 @@
 import { getSession, bumpGrantsVersion } from "@/lib/session";
-import { isSuperOwner, GROUP_ACTIONS, RANK_ASSIGN_ACTIONS, SECTION_GRANTS } from "@/lib/permissions";
+import { isSuperOwner } from "@/lib/permissions";
+import { cleanItem, sanitizeItems } from "@/lib/roleAccess.mjs";
 import { getGuildMeta } from "@/lib/discord";
 import { getConfig } from "@/lib/config";
 import { listGroupRoles } from "@/lib/robloxGroups";
@@ -33,27 +34,7 @@ async function guard() {
   return { session: s };
 }
 
-// Sanitize one stored/posted item into { role?, user?, group: { actions, maxRank }, transcripts, sections }
-// or null. An item targets EITHER a Discord role OR a specific user id (so access can be granted to a
-// user even when they don't have the role).
-function cleanItem(it) {
-  const role = String(it?.role || "").match(/^\d{5,}$/)?.[0] || null;
-  const user = String(it?.user || "").match(/^\d{5,}$/)?.[0] || null;
-  if (!role && !user) return null; // must target someone
-  const g = it?.group || {};
-  const actions = [...new Set((Array.isArray(g.actions) ? g.actions : []).map(String).filter((a) => GROUP_ACTIONS.includes(a)))];
-  const transcripts = !!it?.transcripts; // may view ticket transcripts for this server
-  const sections = [...new Set((Array.isArray(it?.sections) ? it.sections : []).map(String).filter((s) => SECTION_GRANTS.includes(s)))];
-  if (!actions.length && !transcripts && !sections.length) return null; // grants nothing
-  // A ceiling only matters when the role can lift people up; store it as a plain rank number.
-  const needsCeiling = actions.some((a) => RANK_ASSIGN_ACTIONS.has(a));
-  const mr = Number(g.maxRank);
-  const maxRank = needsCeiling && Number.isFinite(mr) ? Math.max(0, Math.min(255, Math.floor(mr))) : null;
-  const out = { group: { actions, maxRank }, transcripts, sections };
-  if (role) out.role = role;
-  if (user) out.user = user;
-  return out;
-}
+// cleanItem / sanitizeItems live in lib/roleAccess.mjs so the persistence transform is unit-tested.
 
 // GET            -> { guilds: [{ id, name, icon }] }
 // GET ?guild=X   -> { roles: [{id,name}], groupRanks: [{rank,name}], items: [{ role, group }] }
@@ -120,20 +101,10 @@ export async function POST(req) {
   if (!guild || !SITE_ROLE_GUILDS.includes(String(guild))) return badRequest("Bad server.");
   if (!Array.isArray(items)) return badRequest("Bad items.");
 
-  // Persist EXACTLY what the super-owner set. We deliberately do NOT drop a mapping because the live
-  // Discord role list didn't include it — a partial/stale/rate-limited role fetch was silently deleting
-  // valid grants on save ("role access doesn't save"). Deduplicate only.
-  const seen = new Set();
-  const clean = [];
-  for (const raw of items) {
-    const it = cleanItem(raw);
-    if (!it) continue;
-    delete it.missingRole; // never persist the UI-only flag
-    const key = it.role ? `r:${it.role}` : `u:${it.user}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    clean.push(it);
-  }
+  // Persist EXACTLY what the super-owner set (sanitize + dedup only). We deliberately do NOT drop a
+  // mapping because the live Discord role list didn't include it — a partial/stale/rate-limited role
+  // fetch was silently deleting valid grants on save ("role access doesn't save").
+  const clean = sanitizeItems(items);
 
   try {
     await ensureSchema();

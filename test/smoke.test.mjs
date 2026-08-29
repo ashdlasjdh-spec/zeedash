@@ -164,3 +164,39 @@ test("manual perm in one guild does not leak to another", () => {
   assert.ok(!canManageFeature(u, "222", "welcome"), "no standing in 222");
   assert.ok(!canReachGuild(u, "222"));
 });
+
+import { cleanItem, sanitizeItems } from "../lib/roleAccess.mjs";
+
+test("role-access: a valid role grant round-trips (never dropped)", () => {
+  const it = cleanItem({ role: "123456789012345678", group: { actions: ["accept", "kick", "bogus"], maxRank: 250 }, transcripts: true, sections: ["powers", "nope"] });
+  assert.ok(it, "a role with real actions must survive");
+  assert.strictEqual(it.role, "123456789012345678");
+  assert.deepStrictEqual(it.group.actions, ["accept", "kick"], "unknown actions dropped, real ones kept");
+  assert.strictEqual(it.group.maxRank, 250, "ceiling kept for rank-assigning actions");
+  assert.deepStrictEqual(it.sections, ["powers"], "unknown sections dropped");
+  assert.strictEqual(it.transcripts, true);
+});
+
+test("role-access: grants that target no one or nothing become null", () => {
+  assert.strictEqual(cleanItem({ group: { actions: ["accept"] } }), null, "no role/user => null");
+  assert.strictEqual(cleanItem({ role: "123456789012345678", group: { actions: [] } }), null, "grants nothing => null");
+  assert.strictEqual(cleanItem({ role: "123456789012345678", group: { actions: ["notreal"] } }), null, "only invalid actions => null");
+});
+
+test("role-access: a user-target Everything grant survives", () => {
+  const it = cleanItem({ user: "555555555555555555", group: { actions: ["lookup", "rank", "promote", "demote", "accept", "decline", "kick", "shout", "acceptAll", "declineAll", "lbAccept", "crewAccept", "starAccept", "contentAccept", "contentStaffAccept", "lbKick", "crewKick", "starKick", "contentKick", "contentStaffKick"], maxRank: 255 }, transcripts: true, sections: ["bans", "powers", "grants"] });
+  assert.ok(it && it.user === "555555555555555555");
+  assert.strictEqual(it.group.actions.length, 20, "every group action kept");
+  assert.strictEqual(it.sections.length, 3, "all three sections kept");
+});
+
+test("role-access: sanitizeItems keeps every distinct grant and dedups by target", () => {
+  const saved = sanitizeItems([
+    { role: "111111111111111111", group: { actions: ["accept"] } },
+    { role: "222222222222222222", group: { actions: ["kick"] } },
+    { role: "111111111111111111", group: { actions: ["shout"] } }, // duplicate role -> first wins
+    { group: { actions: ["accept"] } }, // no target -> dropped
+  ]);
+  assert.strictEqual(saved.length, 2, "two distinct roles persist; dup and no-target dropped");
+  assert.deepStrictEqual(saved.map((i) => i.role), ["111111111111111111", "222222222222222222"]);
+});

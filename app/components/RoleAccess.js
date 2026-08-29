@@ -98,7 +98,7 @@ export default function RoleAccess() {
   }
 
   const keyOf = (it) => (it.user ? `u:${it.user}` : `r:${it.role}`);
-  const normItem = (it) => ({ role: it.role ? String(it.role) : undefined, user: it.user ? String(it.user) : undefined, group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts, sections: Array.isArray(it.sections) ? it.sections.filter((s) => SECTION_GRANTS.includes(s)) : [] });
+  const normItem = (it) => ({ role: it.role ? String(it.role) : undefined, user: it.user ? String(it.user) : undefined, group: { actions: Array.isArray(it.group?.actions) ? it.group.actions : [], maxRank: it.group?.maxRank ?? null }, transcripts: !!it.transcripts, sections: Array.isArray(it.sections) ? it.sections.filter((s) => SECTION_GRANTS.includes(s)) : [], missingRole: !!it.missingRole });
   const resetEdit = () => { setEditRole(""); setEditUser(""); setEditActions([]); setEditMaxRank(""); setEditTranscripts(false); setEditSections([]); };
 
   useEffect(() => {
@@ -292,7 +292,10 @@ export default function RoleAccess() {
                     {items.map((it) => (
                       <div className="ra-item" key={keyOf(it)}>
                         <div style={{ minWidth: 0, flex: 1 }}>
-                          <div className="ra-item-role">{it.user ? `User ${it.user}` : `@${roleName(it.role)}`}</div>
+                          <div className="ra-item-role">
+                            {it.user ? `User ${it.user}` : `@${roleName(it.role)}`}
+                            {it.missingRole && <span className="chip" title="This role no longer exists in the server — the grant is kept, but nobody holds it." style={{ marginLeft: 8, color: "var(--danger)", borderColor: "var(--danger)" }}>role deleted</span>}
+                          </div>
                           <div className="ra-item-perms">
                             {(it.group?.actions || []).map((a) => <span key={a} className="chip">{GROUP_ACTION_LABELS[a] || a}</span>)}
                             {it.group?.maxRank != null && <span className="chip" style={{ opacity: 0.85 }}>≤ {rankName(it.group.maxRank)}</span>}
