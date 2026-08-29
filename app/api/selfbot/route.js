@@ -17,6 +17,11 @@ const DEFAULTS = {
   // Leaderboard-staff registry: separate guild/channel. Records here are indexed
   // (protected from the orphan purge) but not auto-kicked by main-guild roles.
   leaderboardGuildId: "1496219608800170004", leaderboardChannels: ["1498891974516805652"], leaderboardStaffRoleIds: [],
+  // Third ("content") staff guild — its own guild/channel/roles, watched and reconciled
+  // like the leaderboard source. Shows in the coverage panel once the guild id is set; the
+  // reconcile only removes people here once this guild's own staff role IDs are filled in
+  // (empty = read-only, never a kick).
+  contentGuildId: "1496219608800170004", contentChannels: ["1498891974516805652"], contentStaffRoleIds: [],
   logChannelId: "", staffRoleIds: ["1451419100030173294"], authorizedUserIds: [],
   whitelist: [], // Roblox ids/usernames that are never removed from the group
   whitelistDiscord: [], // Discord user ids whose every linked account is protected

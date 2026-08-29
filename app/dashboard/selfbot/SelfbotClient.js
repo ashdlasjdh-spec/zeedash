@@ -55,6 +55,11 @@ const FIELD_GROUPS = [
     ["leaderboardChannels", "ids", "Leaderboard staff-info channel IDs"],
     ["leaderboardStaffRoleIds", "ids", "Leaderboard STAFF role IDs (this guild's own staff roles)"],
   ]],
+  ["Content staff guild (own roles)", [
+    ["contentGuildId", "id", "Content staff guild ID"],
+    ["contentChannels", "ids", "Content staff-info channel IDs"],
+    ["contentStaffRoleIds", "ids", "Content STAFF role IDs (this guild's own staff roles — empty = read-only, no kicks)"],
+  ]],
   ["Performance & timing", [
     ["roleReconcileSeconds", "int", "Role reconcile interval (s) — backstop sweep"],
     ["memberRefreshSeconds", "int", "Member cache refresh (s) — keeps live kicks instant"],
@@ -225,8 +230,8 @@ export default function SelfbotClient({ me, isOwner = false }) {
     } finally { setBusy(""); }
   };
   const loadRanks = async () => { setBusy("ranks"); try { const r = await runCommand("ranks"); setRanks((r && r.ranks) || []); } finally { setBusy(""); } };
-  const roleKey = () => (roleGuild === "leaderboard" ? "leaderboardStaffRoleIds" : "staffRoleIds");
-  const roleGuildId = () => (roleGuild === "leaderboard" ? (cfg.leaderboardGuildId || "") : (cfg.guildId || ""));
+  const roleKey = () => (roleGuild === "leaderboard" ? "leaderboardStaffRoleIds" : roleGuild === "content" ? "contentStaffRoleIds" : "staffRoleIds");
+  const roleGuildId = () => (roleGuild === "leaderboard" ? (cfg.leaderboardGuildId || "") : roleGuild === "content" ? (cfg.contentGuildId || "") : (cfg.guildId || ""));
   const loadGuildRoles = async () => { setBusy("guildroles"); try { const r = await runCommand("guildroles", roleGuildId()); setGuildRoles((r && r.roles) || []); } finally { setBusy(""); } };
   const switchRoleGuild = (g) => { setRoleGuild(g); setGuildRoles(null); setRoleAdd(""); };
   const setStaffRoles = async (ids) => { const k = roleKey(); setBusy("roles"); try { const j = await post("settings", { [k]: ids }); if (j.settings) setForm((f) => ({ ...(f || {}), [k]: ids })); flash("Staff roles updated"); await load(); } finally { setBusy(""); } };
@@ -570,12 +575,16 @@ export default function SelfbotClient({ me, isOwner = false }) {
             <select value={roleGuild} onChange={(e) => switchRoleGuild(e.target.value)} style={{ minWidth: 170 }}>
               <option value="main">Main guild</option>
               <option value="leaderboard">Leaderboard guild</option>
+              <option value="content">Content guild</option>
             </select>
             <button className="btn ghost" disabled={!!busy} onClick={loadGuildRoles}>{guildRoles ? "Refresh role names" : "Load role names"}</button>
           </div>
-          <p className="muted" style={{ margin: "4px 0 12px" }}>Staff roles for the <b>{roleGuild === "leaderboard" ? "leaderboard" : "main"} guild</b> (each guild has its own set). Anyone with one of these roles is staff there; losing the last one triggers an automatic removal (rank-guarded).</p>
+          <p className="muted" style={{ margin: "4px 0 12px" }}>Staff roles for the <b>{roleGuild === "leaderboard" ? "leaderboard" : roleGuild === "content" ? "content" : "main"} guild</b> (each guild has its own set). Anyone with one of these roles is staff there; losing the last one triggers an automatic removal (rank-guarded).</p>
           {roleGuild === "leaderboard" && !cfg.leaderboardGuildId && (
             <p style={{ margin: "0 0 12px", color: "var(--warning)", fontSize: 13 }}>Set the Leaderboard guild ID first (Settings → Leaderboard staff guild).</p>
+          )}
+          {roleGuild === "content" && !cfg.contentGuildId && (
+            <p style={{ margin: "0 0 12px", color: "var(--warning)", fontSize: 13 }}>Set the Content guild ID first (Settings → Content staff guild).</p>
           )}
 
           <div className="sb-chip-row" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
