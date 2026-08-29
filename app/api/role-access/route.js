@@ -82,9 +82,14 @@ export async function GET(req) {
     }
 
     if (!SITE_ROLE_GUILDS.includes(guild)) return badRequest("That server isn't managed here.");
+    // Load the guild's live roles for the picker. A FAILURE HERE MUST NOT HIDE SAVED MAPPINGS — if the
+    // bot can't read this guild's roles (not in it, 403, rate-limited), we still return everything that's
+    // saved so nothing "disappears" on refresh; the picker just can't offer role NAMES until it recovers.
     const meta = await getGuildMeta(guild);
-    if (meta?.error) return NextResponse.json({ error: `Couldn't load roles (${meta.error}).` }, { status: meta.status || 500 });
-    const liveRoleIds = new Set((meta.roles || []).map((r) => String(r.id)));
+    const rolesOk = !meta?.error && Array.isArray(meta?.roles);
+    const roles = rolesOk ? meta.roles : [];
+    const liveRoleIds = rolesOk ? new Set(roles.map((r) => String(r.id))) : null;
+    const rolesError = rolesOk ? null : `Couldn't load this server's roles (${meta?.error || "unknown"}). Saved mappings are shown; paste a role ID to add more.`;
 
     // Roblox group ranks — for the "highest rank they can assign" dropdown.
     let groupRanks = [];
@@ -96,12 +101,12 @@ export async function GET(req) {
     const rows = await query("select config from guild_settings where guild_id=$1 and feature='role-access'", [guild]);
     const rawItems = Array.isArray(rows[0]?.config?.items) ? rows[0].config.items : [];
     // Sanitize and ALWAYS return every saved mapping — never hide one just because the live role list
-    // didn't happen to include it (a partial/stale Discord fetch must not make saved grants "disappear").
-    // We only annotate a role-targeted item whose role isn't currently visible, so the UI can flag it.
+    // didn't happen to include it (a partial/stale/failed Discord fetch must not make saved grants
+    // "disappear"). Only annotate a role-targeted item whose role isn't currently visible.
     const items = rawItems.map(cleanItem).filter(Boolean).map((it) => (
-      it.role && !liveRoleIds.has(String(it.role)) ? { ...it, missingRole: true } : it
+      it.role && liveRoleIds && !liveRoleIds.has(String(it.role)) ? { ...it, missingRole: true } : it
     ));
-    return NextResponse.json({ roles: meta.roles || [], groupRanks, items });
+    return NextResponse.json({ roles, groupRanks, items, rolesError });
   } catch (e) {
     return serverError(e.message);
   }

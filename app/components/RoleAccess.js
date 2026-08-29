@@ -68,6 +68,7 @@ export default function RoleAccess() {
   const [guilds, setGuilds] = useState(null);
   const [guild, setGuild] = useState("");
   const [roles, setRoles] = useState([]);
+  const [rolesError, setRolesError] = useState("");
   const [groupRanks, setGroupRanks] = useState([]);
   const [items, setItems] = useState([]); // [{ role, group: { actions, maxRank } }]
   const [loadingGuild, setLoadingGuild] = useState(false);
@@ -116,9 +117,10 @@ export default function RoleAccess() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setRoles(d.roles || []);
+      setRolesError(d.rolesError || "");
       setGroupRanks(d.groupRanks || []);
       setItems((d.items || []).map(normItem));
-    } catch (e) { setRoles([]); setGroupRanks([]); setItems([]); setT({ bad: true, msg: e.message }); }
+    } catch (e) { setRoles([]); setRolesError(""); setGroupRanks([]); setItems([]); setT({ bad: true, msg: e.message }); }
     setLoadingGuild(false);
   }, []);
 
@@ -179,11 +181,21 @@ export default function RoleAccess() {
       <div className="card">
         {loadingGuild ? <p className="muted" style={{ margin: 0 }}>Loading roles…</p> : (
           <>
+            {rolesError && (
+              <p style={{ margin: "0 0 12px", padding: "8px 10px", borderRadius: 10, background: "var(--warning-soft, rgba(255,180,0,.12))", color: "var(--warning)", fontSize: 13 }}>
+                {rolesError}
+              </p>
+            )}
             <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <label>Role</label>
-                <Dropdown value={editRole} onChange={(e) => { setEditRole(e.target.value); if (e.target.value) setEditUser(""); }}
-                  options={[{ value: "", label: "Select a role…" }, ...roles.map((r) => ({ value: r.id, label: r.name }))]} />
+                {roles.length > 0 ? (
+                  <Dropdown value={editRole} onChange={(e) => { setEditRole(e.target.value); if (e.target.value) setEditUser(""); }}
+                    options={[{ value: "", label: "Select a role…" }, ...roles.map((r) => ({ value: r.id, label: r.name }))]} />
+                ) : (
+                  <input className="input" placeholder="Role ID (names couldn't load — paste the ID)" value={editRole}
+                    onChange={(e) => { const v = e.target.value.replace(/[^\d]/g, ""); setEditRole(v); if (v) setEditUser(""); }} />
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <label>…or a specific user ID</label>
@@ -268,7 +280,7 @@ export default function RoleAccess() {
                   </div>
                 )}
               <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>
-                Delegate group management, transcript viewing, and dashboard sections (Bans, Powers, Grants) to a role or a specific user. Deleted roles drop off automatically. Changes apply within a minute (a member may need to reopen the site).
+                Delegate group management, transcript viewing, and dashboard sections (Bans, Powers, Grants) to a role or a specific user. Everything you set is saved as-is; a mapping whose role no longer exists is flagged, not deleted. Changes apply within a minute (a member may need to reopen the site).
               </p>
             </div>
           </>
