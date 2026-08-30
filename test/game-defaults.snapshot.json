@@ -1,0 +1,52 @@
+{
+  "_comment": "Canonical snapshot of the game-site content shared between zeehood.org (bundled fallbacks in zee-hood-game/app/defaults.mjs) and the dashboard (zeedash/app/api/game-config/route.js GAME_DEFAULTS). This file MUST be byte-identical in both repos. Both repos have a test locking their own values to it, so changing content in one place without updating the other (and this snapshot) fails a build. To change content: edit defaults.mjs, GAME_DEFAULTS, and this snapshot in BOTH repos together.",
+  "gameUrl": "https://www.roblox.com/games/134743974543044/Zee",
+  "placeId": "134743974543044",
+  "discordUrl": "https://discord.gg/zhd",
+  "tagline": "A remade Da Hood experience on Roblox",
+  "heroTitle": "Zee Hood",
+  "purchaseNote": "Purchases are handled in our Discord.",
+  "buyLabel": "Buy via Discord",
+  "passes": [
+    { "id": "1952883102", "item": "Aimview" },
+    { "id": "1952247201", "item": "Armor" },
+    { "id": "1954788585", "item": "Katana" },
+    { "id": "1955772531", "item": "Mask" },
+    { "id": "1954662623", "item": "Stim" },
+    { "id": "1954024780", "item": "Food" },
+    { "id": "1951935469", "item": "Cookie" }
+  ],
+  "roles": [
+    ["Trial Moderator", "$35"], ["Moderator", "$50"], ["Head Moderator", "$70"],
+    ["Admin", "$85"], ["Head Admin", "$105"], ["Head of Staff", "$170"],
+    ["Server Manager", "$240"], ["Management", "$300"], ["Head Management", "$410"],
+    ["Staff Advisor", "$550"], ["Overseer", "$700"], ["Director", "$950"], ["Co-Owner", "$2,000"]
+  ],
+  "shop": [
+    ["Crew Tag", "$10"], ["Crew Tag + Icon", "$15"], ["Ingame Emoji", "$5"],
+    ["Star Rank", "$30"], ["Content Creator Rank", "$15"]
+  ],
+  "powers": [
+    ["Spiderman", [["Spiderman", "$150"]]],
+    ["ACT4", [["TA4", "$200", true]]],
+    ["Batman", [["Batarang", "$80", true], ["Grapple Hook", "$95"], ["Glide", "$90"]]],
+    ["Catwoman", [["Catwoman Whip", "$50"], ["Cat Speed", "$75"]]],
+    ["Joker", [["Escape", "$90"], ["Joker Speed", "$75"], ["Cards", "$100", true]]],
+    ["Reverse Flash", [["Reverse Flash Outfit", "$125", true], ["Dash Punch", "$85"], ["Speed Force", "$85"]]],
+    ["Ghost", [["Ghost", "$150", true], ["Ghost Ray", "$100"], ["Fly", "$100"]]],
+    ["Green Goblin", [["Goblin Grenade", "$100"], ["Goblin Glider", "$140"]]],
+    ["Green Lantern", [["Energy Hammer", "$125", true]]],
+    ["Invincible", [["Super Punch", "$85"], ["Fly", "$100"]]],
+    ["BlackPower", [["Mjolnir", "$150", true], ["DooM", "$250"]]],
+    ["Purple Flame", [["Fire Power", "$70"]]],
+    ["Orange Flame", [["Fire Power", "$70"], ["Fly", "$100"]]],
+    ["Bat", [["Admin Bat", "$300"]]],
+    ["Nightwing", [["Batarang", "$75"], ["Grapple Hook", "$90"]]],
+    ["OP Katana", [["OP Katana", "$300"]]],
+    ["River", [["River", "$300"], ["OP Katana", "$300"]]],
+    ["Scorpion", [["Scorpion", "$175", true]]],
+    ["Whip", [["Catwoman Whip", "$45"]]],
+    ["Character Powers", [["Flash", "$300"], ["Black Panther", "$175"], ["Green Lantern (Male)", "$200"], ["Magic", "$300"], ["TW (The World)", "$600"]]],
+    ["Shazam Variants", [["Orange", "$200"], ["Black Adam", "$200"], ["Superman", "$200"], ["Green", "$200"], ["Blue", "$200"], ["White", "$200"], ["Red", "$200"], ["Black", "$200"], ["Purple", "$200"], ["Justice", "$200"], ["Draco", "$200"], ["Benoxa", "$250"], ["Ellie", "$250"]]]
+  ]
+}
