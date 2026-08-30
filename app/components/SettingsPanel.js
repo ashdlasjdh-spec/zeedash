@@ -5,17 +5,21 @@ export default function SettingsPanel() {
   const [apiKey, setKey] = useState(""); const [universeId, setUni] = useState(""); const [groupId, setGid] = useState("");
   const [banKey, setBanKey] = useState("");
   const [banHook, setBanHook] = useState("");
+  const [botTok, setBotTok] = useState("");
+  const [banChan, setBanChan] = useState("");
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [syncing, setS] = useState(false); const [syncToast, setST] = useState(null);
-  async function load() { const r = await fetch("/api/config"); const d = await r.json(); if (r.ok) { setCfg(d); setUni(d.universeId || ""); setGid(d.groupId || ""); } }
+  async function load() { const r = await fetch("/api/config"); const d = await r.json(); if (r.ok) { setCfg(d); setUni(d.universeId || ""); setGid(d.groupId || ""); setBanChan(d.banLogChannel || ""); } }
   useEffect(() => { load(); }, []);
   async function save() {
     setB(true); setT(null);
     const body = {}; if (apiKey) body.apiKey = apiKey; if (universeId) body.universeId = universeId; if (groupId) body.groupId = groupId; if (banKey) body.banApiKey = banKey;
     if (banHook.trim()) body.banWebhook = banHook.trim();
+    if (botTok.trim()) body.botToken = botTok.trim();
+    if (cfg.canEditBotToken && banChan.trim() !== (cfg.banLogChannel || "")) body.banLogChannel = banChan.trim();
     const r = await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const d = await r.json();
-    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); setBanKey(""); setBanHook(""); load(); }
+    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); setBanKey(""); setBanHook(""); setBotTok(""); load(); }
     setB(false);
   }
   async function syncDb() {
@@ -53,10 +57,22 @@ export default function SettingsPanel() {
             <input className="mono" type="password" value={banKey} onChange={e => setBanKey(e.target.value)} placeholder="Open Cloud key with the User Restrictions scope (co founders+ only)" />
           </div>
         )}
+        {cfg.canEditBotToken && (
+          <>
+            <div>
+              <label>Ban-log bot token <span style={{ color: cfg.botTokenSet ? "var(--ok)" : "var(--muted)" }}>({cfg.botTokenSet ? `set · ${cfg.botTokenSource} · ${cfg.botTokenMasked}` : "not set — falls back to the webhook below"})</span></label>
+              <input className="mono" type="password" value={botTok} onChange={e => setBotTok(e.target.value)} placeholder="Discord bot token — ban logs post AS the bot (super owners only)" />
+            </div>
+            <div>
+              <label>Ban-log channel ID <span style={{ color: "var(--muted)" }}>(where ban logs post as the bot)</span></label>
+              <input className="mono" value={banChan} onChange={e => setBanChan(e.target.value)} placeholder="1536813165189537844" />
+            </div>
+          </>
+        )}
         {cfg.canEditBanWebhook && (
           <div>
-            <label>Ban-log Discord webhook <span style={{ color: cfg.banWebhookSet ? "var(--ok)" : "var(--muted)" }}>({cfg.banWebhookSet ? `set · ${cfg.banWebhookSource} · ${cfg.banWebhookMasked}` : "not set — ban logs won't post"})</span></label>
-            <input className="mono" type="password" value={banHook} onChange={e => setBanHook(e.target.value)} placeholder="https://discord.com/api/webhooks/… (super owners only)" />
+            <label>Ban-log webhook (fallback) <span style={{ color: cfg.banWebhookSet ? "var(--ok)" : "var(--muted)" }}>({cfg.banWebhookSet ? `set · ${cfg.banWebhookSource} · ${cfg.banWebhookMasked}` : "not set"})</span></label>
+            <input className="mono" type="password" value={banHook} onChange={e => setBanHook(e.target.value)} placeholder="https://discord.com/api/webhooks/… (used only if no bot token)" />
           </div>
         )}
       </div>

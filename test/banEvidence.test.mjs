@@ -110,8 +110,33 @@ test("selectBanFiles: handles missing / non-array input", () => {
   assert.deepEqual(selectBanFiles("nope"), []);
 });
 
-// --- webhook sender + upload prep (mocked fetch) ------------------------------------------------
-import { sendBanWebhook, prepareUploadedFiles } from "../lib/banEvidence.mjs";
+// --- ban-log content + sender + upload prep (mocked fetch) --------------------------------------
+import { sendBanMessage, banLogContent, prepareUploadedFiles } from "../lib/banEvidence.mjs";
+
+const TARGET = { userId: "11231525685", username: "fhfhfhfhffhfhch", displayName: "medo" };
+
+test("banLogContent: matches the reference format (header, >>> blockquote, -# footer)", () => {
+  const c = banLogContent({
+    target: TARGET, reasonText: "Exploiting - /zhd", caseId: "RD-MTFI9CG6-1N5XF0",
+    actorName: "dadabry", actorId: "1116341555310116894", actionLabel: "Ban", hasFiles: true, unix: 1788075960,
+  });
+  assert.match(c, /^## medo \(@fhfhfhfhffhfhch\)\n/);
+  assert.match(c, /^>>> Username: \[`fhfhfhfhffhfhch`\]\(https:\/\/www\.roblox\.com\/users\/11231525685\/profile\)$/m);
+  assert.match(c, /^User ID: 11231525685$/m);
+  assert.match(c, /^Game: Zee Hood \[FIXED\]$/m);
+  assert.match(c, /^Evidence: Attached below$/m);
+  assert.match(c, /^Reason: Exploiting - \/zhd$/m);
+  assert.match(c, /^case_id: `RD-MTFI9CG6-1N5XF0`$/m);
+  assert.match(c, /^Moderator: dadabry \(id: 1116341555310116894\)$/m);
+  assert.match(c, /^-# ⏱️ Action taken on: <t:1788075960:F> - Ban$/m);
+  // Evidence comes before Reason (matches the reference)
+  assert.ok(c.indexOf("Evidence:") < c.indexOf("Reason:"));
+});
+
+test("banLogContent: no files → Evidence shows the link; omitted when neither", () => {
+  assert.match(banLogContent({ target: TARGET, reasonText: "x", caseId: "c", actorName: "a", actorId: "1", actionLabel: "Ban", evidenceText: "https://clip", hasFiles: false }), /^Evidence: https:\/\/clip$/m);
+  assert.doesNotMatch(banLogContent({ target: TARGET, reasonText: "x", caseId: "c", actorName: "a", actorId: "1", actionLabel: "Unban", hasFiles: false }), /Evidence:/);
+});
 
 function withFetch(impl, fn) {
   const orig = globalThis.fetch;
@@ -121,41 +146,40 @@ function withFetch(impl, fn) {
 }
 const ok = { ok: true, status: 204 };
 
-test("sendBanWebhook: no files → single JSON post, returns sent", async () => {
+test("sendBanMessage: posts AS THE BOT to the channel when a token is given", async () => {
   await withFetch(() => ok, async (calls) => {
-    const r = await sendBanWebhook("https://hook", { embed: { description: "x" } });
+    const r = await sendBanMessage({ channelId: "123", botToken: "tok", content: "hi" });
     assert.equal(r, "sent");
-    assert.equal(calls.length, 1);
-    assert.equal(calls[0].opts.headers["Content-Type"], "application/json");
-    assert.match(calls[0].opts.body, /"embeds"/);
+    assert.match(calls[0].url, /\/channels\/123\/messages$/);
+    assert.equal(calls[0].opts.headers.Authorization, "Bot tok");
   });
 });
 
-test("sendBanWebhook: with files → multipart (FormData body)", async () => {
+test("sendBanMessage: falls back to the webhook URL when no bot token", async () => {
   await withFetch(() => ok, async (calls) => {
-    const files = [{ name: "clip.mp4", blob: new Blob([Buffer.from("hi")], { type: "video/mp4" }) }];
-    const r = await sendBanWebhook("https://hook", { embed: { description: "x" }, files });
+    const r = await sendBanMessage({ url: "https://hook", content: "hi" });
+    assert.equal(r, "sent");
+    assert.equal(calls[0].url, "https://hook");
+    assert.equal(calls[0].opts.headers.Authorization, undefined);
+  });
+});
+
+test("sendBanMessage: with files → multipart, and 413 falls back to content-only", async () => {
+  await withFetch((i) => (i === 0 ? { ok: false, status: 413 } : ok), async (calls) => {
+    const files = [{ name: "clip.mp4", blob: new Blob([Buffer.from("x")], { type: "video/mp4" }) }];
+    const r = await sendBanMessage({ channelId: "1", botToken: "t", content: "hi", files });
     assert.equal(r, "sent");
     assert.ok(calls[0].opts.body instanceof FormData);
-    assert.ok(calls[0].opts.body.get("payload_json"));
-  });
-});
-
-test("sendBanWebhook: multipart rejected → falls back to embed-only", async () => {
-  // First (multipart) call fails, second (embed-only JSON) succeeds.
-  await withFetch((i) => (i === 0 ? { ok: false, status: 413 } : ok), async (calls) => {
-    const files = [{ name: "big.mp4", blob: new Blob([Buffer.from("x")]) }];
-    const r = await sendBanWebhook("https://hook", { embed: { description: "x" }, files });
-    assert.equal(r, "sent");
     assert.equal(calls.length, 2);
     assert.equal(calls[1].opts.headers["Content-Type"], "application/json");
   });
 });
 
-test("sendBanWebhook: fetch throws → error string, never throws", async () => {
-  await withFetch(() => { throw new Error("network down"); }, async () => {
-    const r = await sendBanWebhook("https://hook", { embed: { description: "x" } });
-    assert.match(r, /webhook error: network down/);
+test("sendBanMessage: no destination configured → returns a clear status, no fetch", async () => {
+  await withFetch(() => ok, async (calls) => {
+    const r = await sendBanMessage({ content: "hi" });
+    assert.match(r, /no ban destination/);
+    assert.equal(calls.length, 0);
   });
 });
 

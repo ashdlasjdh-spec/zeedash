@@ -21,12 +21,16 @@ export async function GET() {
     // Ban-log webhook — super owners only (it can post to a Discord channel). Never return the full URL.
     banWebhookSet: !!c.banWebhook, banWebhookMasked: mask(c.banWebhook), banWebhookSource: c.banWebhookSource,
     canEditBanWebhook: isSuperOwner(s.id),
+    // Ban logs post AS THE BOT with this token to this channel (falls back to the webhook). Token masked.
+    botTokenSet: !!c.botToken, botTokenMasked: mask(c.botToken), botTokenSource: c.botTokenSource,
+    banLogChannel: c.banLogChannel,
+    canEditBotToken: isSuperOwner(s.id),
   });
 }
 export async function POST(req) {
   const s = await getSession();
   if (!s || !canConfig(s.level)) return forbidden();
-  const { apiKey, universeId, groupId, banApiKey, banWebhook } = await req.json();
+  const { apiKey, universeId, groupId, banApiKey, banWebhook, botToken, banLogChannel } = await req.json();
   if (apiKey) await setConfig("roblox_api_key", apiKey, s.id);
   if (universeId) await setConfig("roblox_universe_id", String(universeId), s.id);
   if (groupId) await setConfig("roblox_group_id", String(groupId), s.id);
@@ -42,6 +46,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "That doesn't look like a Discord webhook URL." }, { status: 400 });
     }
     await setConfig("ban_webhook", url, s.id);
+  }
+  if (botToken !== undefined) {
+    if (!isSuperOwner(s.id)) return forbidden("Only super owners can change the bot token.");
+    await setConfig("bot_token", String(botToken || "").trim(), s.id);
+  }
+  if (banLogChannel !== undefined) {
+    if (!isSuperOwner(s.id)) return forbidden("Only super owners can change the ban-log channel.");
+    const id = String(banLogChannel || "").trim();
+    if (id && !/^\d{5,25}$/.test(id)) return NextResponse.json({ error: "Channel ID must be a Discord snowflake (digits)." }, { status: 400 });
+    await setConfig("ban_log_channel", id, s.id);
   }
   await logAudit({ actorId: s.id, actorName: s.name, action: "config", detail: "updated open cloud config" });
   return NextResponse.json({ ok: true });

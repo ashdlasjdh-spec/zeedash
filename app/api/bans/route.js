@@ -5,8 +5,7 @@ import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { forbidden, notFound, serverError } from "@/lib/api";
-import { evidenceParts } from "@/lib/banEvidence";
-import { sendBanWebhook, prepareUploadedFiles } from "@/lib/bans";
+import { sendBanMessage, banLogContent, prepareUploadedFiles } from "@/lib/bans";
 
 export const dynamic = "force-dynamic";
 // Allow time to sit through a rate-limit window and retry (see the retry loop below).
@@ -196,14 +195,6 @@ function newCaseId() {
   return `RD-${seg(8)}-${seg(6)}`;
 }
 
-async function headshotUrl(userId) {
-  try {
-    const r = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
-    if (r.ok) { const d = await r.json(); return d?.data?.[0]?.imageUrl || null; }
-  } catch {}
-  return null;
-}
-
 export async function POST(req) {
   try {
     const s = await getSession();
@@ -228,7 +219,7 @@ export async function POST(req) {
     if ((isBan || action === "warn") && !reasonText) return NextResponse.json({ error: `A reason is required to ${actionLabel.toLowerCase()}.` }, { status: 400 });
 
     // API key: the dedicated Bans key from Settings/env if set, else the main key.
-    const { apiKey, universeId, banApiKey, banWebhook } = await getConfig();
+    const { apiKey, universeId, banApiKey, banWebhook, botToken, banLogChannel } = await getConfig();
     const banKey = banApiKey || apiKey;
     if (!banKey || !universeId) {
       return serverError("Ban not configured: set a Bans API key in Settings + a universe id.");
@@ -305,32 +296,17 @@ export async function POST(req) {
 
     const caseId = newCaseId();
 
-    // Webhook log embed — exact format: ## header, >>> blockquote, linked+code username,
-    // code case id, avatar thumbnail, and a -# subtext line with a Discord timestamp.
-    let webhook = "no ban webhook configured";
-    const hook = banWebhook; // dashboard config → env fallback (see lib/config.js)
-    if (hook) {
-      const thumb = await headshotUrl(target.userId);
-      const unix = Math.floor(Date.now() / 1000);
-      const profile = `https://www.roblox.com/users/${target.userId}/profile`;
-      // Classic embed (no separator lines — those need Components V2 which webhooks reject).
-      // Avatar on the right as the embed thumbnail; timestamp via <t:..:F>.
-      const ev = evidenceParts(evidenceText);
-      const description =
-        `## ${target.displayName || target.username} (@${target.username})\n` +
-        `> Username: [\`${target.username}\`](${profile})\n` +
-        `> User ID: ${target.userId}\n` +
-        `> Game: ${GAME_NAME}\n` +
-        `> Reason: ${reasonText || "—"}\n` +
-        (ev.line ? ev.line + "\n" : "") +
-        (noteText ? `> Note: ${noteText}\n` : "") +
-        `> case_id: \`${caseId}\`\n` +
-        `> Moderator: ${s.name} (id: ${s.id})\n` +
-        `-# Action taken on: <t:${unix}:F> - ${actionLabel}`;
-      // Direct image evidence → inline preview in the embed; a clip/video link → message content so
-      // Discord unfurls it into a player. Uploaded files are re-sent as attachments (embedded in the log).
-      const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}), ...(ev.imageUrl ? { image: { url: ev.imageUrl } } : {}) };
-      webhook = await sendBanWebhook(hook, { embed, contentUrl: ev.contentUrl, files: await prepareUploadedFiles(uploaded) });
+    // Ban-log message — posted AS THE BOT to the log channel (falls back to a webhook). The content
+    // (## header, >>> blockquote, -# subtext, <t:..:F> timestamp) + attached clips match the reference
+    // format exactly. Shared builder/sender in lib/banEvidence so the bot path produces identical output.
+    let webhook = "no ban destination configured";
+    if (botToken || banWebhook) {
+      const prepared = await prepareUploadedFiles(uploaded);
+      const content = banLogContent({
+        target, reasonText, evidenceText, noteText, caseId,
+        actorName: s.name, actorId: s.id, actionLabel, hasFiles: prepared.length > 0,
+      });
+      webhook = await sendBanMessage({ url: banWebhook, channelId: banLogChannel, botToken, content, files: prepared });
     }
 
     await logAudit({
