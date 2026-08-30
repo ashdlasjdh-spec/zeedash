@@ -428,6 +428,44 @@ button.tb-kv:hover{background:var(--surface-3)}
 .livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 0 rgba(63,185,80,.5);animation:livepulse 2s infinite}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(63,185,80,.5)}70%{box-shadow:0 0 0 6px rgba(63,185,80,0)}100%{box-shadow:0 0 0 0 rgba(63,185,80,0)}}
 
+/* ============ motion system (shared across EVERY page) ============
+   One GPU-only entrance system on the building blocks every page reuses (.ph, .card,
+   stat/action tiles, feed rows, table rows) — so all 25 pages animate identically with
+   zero per-page JS. Only transform+opacity are animated (composited, no layout/paint
+   thrash), and the whole thing is gated behind `prefers-reduced-motion: no-preference`,
+   which is ALSO the low-power / battery-saver path — so it's both the animation and the
+   optimization: motion-sensitive users and weak devices render instantly with no work. */
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: no-preference){
+  /* page header + hero + section headings + cards rise in on load */
+  .ph,.ov-hero,.ov-sec-h,.ov-super,.card{animation:riseIn .5s cubic-bezier(.2,.7,.2,1) both}
+  /* the hero and its immediate cards lead; deeper cards follow so the page cascades */
+  .ov-sec-h{animation-delay:.06s}
+  .ov-super{animation-delay:.09s}
+
+  /* staggered groups — each child eases in just after the previous. Capped at 10 so a long
+     list doesn't delay its tail off-screen; anything past 10 simply shares the last step. */
+  .ov-stats>*,.ov-actions>*,.ov-grid>*,.ov-feed-row,.ov-news-row,.ov-mover,
+  .grid>.card,.fl-row,.table-wrap tbody tr{animation:popIn .46s cubic-bezier(.2,.7,.2,1) both}
+  .ov-stats>*:nth-child(1),.ov-actions>*:nth-child(1),.ov-feed-row:nth-child(1),.ov-news-row:nth-child(1),.ov-mover:nth-child(1),.fl-row:nth-child(1),.table-wrap tbody tr:nth-child(1){animation-delay:.03s}
+  .ov-stats>*:nth-child(2),.ov-actions>*:nth-child(2),.ov-feed-row:nth-child(2),.ov-news-row:nth-child(2),.ov-mover:nth-child(2),.fl-row:nth-child(2),.table-wrap tbody tr:nth-child(2){animation-delay:.07s}
+  .ov-stats>*:nth-child(3),.ov-actions>*:nth-child(3),.ov-feed-row:nth-child(3),.ov-news-row:nth-child(3),.ov-mover:nth-child(3),.fl-row:nth-child(3),.table-wrap tbody tr:nth-child(3){animation-delay:.11s}
+  .ov-stats>*:nth-child(4),.ov-actions>*:nth-child(4),.ov-feed-row:nth-child(4),.ov-news-row:nth-child(4),.ov-mover:nth-child(4),.fl-row:nth-child(4),.table-wrap tbody tr:nth-child(4){animation-delay:.15s}
+  .ov-actions>*:nth-child(5),.ov-feed-row:nth-child(5),.ov-news-row:nth-child(5),.ov-mover:nth-child(5),.fl-row:nth-child(5),.table-wrap tbody tr:nth-child(5){animation-delay:.19s}
+  .ov-actions>*:nth-child(6),.ov-feed-row:nth-child(6),.ov-news-row:nth-child(6),.fl-row:nth-child(6),.table-wrap tbody tr:nth-child(6){animation-delay:.23s}
+  .ov-feed-row:nth-child(7),.fl-row:nth-child(7),.table-wrap tbody tr:nth-child(7){animation-delay:.27s}
+  .ov-feed-row:nth-child(8),.fl-row:nth-child(8),.table-wrap tbody tr:nth-child(8){animation-delay:.31s}
+  .ov-feed-row:nth-child(9),.fl-row:nth-child(9),.table-wrap tbody tr:nth-child(9){animation-delay:.35s}
+  .ov-feed-row:nth-child(n+10),.fl-row:nth-child(n+10),.table-wrap tbody tr:nth-child(n+10){animation-delay:.39s}
+
+  /* subtle hover lift on cards + interactive tiles (transform only — cheap, no reflow) */
+  .card,.ov-action,.ov-super{transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .2s ease,border-color .2s ease}
+  .ov-action:hover,.ov-super:hover{transform:translateY(-2px)}
+}
+/* the count-up number holds its own width so the layout never jumps as digits change */
+.countup{font-variant-numeric:tabular-nums}
+
 /* ============ inputs ============ */
 label{display:block;font-size:11px;color:var(--muted);margin:0 0 7px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 input,select,textarea{

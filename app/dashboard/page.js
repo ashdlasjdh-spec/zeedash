@@ -11,6 +11,7 @@ import { getLivePlayers } from "@/lib/gamestats";
 import { DiscordLink, RobloxLink, robloxIdFrom } from "../components/ProfileLinks";
 import LocalTime from "../components/LocalTime";
 import PortalChooser from "../components/PortalChooser";
+import CountUp from "../components/CountUp";
 import { getChangelog } from "@/lib/changelog.mjs";
 
 export const dynamic = "force-dynamic";
@@ -136,7 +137,7 @@ export default async function Overview({ searchParams }) {
         {stats.map((s, i) => (
           <div className="ov-stat" key={i}>
             <div className="ov-stat-ico"><Icon name={s.icon} /></div>
-            <div className="ov-n">{s.live ? s.live : s.n.toLocaleString()}</div>
+            <div className="ov-n">{s.live ? s.live : <CountUp value={s.n} />}</div>
             <div className="ov-l">{s.l}</div>
             <div className="ov-hint">{s.hint}</div>
           </div>
