@@ -5,6 +5,7 @@ import { getConfig, setConfig } from "@/lib/config";
 import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { forbidden, notFound, serverError } from "@/lib/api";
+import { evidenceParts } from "@/lib/banEvidence";
 
 export const dynamic = "force-dynamic";
 // Allow time to sit through a rate-limit window and retry (see the retry loop below).
@@ -303,18 +304,21 @@ export async function POST(req) {
       const profile = `https://www.roblox.com/users/${target.userId}/profile`;
       // Classic embed (no separator lines — those need Components V2 which webhooks reject).
       // Avatar on the right as the embed thumbnail; timestamp via <t:..:F>.
+      const ev = evidenceParts(evidenceText);
       const description =
         `## ${target.displayName || target.username} (@${target.username})\n` +
         `> Username: [\`${target.username}\`](${profile})\n` +
         `> User ID: ${target.userId}\n` +
         `> Game: ${GAME_NAME}\n` +
         `> Reason: ${reasonText || "—"}\n` +
-        (evidenceText ? `> Evidence: ${evidenceText}\n` : "") +
+        (ev.line ? ev.line + "\n" : "") +
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
         `-# Action taken on: <t:${unix}:F> - ${actionLabel}`;
-      const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}) };
-      const payload = { embeds: [embed], allowed_mentions: { parse: [] } };
+      // Direct image evidence → inline preview in the embed; a clip/video link → message content so
+      // Discord unfurls it into a player below the embed (webhooks can't set a playable embed video).
+      const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}), ...(ev.imageUrl ? { image: { url: ev.imageUrl } } : {}) };
+      const payload = { embeds: [embed], allowed_mentions: { parse: [] }, ...(ev.contentUrl ? { content: ev.contentUrl } : {}) };
       try {
         const wr = await fetch(hook, {
           method: "POST",

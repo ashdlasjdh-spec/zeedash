@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test test/smoke.test.mjs test/gameDefaults.test.mjs",
+    "test": "node --test test/smoke.test.mjs test/gameDefaults.test.mjs test/banEvidence.test.mjs",
     "e2e": "playwright test"
   },
   "dependencies": {
