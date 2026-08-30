@@ -6,6 +6,7 @@ import { logAudit, query } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { forbidden, notFound, serverError } from "@/lib/api";
 import { evidenceParts } from "@/lib/banEvidence";
+import { sendBanWebhook, prepareUploadedFiles } from "@/lib/bans";
 
 export const dynamic = "force-dynamic";
 // Allow time to sit through a rate-limit window and retry (see the retry loop below).
@@ -209,11 +210,21 @@ export async function POST(req) {
     if (!s || !canBanS(s)) return forbidden();
     if (rateLimited(`post:${s.id}`, 15, 60_000)) return NextResponse.json({ error: "Slow down — too many actions." }, { status: 429 });
 
-    const { user: input, reason, duration, evidence, action = "ban" } = await req.json();
+    // Accept either JSON (the usual path) or multipart/form-data (when the form attaches evidence files).
+    let input, reason, duration, evidence, note, action = "ban", uploaded = [];
+    if ((req.headers.get("content-type") || "").includes("multipart/form-data")) {
+      const fd = await req.formData();
+      input = fd.get("user"); reason = fd.get("reason"); duration = fd.get("duration");
+      evidence = fd.get("evidence"); note = fd.get("note"); action = fd.get("action") || "ban";
+      uploaded = fd.getAll("files").filter((f) => f && typeof f.arrayBuffer === "function");
+    } else {
+      ({ user: input, reason, duration, evidence, note, action = "ban" } = await req.json());
+    }
     const isBan = action === "ban";
     const actionLabel = action === "kick" ? "Kick" : action === "warn" ? "Warn" : isBan ? "Ban" : "Unban";
     const reasonText = String(reason || "").trim();
     const evidenceText = String(evidence || "").trim();
+    const noteText = String(note || "").trim().slice(0, 500); // internal — never sent to the game reason
     if ((isBan || action === "warn") && !reasonText) return NextResponse.json({ error: `A reason is required to ${actionLabel.toLowerCase()}.` }, { status: 400 });
 
     // API key: the dedicated Bans key from Settings/env if set, else the main key.
@@ -312,23 +323,14 @@ export async function POST(req) {
         `> Game: ${GAME_NAME}\n` +
         `> Reason: ${reasonText || "—"}\n` +
         (ev.line ? ev.line + "\n" : "") +
+        (noteText ? `> Note: ${noteText}\n` : "") +
         `> case_id: \`${caseId}\`\n` +
         `> Moderator: ${s.name} (id: ${s.id})\n` +
         `-# Action taken on: <t:${unix}:F> - ${actionLabel}`;
       // Direct image evidence → inline preview in the embed; a clip/video link → message content so
-      // Discord unfurls it into a player below the embed (webhooks can't set a playable embed video).
+      // Discord unfurls it into a player. Uploaded files are re-sent as attachments (embedded in the log).
       const embed = { description, ...(thumb ? { thumbnail: { url: thumb } } : {}), ...(ev.imageUrl ? { image: { url: ev.imageUrl } } : {}) };
-      const payload = { embeds: [embed], allowed_mentions: { parse: [] }, ...(ev.contentUrl ? { content: ev.contentUrl } : {}) };
-      try {
-        const wr = await fetch(hook, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        webhook = wr.ok ? "sent" : `webhook ${wr.status}: ${(await wr.text()).slice(0, 300)}`;
-      } catch (e) {
-        webhook = `webhook error: ${e.message}`;
-      }
+      webhook = await sendBanWebhook(hook, { embed, contentUrl: ev.contentUrl, files: await prepareUploadedFiles(uploaded) });
     }
 
     await logAudit({

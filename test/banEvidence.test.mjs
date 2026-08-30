@@ -109,3 +109,76 @@ test("selectBanFiles: handles missing / non-array input", () => {
   assert.deepEqual(selectBanFiles(null), []);
   assert.deepEqual(selectBanFiles("nope"), []);
 });
+
+// --- webhook sender + upload prep (mocked fetch) ------------------------------------------------
+import { sendBanWebhook, prepareUploadedFiles } from "../lib/banEvidence.mjs";
+
+function withFetch(impl, fn) {
+  const orig = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, opts) => { calls.push({ url, opts }); return impl(calls.length - 1, url, opts); };
+  return Promise.resolve(fn(calls)).finally(() => { globalThis.fetch = orig; });
+}
+const ok = { ok: true, status: 204 };
+
+test("sendBanWebhook: no files → single JSON post, returns sent", async () => {
+  await withFetch(() => ok, async (calls) => {
+    const r = await sendBanWebhook("https://hook", { embed: { description: "x" } });
+    assert.equal(r, "sent");
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].opts.headers["Content-Type"], "application/json");
+    assert.match(calls[0].opts.body, /"embeds"/);
+  });
+});
+
+test("sendBanWebhook: with files → multipart (FormData body)", async () => {
+  await withFetch(() => ok, async (calls) => {
+    const files = [{ name: "clip.mp4", blob: new Blob([Buffer.from("hi")], { type: "video/mp4" }) }];
+    const r = await sendBanWebhook("https://hook", { embed: { description: "x" }, files });
+    assert.equal(r, "sent");
+    assert.ok(calls[0].opts.body instanceof FormData);
+    assert.ok(calls[0].opts.body.get("payload_json"));
+  });
+});
+
+test("sendBanWebhook: multipart rejected → falls back to embed-only", async () => {
+  // First (multipart) call fails, second (embed-only JSON) succeeds.
+  await withFetch((i) => (i === 0 ? { ok: false, status: 413 } : ok), async (calls) => {
+    const files = [{ name: "big.mp4", blob: new Blob([Buffer.from("x")]) }];
+    const r = await sendBanWebhook("https://hook", { embed: { description: "x" }, files });
+    assert.equal(r, "sent");
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].opts.headers["Content-Type"], "application/json");
+  });
+});
+
+test("sendBanWebhook: fetch throws → error string, never throws", async () => {
+  await withFetch(() => { throw new Error("network down"); }, async () => {
+    const r = await sendBanWebhook("https://hook", { embed: { description: "x" } });
+    assert.match(r, /webhook error: network down/);
+  });
+});
+
+function fakeFile(name, bytes, type = "image/png") {
+  const buf = Buffer.alloc(bytes, 1);
+  return { name, type, size: bytes, arrayBuffer: async () => buf };
+}
+
+test("prepareUploadedFiles: keeps valid uploads, sanitizes names, caps at 3", async () => {
+  const out = await prepareUploadedFiles([
+    fakeFile("../a.png", 10), fakeFile("b.png", 10), fakeFile("c.png", 10), fakeFile("d.png", 10),
+  ]);
+  assert.equal(out.length, 3);
+  assert.deepEqual(out.map((f) => f.name), ["a.png", "b.png", "c.png"]);
+  assert.ok(out[0].blob instanceof Blob);
+});
+
+test("prepareUploadedFiles: drops over-size and total-exceeding files", async () => {
+  const huge = await prepareUploadedFiles([fakeFile("x.png", MAX_BAN_FILE_BYTES + 1)]);
+  assert.equal(huge.length, 0);
+});
+
+test("prepareUploadedFiles: skips non-file entries", async () => {
+  const out = await prepareUploadedFiles(["nope", null, { name: "x" }]);
+  assert.equal(out.length, 0);
+});

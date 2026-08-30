@@ -11,6 +11,9 @@ export default function BansDashboard({ canBulk = false }) {
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("");
   const [evidence, setEvidence] = useState("");
+  const [note, setNote] = useState("");        // internal staff note — not shown to the player
+  const [files, setFiles] = useState([]);      // uploaded evidence files (up to 3)
+  const fileRef = useRef(null);
   const [bulkText, setBulkText] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -93,17 +96,33 @@ export default function BansDashboard({ canBulk = false }) {
     const sendUser = userOverride ? u : resolved?.userId ? String(resolved.userId) : u;
     setBusy(true); setToast(null);
     try {
-      const r = await fetch("/api/bans", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: sendUser, reason, duration: duration.trim() || undefined, evidence: evidence.trim() || undefined, action: act }),
-      });
+      // Use multipart only when evidence files are attached (a ban with uploads); otherwise keep the
+      // plain-JSON request the route has always accepted.
+      const useFiles = act === "ban" && files.length > 0;
+      let r;
+      if (useFiles) {
+        const fd = new FormData();
+        fd.set("user", sendUser);
+        fd.set("action", act);
+        if (reason.trim()) fd.set("reason", reason.trim());
+        if (duration.trim()) fd.set("duration", duration.trim());
+        if (evidence.trim()) fd.set("evidence", evidence.trim());
+        if (note.trim()) fd.set("note", note.trim());
+        files.slice(0, 3).forEach((f) => fd.append("files", f));
+        r = await fetch("/api/bans", { method: "POST", body: fd });
+      } else {
+        r = await fetch("/api/bans", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: sendUser, reason, duration: duration.trim() || undefined, evidence: evidence.trim() || undefined, note: note.trim() || undefined, action: act }),
+        });
+      }
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Request failed");
       const wh = d.webhook && d.webhook !== "sent" ? ` webhook: ${d.webhook}` : "";
-      const note = d.note ? ` ${d.note}` : "";
+      const dnote = d.note ? ` ${d.note}` : "";
       const verb = act === "ban" ? "Banned" : act === "warn" ? "Warned" : act === "kick" ? "Kicked" : "Unbanned";
-      setToast({ ok: !wh && !note, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}${note}` });
-      if (act !== "unban") { setReason(""); setDuration(""); setEvidence(""); }
+      setToast({ ok: !wh && !dnote, msg: `${verb} ${d.user?.username || u}${d.caseId ? ` — ${d.caseId}` : ""}.${wh}${dnote}` });
+      if (act !== "unban") { setReason(""); setDuration(""); setEvidence(""); setNote(""); setFiles([]); if (fileRef.current) fileRef.current.value = ""; }
       loadBans();
       setTarget((t) => t); // keep target; resolve refreshes on next effect
     } catch (e) { setToast({ bad: true, msg: e.message }); }
@@ -247,6 +266,24 @@ export default function BansDashboard({ canBulk = false }) {
           )}
           {action === "ban" && (
             <div style={{ marginTop: 12 }}><label>Evidence link (optional)</label><input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Clip / proof URL" /></div>
+          )}
+          {action === "ban" && (
+            <div style={{ marginTop: 12 }}>
+              <label>Internal note (optional) — staff only, not shown to the player</label>
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Context for other staff" />
+            </div>
+          )}
+          {action === "ban" && (
+            <div style={{ marginTop: 12 }}>
+              <label>Evidence files (optional, up to 3) — images or clips, embedded in the ban log</label>
+              <input ref={fileRef} type="file" multiple accept="image/*,video/*"
+                onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 3))} />
+              {files.length > 0 && (
+                <div className="muted" style={{ fontSize: 12.5, marginTop: 6 }}>
+                  {files.map((f) => f.name).join(", ")}
+                </div>
+              )}
+            </div>
           )}
           {action === "kick" && (
             <div style={{ marginTop: 14 }}>
