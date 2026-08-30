@@ -65,13 +65,14 @@ function actionBadge(action) {
 }
 
 export default async function Overview({ searchParams }) {
+  const sp = await searchParams;
   const user = await getSession();
   if (!user) return null;
   // Server-only Discord admins have no Game access — send them straight to the Server section.
   if (!user.gameAccess) redirect("/bot");
   const lvl = user.level;
   const seesActivity = canGroupS(user);
-  const showChooser = (searchParams?.welcome ?? "") === "1";
+  const showChooser = (sp?.welcome ?? "") === "1";
 
   // --- stats (each independent + best-effort so one failure never blanks the page) ---
   const one = async (sql) => { try { const r = await query(sql); return Number(r?.[0]?.n) || 0; } catch { return 0; } };

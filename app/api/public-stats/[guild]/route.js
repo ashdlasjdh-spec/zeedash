@@ -17,7 +17,7 @@ const N = (x) => Number(x || 0);
 export async function GET(req, { params }) {
   const rl = await rateLimit(`pub-guild:${clientIp(req)}`, { max: 60, windowSec: 60 });
   if (!rl.ok) return NextResponse.json({ error: "busy" }, { status: 429, headers: { "retry-after": "20" } });
-  const guild = String(params?.guild || "");
+  const guild = String((await params)?.guild || ""); // params is a Promise in Next 15+
   if (!PUBLIC_GUILD_IDS.includes(guild)) return notFound();
 
   try {

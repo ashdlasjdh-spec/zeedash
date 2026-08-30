@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Staff Login · zhd.lol" };
 
 export default async function Login({ searchParams }) {
+  const sp = await searchParams; // searchParams is a Promise in Next 15+
   if (await getSession()) redirect("/dashboard");
   const errors = {
     denied: "You're not whitelisted, and no role or grant gave you access.",
@@ -14,13 +15,13 @@ export default async function Login({ searchParams }) {
     oauth: "Discord sign-in failed — try again.",
     busy: "Too many attempts — wait a moment and try again.",
   };
-  const msg = errors[searchParams?.error];
+  const msg = errors[sp?.error];
 
   // Self-diagnosis: the callback drops a short-lived cookie describing what it detected for a denied
   // user, so they (and an owner) can see the exact ID + which community servers they're in.
   let diag = null;
-  if (searchParams?.error === "denied") {
-    try { diag = JSON.parse(cookies().get("deny_info")?.value || "null"); } catch { diag = null; }
+  if (sp?.error === "denied") {
+    try { diag = JSON.parse((await cookies()).get("deny_info")?.value || "null"); } catch { diag = null; }
   }
   return (
     <div className="login-wrap">

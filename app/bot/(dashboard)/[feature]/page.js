@@ -26,7 +26,7 @@ const NOTES = {
 export default async function Page({ params }) {
   const u = await serverSectionUser();
   if (!u) return null;
-  const slug = params.feature;
+  const slug = (await params).feature; // params is a Promise in Next 15+
   const title = TITLES[slug] || slug;
   const note = NOTES[slug];
   return (
