@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { evidenceParts } from "../lib/banEvidence.mjs";
+import { evidenceParts, selectBanFiles, sanitizeFileName, isDiscordCdnUrl, MAX_BAN_FILE_BYTES } from "../lib/banEvidence.mjs";
 
 test("empty evidence → nothing to embed", () => {
   assert.deepEqual(evidenceParts(""), { line: "", imageUrl: null, contentUrl: null });
@@ -54,4 +54,58 @@ test("URL embedded in a sentence is extracted and trailing punctuation trimmed",
 test("query string / fragment after a media extension still detected", () => {
   assert.equal(evidenceParts("https://x.io/a.png?token=1").imageUrl, "https://x.io/a.png?token=1");
   assert.equal(evidenceParts("https://x.io/a.mp4#t=3").contentUrl, "https://x.io/a.mp4#t=3");
+});
+
+// --- evidence file selection --------------------------------------------------------------------
+const CDN = "https://cdn.discordapp.com/attachments/1/2/clip.mp4";
+
+test("isDiscordCdnUrl: only https Discord CDN hosts pass", () => {
+  assert.equal(isDiscordCdnUrl("https://cdn.discordapp.com/x.png"), true);
+  assert.equal(isDiscordCdnUrl("https://media.discordapp.net/x.mp4"), true);
+  assert.equal(isDiscordCdnUrl("http://cdn.discordapp.com/x.png"), false); // not https
+  assert.equal(isDiscordCdnUrl("https://evil.com/x.png"), false);
+  assert.equal(isDiscordCdnUrl("https://cdn.discordapp.com.evil.com/x"), false);
+  assert.equal(isDiscordCdnUrl("not a url"), false);
+});
+
+test("sanitizeFileName: strips paths and unsafe chars, never empty", () => {
+  assert.equal(sanitizeFileName("../../etc/passwd"), "passwd");
+  assert.equal(sanitizeFileName("my clip!.mp4"), "my clip_.mp4");
+  assert.equal(sanitizeFileName(""), "evidence");
+  assert.equal(sanitizeFileName(null), "evidence");
+});
+
+test("selectBanFiles: keeps valid Discord files, sanitized", () => {
+  const out = selectBanFiles([{ url: CDN, name: "clip.mp4", contentType: "video/mp4", size: 1000 }]);
+  assert.equal(out.length, 1);
+  assert.deepEqual(out[0], { url: CDN, name: "clip.mp4", contentType: "video/mp4", size: 1000 });
+});
+
+test("selectBanFiles: drops non-Discord urls (SSRF guard) and caps at 3", () => {
+  const files = [
+    { url: "https://evil.com/a.mp4", size: 10 },
+    { url: CDN, name: "a", size: 10 },
+    { url: CDN, name: "b", size: 10 },
+    { url: CDN, name: "c", size: 10 },
+    { url: CDN, name: "d", size: 10 },
+  ];
+  const out = selectBanFiles(files);
+  assert.equal(out.length, 3); // evil dropped, then capped to 3
+  assert.deepEqual(out.map((f) => f.name), ["a", "b", "c"]);
+});
+
+test("selectBanFiles: drops a file whose declared size exceeds the per-file cap", () => {
+  assert.equal(selectBanFiles([{ url: CDN, size: MAX_BAN_FILE_BYTES + 1 }]).length, 0);
+});
+
+test("selectBanFiles: stops adding once the running total would exceed the cap", () => {
+  const big = Math.floor(MAX_BAN_FILE_BYTES * 0.6);
+  const out = selectBanFiles([{ url: CDN, name: "a", size: big }, { url: CDN, name: "b", size: big }]);
+  assert.equal(out.length, 1); // second would blow the combined total
+});
+
+test("selectBanFiles: handles missing / non-array input", () => {
+  assert.deepEqual(selectBanFiles(undefined), []);
+  assert.deepEqual(selectBanFiles(null), []);
+  assert.deepEqual(selectBanFiles("nope"), []);
 });

@@ -21,10 +21,10 @@ export async function GET(req) {
 // POST { user, action:ban|unban|kick|warn, reason, duration, actor* } — mod+.
 export async function POST(req) {
   if (!authed(req)) return forbidden();
-  const { user, action = "ban", reason, duration, evidence, actorName, actorId, actorLevel } = await req.json().catch(() => ({}));
+  const { user, action = "ban", reason, duration, evidence, note, files, actorName, actorId, actorLevel } = await req.json().catch(() => ({}));
   if (!canBan(Number(actorLevel) || 0)) return forbidden("Mod+ only.");
   if (!user) return badRequest("Provide a user.");
-  const r = await banAction({ input: user, action, reason, duration, evidence, actorName: actorName || "Discord", actorId: actorId || "bot" });
+  const r = await banAction({ input: user, action, reason, duration, evidence, note, files, actorName: actorName || "Discord", actorId: actorId || "bot" });
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status || 500 });
   return NextResponse.json(r);
 }
