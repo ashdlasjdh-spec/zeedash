@@ -584,6 +584,12 @@ td a:hover{border-color:var(--muted)}
   .row{gap:8px}
   .row > .btn{width:100%;min-width:0}        /* full-width, easy-tap buttons */
   .between{gap:8px}
+  /* Bans page: the mode selector (Ban/Warn/Kick/Unban/Bulk) reads better as a 2-up pill grid than as
+     five stacked full-width buttons; the quick-pick chip rows stay wrapping. */
+  .bans-page .bans-modes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .bans-page .bans-modes > .btn{width:100%;min-width:0}
+  .bans-page .between .row{width:100%}
+  .bans-page .between .row > .btn{flex:1 1 auto}
   .login-card{padding:36px 22px}
   .brand{font-size:26px}
   .ov-actions{grid-template-columns:1fr}

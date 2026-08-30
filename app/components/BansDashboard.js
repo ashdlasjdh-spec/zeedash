@@ -171,7 +171,7 @@ export default function BansDashboard({ canBulk = false }) {
   }
 
   return (
-    <>
+    <div className="bans-page">
       {/* scope & status */}
       <div className="grid g3" style={{ marginBottom: 16 }}>
         <div className="card" style={{ padding: 18 }}>
@@ -194,7 +194,7 @@ export default function BansDashboard({ canBulk = false }) {
           <div style={{ fontWeight: 800, fontSize: 15 }}>Take action</div>
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>Identify a player and apply a ban or unban to this game scope.</p>
 
-          <div className="row" style={{ marginTop: 6, marginBottom: 14, flexWrap: "wrap" }}>
+          <div className="row bans-modes" style={{ marginTop: 6, marginBottom: 14, flexWrap: "wrap" }}>
             <button className={`btn ${action === "ban" ? "danger" : "ghost"}`} onClick={() => setAction("ban")}>Ban</button>
             <button className={`btn ${action === "warn" ? "" : "ghost"}`} onClick={() => setAction("warn")}>Warn</button>
             <button className={`btn ${action === "kick" ? "" : "ghost"}`} onClick={() => setAction("kick")}>Kick</button>
@@ -354,6 +354,6 @@ export default function BansDashboard({ canBulk = false }) {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

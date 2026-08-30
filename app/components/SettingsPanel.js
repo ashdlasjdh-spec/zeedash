@@ -4,6 +4,7 @@ export default function SettingsPanel() {
   const [cfg, setCfg] = useState(null);
   const [apiKey, setKey] = useState(""); const [universeId, setUni] = useState(""); const [groupId, setGid] = useState("");
   const [banKey, setBanKey] = useState("");
+  const [banHook, setBanHook] = useState("");
   const [busy, setB] = useState(false); const [toast, setT] = useState(null);
   const [syncing, setS] = useState(false); const [syncToast, setST] = useState(null);
   async function load() { const r = await fetch("/api/config"); const d = await r.json(); if (r.ok) { setCfg(d); setUni(d.universeId || ""); setGid(d.groupId || ""); } }
@@ -11,9 +12,10 @@ export default function SettingsPanel() {
   async function save() {
     setB(true); setT(null);
     const body = {}; if (apiKey) body.apiKey = apiKey; if (universeId) body.universeId = universeId; if (groupId) body.groupId = groupId; if (banKey) body.banApiKey = banKey;
+    if (banHook.trim()) body.banWebhook = banHook.trim();
     const r = await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const d = await r.json();
-    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); setBanKey(""); load(); }
+    if (!r.ok) setT({ bad: true, msg: d.error }); else { setT({ ok: true, msg: "Saved. New actions use these immediately." }); setKey(""); setBanKey(""); setBanHook(""); load(); }
     setB(false);
   }
   async function syncDb() {
@@ -49,6 +51,12 @@ export default function SettingsPanel() {
           <div>
             <label>Bans API key <span style={{ color: cfg.banApiKeySet ? "var(--ok)" : "var(--muted)" }}>({cfg.banApiKeySet ? `set · ${cfg.banApiKeySource} · ${cfg.banApiKeyMasked}` : "not set — falls back to the main key"})</span></label>
             <input className="mono" type="password" value={banKey} onChange={e => setBanKey(e.target.value)} placeholder="Open Cloud key with the User Restrictions scope (co founders+ only)" />
+          </div>
+        )}
+        {cfg.canEditBanWebhook && (
+          <div>
+            <label>Ban-log Discord webhook <span style={{ color: cfg.banWebhookSet ? "var(--ok)" : "var(--muted)" }}>({cfg.banWebhookSet ? `set · ${cfg.banWebhookSource} · ${cfg.banWebhookMasked}` : "not set — ban logs won't post"})</span></label>
+            <input className="mono" type="password" value={banHook} onChange={e => setBanHook(e.target.value)} placeholder="https://discord.com/api/webhooks/… (super owners only)" />
           </div>
         )}
       </div>

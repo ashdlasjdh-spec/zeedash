@@ -228,7 +228,7 @@ export async function POST(req) {
     if ((isBan || action === "warn") && !reasonText) return NextResponse.json({ error: `A reason is required to ${actionLabel.toLowerCase()}.` }, { status: 400 });
 
     // API key: the dedicated Bans key from Settings/env if set, else the main key.
-    const { apiKey, universeId, banApiKey } = await getConfig();
+    const { apiKey, universeId, banApiKey, banWebhook } = await getConfig();
     const banKey = banApiKey || apiKey;
     if (!banKey || !universeId) {
       return serverError("Ban not configured: set a Bans API key in Settings + a universe id.");
@@ -307,8 +307,8 @@ export async function POST(req) {
 
     // Webhook log embed — exact format: ## header, >>> blockquote, linked+code username,
     // code case id, avatar thumbnail, and a -# subtext line with a Discord timestamp.
-    let webhook = "no BAN_WEBHOOK_URL set";
-    const hook = process.env.BAN_WEBHOOK_URL;
+    let webhook = "no ban webhook configured";
+    const hook = banWebhook; // dashboard config → env fallback (see lib/config.js)
     if (hook) {
       const thumb = await headshotUrl(target.userId);
       const unix = Math.floor(Date.now() / 1000);
