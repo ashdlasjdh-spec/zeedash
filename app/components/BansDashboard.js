@@ -94,11 +94,20 @@ export default function BansDashboard({ canBulk = false }) {
     // API resolves ids reliably even when a username lookup is flaky, so a valid target never
     // fails with "No such Roblox user".
     const sendUser = userOverride ? u : resolved?.userId ? String(resolved.userId) : u;
+    // Uploads go through a serverless function with a ~4.5MB request-body cap, so guard big clips here
+    // and point staff at the Discord command (the bot handles large files) instead of failing with an
+    // opaque browser error.
+    const UPLOAD_CAP = 4 * 1024 * 1024;
+    const useFiles = act === "ban" && files.length > 0;
+    if (useFiles) {
+      const total = files.reduce((n, f) => n + (f.size || 0), 0);
+      if (total > UPLOAD_CAP) {
+        setToast({ bad: true, msg: "Clip too large to upload here (max ~4MB). Use /gameban in Discord for big clips, or paste an evidence link." });
+        return;
+      }
+    }
     setBusy(true); setToast(null);
     try {
-      // Use multipart only when evidence files are attached (a ban with uploads); otherwise keep the
-      // plain-JSON request the route has always accepted.
-      const useFiles = act === "ban" && files.length > 0;
       let r;
       if (useFiles) {
         const fd = new FormData();
@@ -116,8 +125,10 @@ export default function BansDashboard({ canBulk = false }) {
           body: JSON.stringify({ user: sendUser, reason, duration: duration.trim() || undefined, evidence: evidence.trim() || undefined, note: note.trim() || undefined, action: act }),
         });
       }
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "Request failed");
+      // Parse defensively — a rejected upload (e.g. 413) may return non-JSON, which must not surface as
+      // a cryptic browser exception.
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || (r.status === 413 ? "Clip too large to upload here — use /gameban in Discord." : `Request failed (${r.status})`));
       const wh = d.webhook && d.webhook !== "sent" ? ` webhook: ${d.webhook}` : "";
       const dnote = d.note ? ` ${d.note}` : "";
       const verb = act === "ban" ? "Banned" : act === "warn" ? "Warned" : act === "kick" ? "Kicked" : "Unbanned";
