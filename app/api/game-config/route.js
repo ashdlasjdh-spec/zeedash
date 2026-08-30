@@ -37,14 +37,19 @@ async function readConfig() {
 
 // Public read — the game site fetches this. Cacheable so it doesn't hammer the DB; the game site also
 // caches it with ISR. No secrets here, it's the same content the public site already renders.
-// `?defaults=1` returns the pristine built-in defaults (used by the editor's "Reset" button); it's not
-// cached so a reset always reflects the current shipped defaults.
+// `?defaults=1` returns the pristine built-in defaults (used by the editor's "Reset" button).
+// `?fresh=1` returns the live saved config UNCACHED — the editor uses this so a just-saved change is
+// never masked by the CDN/browser cache (that made saves look like they didn't persist on reload).
+// Both are no-store; the plain public read stays cached for the game site.
 export async function GET(req) {
-  const wantDefaults = new URL(req.url).searchParams.get("defaults") === "1";
-  if (wantDefaults) {
+  const params = new URL(req.url).searchParams;
+  if (params.get("defaults") === "1") {
     return NextResponse.json({ ...GAME_DEFAULTS }, { headers: { "cache-control": "no-store" } });
   }
   const cfg = await readConfig();
+  if (params.get("fresh") === "1") {
+    return NextResponse.json(cfg, { headers: { "cache-control": "no-store" } });
+  }
   return NextResponse.json(cfg, {
     headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=300" },
   });

@@ -20,7 +20,9 @@ export default function GameSiteClient() {
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/game-config")
+    // Read the LIVE saved config uncached — otherwise the CDN/browser cache can serve a stale copy and
+    // a just-saved change looks like it didn't save on reload.
+    fetch("/api/game-config?fresh=1", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (!alive) return;
