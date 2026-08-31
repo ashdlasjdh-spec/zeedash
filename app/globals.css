@@ -147,9 +147,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   scrollbar-width:thin;overscroll-behavior:contain;
 }
 /* Slim, unobtrusive sidebar scrollbar. */
-.side::-webkit-scrollbar{width:7px}
-.side::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:20px;border:2px solid transparent;background-clip:padding-box}
-.side:hover::-webkit-scrollbar-thumb{background:#2b2b33;background-clip:padding-box}
+/* Sidebar scrolls but its scrollbar is hidden (still scrollable via wheel/touch). */
+.side{scrollbar-width:none;-ms-overflow-style:none}
+.side::-webkit-scrollbar{width:0;height:0;display:none}
 .side-brand{display:none}   /* brand lives in the full-width top pill */
 .side .brand{font-size:22px;padding:6px 10px 22px;font-weight:800;letter-spacing:-1px}
 /* content column holds the top bar + the page; min-width:0 stops wide children overflowing */
