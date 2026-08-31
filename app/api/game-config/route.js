@@ -40,19 +40,18 @@ async function readConfig() {
 // `?defaults=1` returns the pristine built-in defaults (used by the editor's "Reset" button).
 // `?fresh=1` returns the live saved config UNCACHED — the editor uses this so a just-saved change is
 // never masked by the CDN/browser cache (that made saves look like they didn't persist on reload).
-// Both are no-store; the plain public read stays cached for the game site.
+// Every read is no-store. The game site (zeehood.org) re-fetches this the instant the dashboard pings its
+// on-demand revalidate after a save; if the response were edge/CDN-cached at zhd.lol (the old
+// s-maxage=60, stale-while-revalidate=300), that re-fetch would get a STALE copy for minutes and the edit
+// would appear not to propagate. The game site wraps this in its own 60s ISR data cache, so no-store at
+// the origin adds no real DB load but guarantees a purge (or the editor reload) always pulls fresh data.
 export async function GET(req) {
   const params = new URL(req.url).searchParams;
   if (params.get("defaults") === "1") {
     return NextResponse.json({ ...GAME_DEFAULTS }, { headers: { "cache-control": "no-store" } });
   }
   const cfg = await readConfig();
-  if (params.get("fresh") === "1") {
-    return NextResponse.json(cfg, { headers: { "cache-control": "no-store" } });
-  }
-  return NextResponse.json(cfg, {
-    headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=300" },
-  });
+  return NextResponse.json(cfg, { headers: { "cache-control": "no-store" } });
 }
 
 // Owner-only save.
