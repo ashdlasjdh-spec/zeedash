@@ -5,6 +5,20 @@
   --zhd-orange: #ff8a3d;
 }
 
+/* Sidebar scroll fix. On desktop the theme's sticky sidebars don't bound their
+   scroll container's height, so a long nav (or a long "On this page" TOC) runs
+   off the bottom of the viewport into the footer with no way to scroll to it.
+   Cap the scroll wrapper to the viewport height so each sidebar scrolls on its
+   own. Scoped to the desktop breakpoint where the sidebars are sticky (below it
+   they're slide-in drawers and already scroll). */
+@media (min-width: 76.25em) {
+  .md-sidebar--primary .md-sidebar__scrollwrap,
+  .md-sidebar--secondary .md-sidebar__scrollwrap {
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+  }
+}
+
 /* Brand the primary accents a touch warmer than the stock red. */
 [data-md-color-primary="red"] {
   --md-primary-fg-color: var(--zhd-red);
