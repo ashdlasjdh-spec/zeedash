@@ -10,6 +10,11 @@
 .env.*
 !.env.example
 
+# Zensical docs build output (generated into public/docs by scripts/build-docs.mjs)
+/public/docs
+/docs-site/site
+/docs-site/.venv
+
 # vercel / misc
 .vercel
 *.log

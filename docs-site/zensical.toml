@@ -1,5 +1,7 @@
 [project]
-site_url = "https://zhd.lol/"
+# Served under /docs on the dashboard domain (see next.config.mjs rewrites). The trailing
+# /docs/ is required so the generated directory-URL links resolve correctly under the subpath.
+site_url = "https://zhd.lol/docs/"
 site_name = "Zee Hood Docs"
 site_description = "How the Zee Hood control panel works — game grants, moderation, and Discord server management."
 site_author = "Zee Hood"

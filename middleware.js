@@ -104,7 +104,9 @@ export async function middleware(req) {
 }
 
 // Run on API routes (guards) and document routes (CSP), but skip static assets & the metadata icons —
-// they don't need a nonce and shouldn't pay the middleware cost.
+// they don't need a nonce and shouldn't pay the middleware cost. `docs` is skipped too: it's the
+// prebuilt Zensical static site (public/docs), which carries its own CSP (see next.config.mjs) and
+// must not get the strict nonce policy — that would block its inline theme scripts.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|opengraph-image|twitter-image|\\.well-known).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|opengraph-image|twitter-image|\\.well-known|docs(?:/|$)).*)"],
 };

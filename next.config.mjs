@@ -12,16 +12,59 @@ const nextConfig = {
   experimental: {
     staleTimes: { dynamic: 30, static: 180 },
   },
-  // Keep the public /selfbot URL but render it inside the dashboard layout
-  // (Topbar + Sidebar + mobile nav) so it matches the rest of the site.
+  // The /docs area is a prebuilt Zensical (Material-style) static site copied into public/docs by
+  // scripts/build-docs.mjs. Those pages use directory URLs (/docs/access/), whose relative links only
+  // resolve when the trailing slash is preserved — so we must NOT strip it. This disables Next's
+  // automatic trailing-slash redirect app-wide (it only removes the canonical redirect; routes still
+  // render either way), letting /docs/<page>/ stay as-is and be rewritten to its index.html below.
+  skipTrailingSlashRedirect: true,
+  // Only the bare /docs entry point (linked from the app without a slash) needs normalising to the
+  // slash form the static site expects; every in-docs link already carries the trailing slash.
+  async redirects() {
+    return [{ source: "/docs", destination: "/docs/", permanent: false }];
+  },
   async rewrites() {
-    return [{ source: "/selfbot", destination: "/dashboard/selfbot" }];
+    return [
+      // Keep the public /selfbot URL but render it inside the dashboard layout
+      // (Topbar + Sidebar + mobile nav) so it matches the rest of the site.
+      { source: "/selfbot", destination: "/dashboard/selfbot" },
+      // Serve the Zensical docs from public/docs with directory-index resolution. The :page pattern
+      // matches a single extensionless segment (a doc page) so real asset files (/docs/assets/**,
+      // /docs/sitemap.xml, …) fall through to the static file server untouched.
+      { source: "/docs/", destination: "/docs/index.html" },
+      { source: "/docs/:page([^./]+)/", destination: "/docs/:page/index.html" },
+      { source: "/docs/:page([^./]+)", destination: "/docs/:page/index.html" },
+    ];
   },
   // Security headers on every response. The dashboard performs privileged actions,
   // so deny framing (clickjacking), block MIME sniffing, trim the referrer, and
   // disable device APIs it never uses.
   async headers() {
     return [
+      {
+        // The /docs area is a static Zensical site and is excluded from the middleware nonce-CSP
+        // (its theme uses inline <script>/<style>, and Mermaid needs eval). Give it its own tight,
+        // self-hosted policy instead — everything it loads is same-origin, plus https/data images.
+        source: "/docs/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "frame-ancestors 'none'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "style-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "worker-src 'self' blob:",
+              "connect-src 'self'",
+              "manifest-src 'self'",
+            ].join("; "),
+          },
+        ],
+      },
       {
         // Discord domain verification fetches this file and expects plain text. A file with no
         // extension is otherwise served as application/octet-stream, which its validator rejects —

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "build": "node scripts/build-docs.mjs && next build --webpack",
+    "build:docs": "node scripts/build-docs.mjs",
     "start": "next start",
     "test": "node --test test/smoke.test.mjs test/gameDefaults.test.mjs test/banEvidence.test.mjs",
     "e2e": "playwright test"
