@@ -62,7 +62,7 @@ export default async function ChangelogPage() {
       )}
 
       <footer className="cl-foot">
-        <Link className="inl" href="/docs">Docs</Link> · <Link className="inl" href="/bot/commands">Commands</Link> · <Link className="inl" href="/status">Status</Link> · <a className="inl" href="/feed.xml">RSS</a>
+        <Link className="inl" href="/docs/">Docs</Link> · <Link className="inl" href="/bot/commands">Commands</Link> · <Link className="inl" href="/status">Status</Link> · <a className="inl" href="/feed.xml">RSS</a>
       </footer>
     </main>
   );

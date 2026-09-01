@@ -174,7 +174,7 @@ export default function Sidebar({ user, grants, canGroup, canGroupScoped, canBan
       </div>
       <div style={{ marginTop: 10, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}><ThemeControls /><NotifBell /></div>
       <div className="side-actions">
-        <Link href="/docs" className="side-action" onClick={() => setOpen(false)}>
+        <Link href="/docs/" className="side-action" onClick={() => setOpen(false)}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z" /><path d="M19 3v16" /></svg>
           <span>Docs</span>
         </Link>

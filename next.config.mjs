@@ -13,16 +13,15 @@ const nextConfig = {
     staleTimes: { dynamic: 30, static: 180 },
   },
   // The /docs area is a prebuilt Zensical (Material-style) static site copied into public/docs by
-  // scripts/build-docs.mjs. Those pages use directory URLs (/docs/access/), whose relative links only
+  // scripts/build-docs.mjs. Its pages use directory URLs (/docs/access/), whose relative links only
   // resolve when the trailing slash is preserved — so we must NOT strip it. This disables Next's
   // automatic trailing-slash redirect app-wide (it only removes the canonical redirect; routes still
   // render either way), letting /docs/<page>/ stay as-is and be rewritten to its index.html below.
+  //
+  // NB: we serve every docs URL with *rewrites* (which keep the URL) rather than a /docs -> /docs/
+  // redirect. A redirect there loops: Next's non-strict source matching makes `source: "/docs"` also
+  // match "/docs/", so "/docs/" would redirect to itself forever (ERR_TOO_MANY_REDIRECTS).
   skipTrailingSlashRedirect: true,
-  // Only the bare /docs entry point (linked from the app without a slash) needs normalising to the
-  // slash form the static site expects; every in-docs link already carries the trailing slash.
-  async redirects() {
-    return [{ source: "/docs", destination: "/docs/", permanent: false }];
-  },
   async rewrites() {
     return [
       // Keep the public /selfbot URL but render it inside the dashboard layout
@@ -30,7 +29,9 @@ const nextConfig = {
       { source: "/selfbot", destination: "/dashboard/selfbot" },
       // Serve the Zensical docs from public/docs with directory-index resolution. The :page pattern
       // matches a single extensionless segment (a doc page) so real asset files (/docs/assets/**,
-      // /docs/sitemap.xml, …) fall through to the static file server untouched.
+      // /docs/sitemap.xml, …) fall through to the static file server untouched. Both /docs and
+      // /docs/ resolve to the home page (app links use /docs/ so styling's relative paths resolve).
+      { source: "/docs", destination: "/docs/index.html" },
       { source: "/docs/", destination: "/docs/index.html" },
       { source: "/docs/:page([^./]+)/", destination: "/docs/:page/index.html" },
       { source: "/docs/:page([^./]+)", destination: "/docs/:page/index.html" },

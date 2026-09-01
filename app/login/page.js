@@ -44,7 +44,7 @@ export default async function Login({ searchParams }) {
         )}
         <div className="muted" style={{ marginTop: 18, fontSize: 12.5, display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
           <Link className="muted" href="/">← Home</Link>·
-          <Link className="muted" href="/docs">Docs</Link>·
+          <Link className="muted" href="/docs/">Docs</Link>·
           <Link className="muted" href="/catalog">Perk catalog</Link>·
           <Link className="muted" href="/status">Status</Link>
         </div>

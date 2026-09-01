@@ -40,7 +40,7 @@ export default async function Landing() {
           <nav className="land-nav">
             <a className="link" href="#stats">Community</a>
             <a className="link" href="#leaderboard">Leaderboard</a>
-            <Link className="link" href="/docs">Docs</Link>
+            <Link className="link" href="/docs/">Docs</Link>
             <Link className="link" href="/changelog">Changelog</Link>
             <Link className="link" href="/catalog">Catalog</Link>
             {session
@@ -134,7 +134,7 @@ export default async function Landing() {
               {session
                 ? <Link className="land-btn" href="/dashboard">Open dashboard</Link>
                 : <Link className="land-btn" href="/login">Staff login</Link>}
-              <Link className="land-btn ghost" href="/docs"><FIcon name="book" /> Read the docs</Link>
+              <Link className="land-btn ghost" href="/docs/"><FIcon name="book" /> Read the docs</Link>
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default async function Landing() {
           <div className="land-foot-links">
             <a href={GAME_URL} target="_blank" rel="noopener noreferrer">Play</a>
             <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>
-            <Link href="/docs">Docs</Link>
+            <Link href="/docs/">Docs</Link>
             <Link href="/changelog">Changelog</Link>
             <Link href="/catalog">Catalog</Link>
             <Link href="/status">Status</Link>
