@@ -8,7 +8,8 @@ description: Keep the Roblox staff group and Discord staff roles in agreement, w
 Staff Sync keeps the Roblox staff group and the Discord staff roles in agreement: when someone loses
 their staff role in Discord, their linked Roblox account is removed from the group — and the other
 way round it can flag people who are in the group but shouldn't be. It runs from the **Self-bot**
-page in the panel.
+page in the panel, which is gated to **super owners** plus any Discord ID a super owner has
+whitelisted for viewing.
 
 !!! warning "Terms-of-service risk"
 

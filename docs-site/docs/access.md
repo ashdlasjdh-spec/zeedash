@@ -1,75 +1,119 @@
 ---
 title: Access & roles
-description: The rank ladder, super owners, the staff whitelist, and exactly what each level unlocks.
+description: The rank ladder, super owners, whitelist, blacklist, and the three ways access is granted.
 ---
 
 # Access & roles
 
-One number decides everything you can do on the panel: your **level**. It comes from the staff
-whitelist, and every page and API route checks it before doing anything.
+Who can do what on zhd.lol is decided by **three independent systems** that stack on top of each
+other. Most staff only ever touch the first one.
 
-## The rank ladder
+1. **The rank ladder** — a numeric **level** (0–255) that gates the whole **Game portal** (grants,
+   crew tags, bans, Roblox group management, whitelist, settings).
+2. **Per-server standing** — for the **Server portal** (the Discord bot), access comes *only* from
+   your standing in each Discord server, never from the ladder.
+3. **Role Access** — a super owner can delegate specific Game-portal capabilities (group actions,
+   whole sections, transcript viewing) to a Discord **role**.
 
-Higher levels unlock more. The ladder runs from staff (level&nbsp;1) up to founders (255), with a
-separate band for chat-moderation roles. A handful of hard-coded **super owners** sit above the
-ladder entirely and bypass every check.
+Above all three sit a small, hard-coded list of **super owners** who can do everything.
 
-| Band | Example levels | What it unlocks |
+## The rank ladder (levels)
+
+Your level is the **highest** level among your Discord roles, mapped by `DISCORD_ROLE_MAP`
+(`<discordRoleId>` → `0–255`). The exact same map drives the bot, so the panel and the bot whitelist
+identically.
+
+The capability thresholds are (from `lib/permissions.js`):
+
+| Capability | Level needed | Rank |
 | --- | --- | --- |
-| **Super owner** | Above the ladder | Everything, always — wired into code, not the whitelist. |
-| **Founders / leadership** | 251 – 255 | Bulk bans, full server config, everything below. |
-| **Co-founders** | 254 | Manage grants, whitelist staff, crew tags & emojis. |
-| **Admin** | 240 | Full moderation, plus everything staff can do. |
-| **Mod** | 237 | Ban / warn / kick. |
-| **Staff** | 1 | Sign in, view, and use non-destructive tools. |
+| Ban / unban / kick a player (single) | **238** | mod+ |
+| Bulk bans (pasted lists) | **251** | co owners+ |
+| Grant **gamepasses** | **247** | staff advisor+ |
+| Grant **powers, stands, SVJ car, tools, Shazam, Start&nbsp;BR** | **251** | co owners+ |
+| Grant **crew tags & emojis** | **254** | co founders+ |
+| Roblox **group** management (rank / kick / accept / shout…) | **242** | head of staff+ (plus host 234 & content-creator-manager 235) |
+| Bulk group ops (accept-all / decline-all) | **248** | overseer+ |
+| Whitelist staff, Blacklist, Settings, Bundles | **254** | co founders+ |
+| Load "who has this" lists & remove others' grants | **254** | co founders+ |
 
-*Levels are additive — a higher rank keeps everything the ranks below it can do.*
+!!! warning "The old docs were wrong here"
 
-!!! warning
+    Grants are **not** all gated at co-founders. Gamepasses are staff&nbsp;advisor+ (247), the main
+    perks (powers/stands/car/tools/Shazam/Start&nbsp;BR) are **co&nbsp;owners+ (251)**, and only crew
+    tags & emojis are co&nbsp;founders+ (254). Single bans are **mod (238)**, not 237.
 
-    **Super owners** are wired into both the panel and the bot in code, so they always have full
-    control even if the whitelist is wrong. That list is deliberately tiny and only an engineer can
-    change it — it isn't editable from the UI.
+### The full rank list
 
-## What the levels gate
+Levels map to these rank names (highest first). This is the ladder the whitelist dropdown and the
+sidebar role pill use.
 
-These are the main capability thresholds the panel enforces:
+| Level | Rank | | Level | Rank |
+| --- | --- | --- | --- | --- |
+| 255 | founders | | 240 | admin |
+| 254 | co founders | | 239 | head mod |
+| 253 | owners | | 238 | mod |
+| 252 | right hand man | | 237 | helpers |
+| 251 | co owners | | 236 | leaderboard staff |
+| 249 | director | | 235 | content creator manager |
+| 248 | overseer | | 234 | host |
+| 247 | staff advisor | | 14–10 | chat-mod tiers |
+| 246 | head management | | 5 | verified pc checker |
+| 245 | management | | 1 | staff |
+| 244 | server manager | | 0 | no access |
+| 243 | owner assistant | | | |
+| 242 | head of staff | | | |
+| 241 | senior admin | | | |
 
-| Capability | Needs | Where |
-| --- | --- | --- |
-| Ban / warn / kick | Mod (237+) | [Bans](moderation.md) |
-| Bulk bans | Leadership (251+) | Bans → bulk |
-| Manage grants | Co-founders (254) | [Game portal](game-control.md) |
-| Whitelist staff | Co-founders (254) | Whitelist |
-| Crew tags & emojis | Co-founders (254) | Tags · Emojis |
-| Full server config | Leadership (251+) | [Server portal](server-management.md) |
-| Purge / wipe data | Purge owners only | Purge |
-| Everything, always | Super owner | All pages |
+## Super owners
+
+A handful of Discord IDs are **super owners**, wired into the code (mirrors the bot's `FULL_OWNERS`).
+They bypass every check — top level (255), every grant, all group access, full management of every
+server they're in *including the security features*, plus the super-owner-only pages (Game Site,
+Role Access). The list isn't editable from the UI; an engineer extends it via `SUPER_OWNER_IDS`.
+
+A separate **purge-owner** list gates the destructive **Remove All** page (see
+[Moderation](moderation.md)); by default it's the same IDs, extendable via `PURGE_OWNER_IDS`.
 
 ## The staff whitelist
 
-The whitelist is the source of truth for who is staff and at what level. You add a Discord user
-ID, pick a level (you can only assign at or below your own), and optionally leave a note. Removing
-someone revokes their panel access immediately.
+The **Whitelist** page (co founders+) is the source of truth for who is staff and at what level, for
+anyone whose Discord roles don't already place them on the ladder.
 
-1. **Get the Discord ID** — turn on Developer Mode in Discord, right-click the user, and Copy User
-   ID.
-2. **Add & pick a level** — paste the ID, choose a level at or below your own, add a note if
-   useful, and hit **Add / update**.
-3. **They can sign in** — the next time they open zhd.lol and log in with Discord, they're matched
-   to that level.
-4. **Remove to revoke** — hitting **Remove** drops them from the whitelist and they lose panel
-   access on their next request.
+- Add a **Discord user ID**, pick a **level** — you can only assign a level **at or below your own** —
+  and optionally a note.
+- The table lists each entry with its rank pill, note, and who added it. **Remove** revokes their
+  access on their next request.
 
-!!! success
+## The blacklist
 
-    Access is also enforced **per Discord server** for the Server portal. Even a whitelisted staffer
-    only sees the bot features they can actually manage in that specific guild — the sidebar hides
-    the rest.
+The **Blacklist** page (co founders+) blocks a Discord user from the dashboard **entirely** — they
+can't sign in or use any page, regardless of their roles. Paste their Discord user ID with an
+optional note; **Unblock** restores access.
 
-## Per-server access
+## Server-portal access (per Discord server)
 
-The Server portal layers Discord's own permissions on top of your panel level. Security features
-like **Antinuke** and **Antiraid** only appear for a guild's owner or its designated antinuke
-admins. Staff with manual per-feature permissions see exactly the features they were granted and
-nothing else. The panel shows you what you can touch; the server enforces it again on every save.
+The **Server portal** ignores the rank ladder completely. For each guild, you get in one of three
+ways:
+
+- **Discord admin / owner** of that guild → manage every non-security feature.
+- A **manual ("fake") permission** held through a role → manage only the feature(s) it unlocks
+  (`administrator` is the master key). Configured on the [Fake Permissions](security.md) page.
+- The **guild owner or a listed antinuke admin** → the security features (Antinuke / Antiraid),
+  which are locked tighter than everything else — never a plain admin, never a manual perm.
+
+A director in the main server with no standing in another server doesn't see that other server at
+all. The sidebar only shows the servers, and the features, you can actually manage.
+
+## Role Access (delegation)
+
+A super owner can grant a **Discord role** extra Game-portal power on the **Role Access** page
+(super-owner only). Members with that role get the access automatically. It can delegate:
+
+- **Roblox group actions** — any subset of look-up, set rank, promote, demote, accept, decline, kick,
+  shout, accept-all, decline-all — plus a ceiling on the **highest rank** the role may assign people
+  to. Scoped variants exist for single staff tracks (Crew, Leaderboard, Stars, Content).
+- **Whole dashboard sections** — Bans & moderation, Powers granting, or All granting.
+- **Ticket-transcript viewing** for specific guilds.
+
+See [Role Access](role-access.md) for the full breakdown.

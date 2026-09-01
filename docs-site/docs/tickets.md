@@ -1,52 +1,44 @@
 ---
 title: Tickets
-description: Private support channels that save a full, self-contained transcript when they close.
+description: Private support tickets with panels, buttons, claim, ratings and saved transcripts.
 ---
 
 # Tickets
 
-Tickets give members a private channel to reach staff. When a ticket closes, the whole conversation
-is saved as a self-contained transcript with its own link — messages, embeds and attachments,
-exactly as they happened.
+Members open private support tickets; on close, the bot saves a transcript and deletes the channel.
+Configure everything under **Server → Tickets**, then **Publish ticket panels** (or run
+`/ticketpanel`). One open ticket per member per type. Needs *Manage Channels*.
 
 ## The lifecycle
 
-A member opens a ticket, the bot spins up a private channel only they and staff can see, the
-conversation happens, and on close the bot generates a transcript and posts the link. The channel
-is then cleaned up — but the record lives on at the transcript link.
-
 ```mermaid
 flowchart TD
-    A[Member opens a ticket<br/>button or command] --> B[Private channel created<br/>member + staff only]
-    B --> C[Conversation happens<br/>staff assist the member]
-    C --> D[Staff close the ticket<br/>transcript generated · captures embeds + files]
-    D --> E[Transcript link posted<br/>opens on the transcript site]
+    A[Member clicks a panel button] --> B[Private channel created<br/>member + support roles]
+    B --> C[Staff Claim + assist]
+    C --> D[Close button pressed]
+    D --> E[Transcript saved · channel deleted]
+    E --> F[Rating DM sent to the opener]
 ```
 
-## The transcript
-
-Transcripts are rendered by a dedicated site (`zee-hood-transcript`). Each one is a full, formatted
-copy of the ticket — it opens only through its generated link, so there's nothing public to browse.
-Embeds keep their accent color and attachments are preserved inline.
-
-## What you can configure
+## What you configure
 
 | Setting | What it controls |
 | --- | --- |
-| **Panels** | One or more — each posts to its own channel with its own title, text and default category. |
-| **Buttons** | Add as many ticket types as you want and assign each to a panel. Every button opens tickets in its own category (or the panel's), with its own emoji, opening message and support roles. |
-| **Staff access** | Global support roles plus per-button roles — added to the channel and pinged when a ticket opens. |
-| **Claim** | Staff press Claim so everyone knows a ticket is being handled. |
-| **Ratings** | On close, the opener is DM'd a 1–5 star prompt; scores feed the `,csat` staff leaderboard. |
-| **Messages** | Custom opening + close messages (`{user}` = the opener/closer). |
-| **Transcripts** | Generated automatically on close and linked in your chosen transcript (or Logs) channel. |
+| **Panels** (one per channel) | Each has a **name**, **channel**, default **category**, **title** and **text**. |
+| **Buttons** | Each is assigned to a panel by name, and has a **label**, its own **category** (blank = the panel's), **support roles**, an **opening message**, and an **emoji**. |
+| **Support roles** | Global roles pinged and given access on **every** ticket (on top of per-button roles). |
+| **Default opening message** | Used when a button has none (`{user}` = the opener). |
+| **Close message** | Posted in the ticket on close (`{user}` = whoever closed it). |
+| **Transcript channel** | Where closed-ticket transcripts are saved. Blank falls back to your **Logs** channel; blank + no Logs = no transcript saved. |
 
-!!! info
+## Claim & ratings
 
-    Configure everything under **Server Management → Tickets**, then hit **Publish ticket panels**
-    (or run `,ticketpanel`) to post them. Members can open one ticket per type at a time.
+Staff press **Claim** so everyone knows a ticket is handled. On close, the opener is DM'd a 1–5 star
+rating prompt, and scores feed the `,csat` staff leaderboard.
 
-!!! info
+## Transcripts
 
-    Tickets appear at the bottom of the [Server](server-management.md) sidebar. Transcript links are
-    unguessable and only shared with the people involved.
+On close the bot generates a full, formatted transcript — messages, embeds (with their accent colour)
+and attachments preserved — and posts a link. Transcripts are rendered by a dedicated site
+(`zee-hood-transcript`) and open only through their unguessable link, shared with the people
+involved; there's nothing public to browse.

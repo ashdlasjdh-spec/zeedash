@@ -1,86 +1,86 @@
 ---
-title: Security features
-description: How automod, antiraid, antinuke, honeypot and fake permissions each protect a server.
+title: Security
+description: Fake Permissions, Automod, Antiraid, Antinuke and Honeypot — every setting, and who can touch them.
 ---
 
-# Security features
+# Security
 
-The security suite protects a server automatically — filtering messages, stopping raids, blocking
-nukes, and catching bad actors. Each one is a toggle-and-configure feature; here's how each actually
-works.
-
-!!! warning
-
-    **Antinuke** and **Antiraid** are the most powerful settings, so they only appear for the server
-    owner or its antinuke admins — never plain staff.
-
-## Automod
-
-Automod inspects every message against the rules you enable — spam, invite links, banned words, mass
-mentions, and more — and takes the action you set when one matches. A clean message passes
-untouched; a match is actioned instantly.
-
-```mermaid
-flowchart LR
-    A[Message posted] --> B{Rule check<br/>spam · links · words}
-    B -->|clean| P[Passes]
-    B -->|match| C[Action<br/>delete · warn · timeout]
-```
-
-## Antiraid
-
-Antiraid watches the *rate* of joins. When a burst looks coordinated — many accounts joining at
-once, often brand-new — it locks the server down: new joins are held, verified, or removed until the
-wave passes. Normal joins are ignored; a spike trips the lockdown.
-
-```mermaid
-flowchart LR
-    A[Join burst<br/>many at once] --> B{Threshold hit?}
-    B -->|no| P[Normal — ignored]
-    B -->|yes| C[Lockdown<br/>hold / verify / remove]
-```
-
-## Antinuke
-
-Antinuke guards against a compromised or rogue moderator doing catastrophic damage. Dangerous
-actions — mass bans, mass channel/role deletes — by anyone who isn't a whitelisted admin are
-blocked, and the actor is stripped and punished.
-
-```mermaid
-flowchart LR
-    A[Mass ban / delete<br/>by non-admin] --> B[Blocked<br/>action reverted]
-    B --> C[Actor punished<br/>roles stripped]
-```
-
-## Honeypot
-
-A honeypot is a hidden trap channel that legitimate members never post in. Anyone (or any self-bot)
-that does is flagged and auto-actioned — a cheap, reliable way to catch spammers.
-
-```mermaid
-flowchart LR
-    A[Hidden trap channel] --> B[Someone posts<br/>shouldn't happen]
-    B --> C[Auto-action<br/>ban / kick]
-```
+The Security group protects a server. **Antinuke** and **Antiraid** are locked tightest — only the
+guild **owner or a listed antinuke admin** sees them, never a plain Discord admin or a manual
+permission. The rest follow normal feature access. Security actions report to the **Mod-log channel**
+set in [Settings → General](server-settings.md).
 
 ## Fake Permissions
 
-Fake permissions let you grant command access through a role *without* giving that role real Discord
-permissions. The bot maps roles to virtual permissions and checks them itself, so you can hand out
-bot powers without handing out Discord powers.
+Delegate what a role can manage **without** giving it real Discord permissions. The bot maps roles
+to one of two things:
 
-```mermaid
-flowchart LR
-    A[Member runs command] --> B[Role → virtual perms<br/>bot's own map]
-    B --> C[Allowed<br/>no real perms needed]
-```
+- A **Discord-permission bucket** (e.g. *Manage messages*, *Ban members*, `administrator` = master
+  key) — the bot treats the role as if it held that permission for the bot's own commands and the
+  matching dashboard features.
+- **Exact dashboard features** — grant a role, say, just Autorole + Tickets, as **Manage** or
+  **View-only**, optionally limited to specific channels.
 
-## Summary
+Fake Permissions itself is **security-level**: only the guild owner / a super owner / an antinuke
+admin can edit who holds manual perms (so a manual "administrator" can't mint more admins).
+
+## Automod
+
+Two layers. The page edits the server's native **Discord AutoMod** word rules, plus these bot-side
+filters:
+
+| Field | What it does |
+| --- | --- |
+| **Block Discord invites** | Deletes messages containing invites. |
+| **Block all links** | Deletes messages containing links. |
+| **Max mentions per message** | 0 = off; otherwise trips on more than N mentions. |
+| **Action** | delete · timeout · kick · ban. |
+| **Timeout duration** | Minutes, when action = timeout. |
+| **Also filter staff** | Off by default (people with *Manage Messages* are exempt); on = filter everyone. |
+| **Exempt roles** | Roles never filtered. |
+
+Needs *Manage Messages* + the Message Content intent.
+
+## Antiraid (Join Gate)
+
+Screens new members. Bots and admins are never actioned; the bot needs *Kick/Ban Members*.
+
+| Setting | What it does |
+| --- | --- |
+| **Block new accounts** | Action accounts younger than **N days** (kick / ban). |
+| **Block no-avatar accounts** | Action accounts with the default avatar (kick / ban). |
+| **Mass-join protection** | If **N joins within 10s**, treat as a raid and ban / kick the wave. |
+
+## Antinuke
+
+Limits what a compromised or rogue mod can destroy. Watches the audit log: if a **non-whitelisted**
+member exceeds the threshold for a watched action within the time window, they're punished. The
+server owner and the bot are always exempt.
+
+- **Watched actions** (set a max of 1–6 each): Bans · Kicks · Channel create/delete · Role
+  create/delete · Webhook creation · Emoji deletion · Bot additions.
+- **Time window** (seconds).
+- **Punishment**: `strip` (remove all their roles, never bans) · `jail` (strip + 24h timeout) ·
+  `kick` · `ban`.
+- **Whitelisted user IDs** (never actioned) and **Antinuke admin IDs** (exempt + trusted). In-server,
+  the owner manages these with `/antinuke whitelist @user` and `/antinuke admin @user`.
+
+Needs *View Audit Log* + the punishment permission, with the bot's role above the offenders'.
+
+## Honeypot
+
+Trap channels that catch bad actors. Any **non-admin** who posts in a trap channel is punished and
+the message deleted — great for compromised/spam accounts.
+
+- Add rows of **trap channel + punishment** (`ban` · `softban` · `kick` · `jail` = 24h timeout).
+- Needs *Ban / Kick / Moderate Members*.
+
+## At a glance
 
 | Feature | Trigger | Response |
 | --- | --- | --- |
-| Automod | A message matching a rule | Delete / warn / timeout |
-| Antiraid | A burst of joins | Lockdown / verify / remove |
-| Antinuke | Mass destructive action by a non-admin | Block + strip the actor |
-| Honeypot | A post in the trap channel | Auto ban / kick |
-| Fake Permissions | A command run by a mapped role | Allow without real Discord perms |
+| Automod | A message matching a rule | delete / timeout / kick / ban |
+| Antiraid | New account, no avatar, or a join burst | kick / ban |
+| Antinuke | A non-whitelisted member exceeding a threshold | strip / jail / kick / ban |
+| Honeypot | A post in a trap channel | ban / softban / kick / jail |
+| Fake Permissions | A role mapped to a permission or feature | acts without real Discord perms |

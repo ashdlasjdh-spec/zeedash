@@ -1,111 +1,63 @@
 ---
 title: Server management
-description: Configure the Zee Hood Discord bot per server — moderation, automation, roles, logging and more.
+description: Configure the Zee Hood Discord bot per server — how the portal, feature pages and access work.
 ---
 
 # Server management
 
-The Server portal configures the Zee-hood Discord bot for a specific server. Pick a guild from the
-top of the sidebar and every page below configures the bot *for that server* — moderation,
-automation, roles, logging, welcomes and more.
+The **Server portal** configures the Zee&nbsp;Hood Discord bot for a specific server. Pick a guild at
+the top of the sidebar and every page below configures the bot **for that server**.
+
+Access here comes **only** from your standing in each Discord server (a Discord admin/owner, a manual
+"fake" permission, or antinuke-admin for the security features) — the Roblox rank ladder grants none.
+See [Access & roles](access.md).
 
 ## Picking a server
 
-At the top of the Server sidebar is the server picker. Whatever guild is selected there is the one
-every feature page reads and writes. The sidebar only shows the servers you can manage, and within
-a server it only shows the features your role unlocks.
+The server picker at the top of the Server sidebar chooses the guild every feature page reads and
+writes. The sidebar only lists servers you can manage, and within a server only the features your
+standing unlocks.
 
 !!! info
 
-    Changes save per server and take effect immediately — the bot reads the same settings store the
-    panel writes to, so there's no deploy or restart step.
+    Changes save **per server** and take effect immediately — the bot reads the same settings store
+    the panel writes to, so there's no deploy or restart.
 
 ## How a feature page works
 
-Most features follow the same shape: a master on/off toggle, then the settings for that feature.
-Flip it on, fill in the fields, and it saves. The Overview page summarises what's enabled at a
-glance.
+Most features share one pattern: a **master on/off toggle**, then that feature's fields. Flip it on,
+fill the fields, **Save**. The **Overview** (`/bot`) summarises what's enabled at a glance, and
+**Get Started** (`/bot/onboarding`) is a guided checklist that ticks off as you configure things.
 
-Placeholders like `{user}`, `{user.name}`, `{server}` and `{count}` are filled in per member when
-the bot posts. The bot's embeds are brand-styled automatically — a clean, branded embed with the
-new member's avatar.
+Message templates support placeholders filled in per member — `{user.mention}`, `{user.name}`,
+`{user.display_name}`, `{user.tag}`, `{guild.name}`, `{guild.count}` (and `{level.new_rank}` on
+level-ups). Channel/role fields are dropdowns populated from the live guild.
 
-## Every feature
+## The feature groups
 
-The Server portal groups its features the same way the sidebar does.
+The sidebar (and this documentation) groups features exactly as the product does:
 
-=== "Settings"
+<div class="grid cards" markdown>
 
-    | Feature | What it does |
-    | --- | --- |
-    | General | Core per-server settings — prefix and base configuration. |
-    | Customize | Branding for the bot's embeds and responses in this server. |
-    | AutoPFP | Automatic profile-picture handling. |
-    | Restrict | Limit who can run which commands. |
-    | Disable | Turn individual commands off in this server. |
+- ⚙️ __Settings__ — [General, Customize, AutoPFP, Restrict, Disable](server-settings.md)
+- 🛡️ __Security__ — [Fake Permissions, Automod, Antiraid, Antinuke, Honeypot](security.md)
+- 🤖 __Automation__ — [Autoresponder, Autoreact, Autorole, Ping on Join, Tracking](automation.md)
+- 🧰 __Utility__ — [Message Builder, Embeds, Bump, Button/Reaction Roles, Levels, Sticky](utility.md)
+- 🗂️ __Server__ — [Starboard, Welcome, Goodbye, Logs, VoiceMaster, Tickets…](server-tools.md)
+- 🎉 __Economy & Fun__ — [Economy, Booster Role, Giveaways, Counters, Timers](economy.md)
 
-=== "Security"
+</div>
 
-    | Feature | What it does |
-    | --- | --- |
-    | Fake Permissions | Grant command access via roles without real Discord permissions. |
-    | Automod | Rules that auto-moderate messages (spam, links, words). |
-    | Antiraid | Detect and stop coordinated join raids. |
-    | Antinuke | Guard against mass-delete / mass-ban nuke attempts. |
-    | Honeypot | Trap channels that catch and action bad actors. |
+Two standalone tools sit above the groups: the **Message Builder** and **Embeds** manager (compose
+and post embeds — see [Utility](utility.md)), and the **Leaderboard** (top members by messages, voice
+hours and reactions).
 
-    Deep dive: **[Security features](security.md)**.
+## What isn't offered (and why)
 
-=== "Automation"
+The panel is honest about limits a shared bot can't get around:
 
-    | Feature | What it does |
-    | --- | --- |
-    | Autoresponder | Reply automatically to trigger phrases. |
-    | Autoreact | Add reactions to matching messages automatically. |
-    | Autorole | Assign roles to members on join. |
-    | Ping on Join | Ping a channel or role when someone joins. |
-    | Tracking | Track member and message activity. |
-
-    Deep dive: **[Automation & roles](automation.md)**.
-
-=== "Utility"
-
-    | Feature | What it does |
-    | --- | --- |
-    | Bump Reminder | Remind the server to bump on Disboard. |
-    | Button Roles | Self-assign roles from buttons. |
-    | Reaction Roles | Self-assign roles from reactions. |
-    | Levels | XP and leveling with a public leaderboard. |
-    | Sticky Message | Keep a message pinned to the bottom of a channel. |
-
-=== "Server"
-
-    | Feature | What it does |
-    | --- | --- |
-    | Starboard | Highlight popular messages in a starboard channel. |
-    | Welcome | Greet new members with a message or embed. |
-    | Goodbye | Post when a member leaves. |
-    | Aliases | Custom command aliases. |
-    | Logs | Log edits, deletes, joins, leaves and mod actions. |
-    | VoiceMaster | Temporary, member-owned voice channels. |
-    | Tickets | A support-ticket system. |
-
-!!! warning
-
-    **Antinuke** and **Antiraid** only appear for the server owner or its antinuke admins — they're
-    hidden from everyone else, even other staff.
-
-## Message Builder & Leaderboard
-
-Two standalone tools sit above the groups. The **Message Builder** composes rich embed messages for
-the bot to post — titles, fields, colours and buttons — with a live preview. The **Leaderboard**
-shows the server's XP rankings driven by the [Levels](levels.md) feature.
-
-1. **Open the Server portal** — switch to Server in the sidebar and pick your guild in the server
-   picker.
-2. **Choose a feature** — navigate the grouped sidebar: Settings, Security, Automation, Utility,
-   Server.
-3. **Toggle & configure** — flip the master switch on, set the fields, and save. It applies to the
-   bot right away.
-4. **Confirm on Overview** — the Overview page lists what's enabled so you can see the whole
-   server's setup at once.
+- **AutoPFP** — a shared bot has one global avatar; Discord doesn't allow a per-server avatar, so this
+  is inert.
+- **Customize** — you *can* set a per-server **nickname** and a **posting name + avatar** (via
+  webhook) for messages the bot posts; you **can't** change its global member-profile avatar/username.
+- **Tracking** and **Aliases** are on the roadmap and do nothing yet.

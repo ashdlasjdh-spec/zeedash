@@ -1,42 +1,38 @@
 ---
 title: Levels & XP
-description: Reward members for chatting — rate-limited XP, level-ups, role rewards and a public leaderboard.
+description: Reward chat activity with XP, level-ups and role rewards, with a per-server leaderboard.
 ---
 
 # Levels & XP
 
-The Levels feature rewards members for chatting. Every message earns a little XP (rate-limited so
-spam doesn't pay), XP rolls up into levels, and levels can trigger announcements and role rewards.
-A public leaderboard ranks everyone.
+Members earn XP as they chat — rate-limited so spam doesn't pay — and levels can trigger a message
+and role rewards. The **Levels** page (in the [Utility](utility.md) group) also shows the server's XP
+leaderboard.
 
 ## How XP is earned
 
-The bot grants a small, random amount of XP per message, but only **once per minute** per member —
-so hammering chat doesn't farm levels. XP accumulates server-side; when a member crosses a level
-threshold, the bot fires the level-up flow. The 60-second cooldown is what keeps XP fair.
+The bot grants a small, random amount of XP per message, but only **once per minute** per member. XP
+accumulates server-side; crossing a level threshold fires the level-up flow.
 
 ```mermaid
 flowchart TD
-    A[Member sends a message<br/>Levels enabled in this server] --> B{Cooldown check<br/>once per minute per member}
+    A[Member sends a message] --> B{Once-per-minute<br/>cooldown ok?}
     B -->|too soon| S[Ignored]
-    B -->|ok| C[Award random XP<br/>min–max per message]
-    C --> D[(XP saved<br/>member_levels table)]
+    B -->|ok| C[Award random XP<br/>min–max]
+    C --> D[(Saved)]
     D --> E{Crossed a level?}
-    E -->|yes| F[Announce + role rewards]
+    E -->|yes| F[Level-up message + role rewards]
     E -->|no| Z[Done]
 ```
 
-## What you can configure
+## What you configure
 
-| Setting | What it controls |
+| Field | What it controls |
 | --- | --- |
-| **Enabled** | Master switch for the whole feature in this server. |
-| **XP range** | The min–max XP granted per eligible message. |
-| **Level-up message** | Custom announcement text, e.g. `{user.mention} reached level {level.new_rank}!` |
-| **Role rewards** | Roles automatically granted when a member hits a level. |
-| **Leaderboard** | The public XP ranking, shown on the Leaderboard page. |
+| **Level-up channel** | Where the announcement posts (blank = the same channel they levelled in). |
+| **Level-up message** | Text, e.g. `{user.mention} reached level {level.new_rank}!` (`{user.name}`, `{guild.name}` also work). |
+| **Min / Max XP per message** | The random range awarded per eligible message. |
+| **Role rewards** | Rows of **level → role** granted automatically at that level. |
 
-!!! info
-
-    The **Leaderboard** page reads the same XP table, so rankings update as members chat — no
-    separate tally to maintain.
+Needs the Message Content intent; role rewards need *Manage Roles*. The leaderboard reads the same XP
+table, so it updates as members chat — no separate tally.

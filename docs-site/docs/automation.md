@@ -1,136 +1,46 @@
 ---
-title: Automation & roles
-description: Self-assign roles, auto responses, welcomes, starboard, sticky, bump reminders and VoiceMaster.
+title: Automation
+description: Autoresponder, Autoreact, Autorole, Ping on Join and Tracking.
 ---
 
-# Automation & roles
+# Automation
 
-The rest of the bot's day-to-day features — self-assign roles, automatic responses, welcomes and
-goodbyes, starboard, sticky messages, bump reminders and temporary voice channels. Each is a small,
-self-contained automation you switch on per server.
+Small, self-contained automations you switch on per server.
 
-## Roles members give themselves
+## Autoresponder
 
-Three ways to let members pick their own roles, no staff needed.
+When a message contains a **trigger** (or exactly matches it), the bot replies with your **response**.
+Add as many rules as you like; each row is trigger · response · **Exact** (match the whole message).
+Needs the Message Content intent.
 
-=== "Autorole"
+## Autoreact
 
-    Automatic on join. Every new member gets the role(s) you choose.
+The bot reacts to messages automatically. Each rule is:
 
-    ```mermaid
-    flowchart LR
-        A[Member joins] --> B[Autorole<br/>assign configured roles]
-    ```
+- **Trigger word** (optional) — react when a message contains it.
+- **Channel ID** (optional) — react to everything in that channel.
+- **Emojis** — space-separate multiple.
 
-=== "Reaction roles"
+## Autorole
 
-    React to toggle. Adding the reaction grants the role; removing it takes it back.
+Roles given to **every** new member on join. Multi-select the roles. The bot needs *Manage Roles*
+with its top role above the ones it assigns.
 
-    ```mermaid
-    flowchart LR
-        A[React to a message<br/>chosen emoji] --> B[Role granted<br/>un-react removes it]
-    ```
+## Ping on Join
 
-=== "Button roles"
+Ping each new member in a channel.
 
-    Click to toggle. A button panel members tap to add or remove a role.
+| Field | What it does |
+| --- | --- |
+| **Channel** | Where the ping is posted. |
+| **Message** | Optional; blank = just ping them. Supports `{user.mention}`, `{guild.name}`, `{guild.count}`. |
+| **Delete after a few seconds** | Auto-remove the ping. |
 
-    ```mermaid
-    flowchart LR
-        A[Click a button<br/>role panel] --> B[Role toggled<br/>add / remove]
-    ```
+## Tracking
 
-## Automatic responses
+Username / vanity tracking is **on the roadmap** — the page is present but does nothing yet.
 
-=== "Autoresponder"
+---
 
-    When a message matches a trigger phrase, the bot posts your response.
-
-    ```mermaid
-    flowchart LR
-        A[Trigger phrase seen] --> B[Auto-reply<br/>your configured message]
-    ```
-
-=== "Autoreact"
-
-    Matching messages get reactions added automatically.
-
-    ```mermaid
-    flowchart LR
-        A[Matching message] --> B[Auto-react<br/>adds emoji reactions]
-    ```
-
-## Welcome & goodbye
-
-Greet new members and mark departures. Welcome messages support the placeholders `{user}`,
-`{user.name}`, `{server}` and `{count}`, and can post as a branded embed or plain text.
-
-```mermaid
-flowchart LR
-    A[Member joins] --> B[Fill placeholders<br/>user · server · count]
-    B --> C[Post welcome<br/>embed or text]
-```
-
-!!! info
-
-    Goodbye works the same way on leave. Both are configured on their own pages under the Server
-    group.
-
-## Channel helpers
-
-=== "Starboard"
-
-    Once a message hits the star threshold, it's reposted to the starboard — the community pins the
-    best.
-
-    ```mermaid
-    flowchart LR
-        A[Message gets stars<br/>from members] --> B[Threshold reached<br/>e.g. 5 stars]
-        B --> C[Posted to starboard]
-    ```
-
-=== "Sticky message"
-
-    The bot re-posts the sticky so it stays at the bottom as chat moves.
-
-    ```mermaid
-    flowchart LR
-        A[New messages arrive] --> B[Sticky re-posted<br/>stays at the bottom]
-    ```
-
-=== "Bump reminder"
-
-    After a bump, the bot waits out the cooldown and reminds the server.
-
-    ```mermaid
-    flowchart LR
-        A[Someone bumps<br/>Disboard] --> B[Wait the cooldown<br/>~2 hours]
-        B --> C[Reminder posted]
-    ```
-
-## VoiceMaster
-
-VoiceMaster gives members their own temporary voice channels. Joining a designated "join to create"
-channel spins up a private VC the member owns and can rename, lock or limit — and it's cleaned up
-automatically when everyone leaves.
-
-```mermaid
-flowchart LR
-    A[Join 'create' VC] --> B[Temp channel made<br/>member owns it]
-    B --> C[Deleted when empty]
-```
-
-## Summary
-
-| Feature | Trigger | Result |
-| --- | --- | --- |
-| Autorole | Member joins | Role(s) assigned automatically |
-| Reaction roles | React / un-react | Role toggled |
-| Button roles | Click a button | Role toggled |
-| Autoresponder | Trigger phrase | Bot replies |
-| Autoreact | Matching message | Reactions added |
-| Welcome / Goodbye | Join / leave | Message or embed posted |
-| Starboard | Star threshold reached | Message reposted to starboard |
-| Sticky | New messages | Sticky kept at the bottom |
-| Bump reminder | After a bump | Reminder once the cooldown ends |
-| VoiceMaster | Join the create channel | Temp, member-owned VC |
+Welcome and Goodbye greetings live in the [Server tools](server-tools.md) group; self-assign
+**Button Roles** and **Reaction Roles** live in [Utility](utility.md).

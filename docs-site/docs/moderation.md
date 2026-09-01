@@ -1,71 +1,93 @@
 ---
 title: Moderation
-description: Ban, warn, kick and unban players, keep a blacklist, look up history, and audit every action.
+description: Ban and unban players, look up history by player or case ID, blacklist, audit, and the danger zone.
 ---
 
 # Moderation
 
-The moderation tools cover in-game enforcement: banning, warning and kicking players, keeping a
-blacklist, looking up someone's history, and reviewing every staff action in the audit log.
+In-game enforcement and history: banning players via Open&nbsp;Cloud, looking someone up, the audit
+log, and the destructive **Remove All** tools. Single bans need **mod+ (238)**; bulk bans need
+**co&nbsp;owners+ (251)**. (Access can also be delegated as a "Bans & moderation" section grant — see
+[Role Access](role-access.md).)
 
-## Tools at a glance
+## Bans — the Moderation dashboard
+
+The **Bans** page bans or unbans a player from the game via **Open&nbsp;Cloud user restrictions**, and
+shows every active ban live. Each action posts a log embed to the ban webhook / bot.
+
+| Field | Notes |
+| --- | --- |
+| **Roblox username or ID** | Resolved as you type. |
+| **Reason** | **Required** to ban. Logged and shown in lookups. |
+| **Duration (seconds)** | Blank = **permanent**; otherwise a timed ban. |
+
+- **Ban** applies the restriction and returns a **case ID** (`RD-XXXX-XXXX`).
+- **Unban** lifts it.
+- **Bulk** mode (co&nbsp;owners+) applies a ban/unban to a pasted list at once.
+
+!!! info "Where ban logs go"
+
+    Ban actions post an embed to a Discord channel. If a **ban-log bot token + channel** is set in
+    [Config](config.md), logs post *as the bot* (supporting large evidence clips); otherwise they fall
+    back to a **webhook**. Both are configured in Settings.
+
+## Lookup
+
+The **Lookup** page answers "what's this player's history?" — search **by player** (username, ID, or
+profile link) or **by case ID**.
+
+It returns:
+
+- A **user card** with avatar, display name, and an **ACTIVE BAN / no active ban** badge.
+- A **current snapshot** — restriction, reason, since, duration, latest case ID, recorded-action
+  count.
+- A **full activity timeline** — every recorded action on the player (grants, bans, warns, kicks…).
+- A **moderation history** table — date, action, reason, case, moderator.
+
+## Blacklist
+
+The **Blacklist** page (co&nbsp;founders+) blocks a **Discord** user from the dashboard entirely —
+they can't sign in or use any page. Paste their Discord user ID with an optional note; **Unblock**
+restores access. (This is dashboard access, distinct from an in-game ban.)
+
+## Audit log
+
+Nothing happens silently. Every grant, revoke, ban, warn, kick and config change is written to the
+**Audit Log** (visible to co&nbsp;founders+ / full group access) with the staff member, action,
+target, detail and timestamp — searchable and colour-coded per action. It's also surfaced as the
+**Recent activity** feed and **Top movers** on the dashboard home.
+
+## Danger zone — Remove All
+
+The **Remove All** page is locked to **purge owners** (a dedicated Discord-ID list, stricter than any
+rank). Every action here is irreversible and asks you to type a confirmation word.
 
 <div class="grid cards" markdown>
 
-- 🚫 __Bans__ — ban, warn, kick or unban a player, with a reason and optional duration + evidence.
-- 📋 __Blacklist__ — a standing list of players barred from the game.
-- 🔍 __Lookup__ — resolve a Roblox user and pull up their perks, bans and history.
-- 🕓 __Audit log__ — every grant, ban and config change: who did what, when.
-- 📈 __Analytics__ — ban trends and player activity over time.
-- 🗑️ __Purge__ — owner-only bulk data wipes, kept well away from everyday actions.
+- 🗑️ __Mass-remove a category__
+
+    ---
+
+    Revoke **every** Powers / Stands / Shazam / SVJ&nbsp;Car / Tools / Gamepasses / Start&nbsp;BR grant
+    from every player who has one — in-game, in the datastores, and in the database.
+
+- ↩️ __Revoke everything a granter made__
+
+    ---
+
+    If a staff member abused the dashboard, pull back **every** grant they ever made, matched from the
+    audit log by their Discord ID or name.
+
+- 🧨 __Wipe user data__
+
+    ---
+
+    Erase everything tied to one player — powers, perks, emojis, temp grants, and their
+    `DashboardWhitelist` + `PlayerPerks` datastore entries. For GDPR-style requests or a full reset.
 
 </div>
 
-## Banning a player
+!!! danger
 
-The Bans page resolves the target as you type, so you can confirm you have the right person before
-you act. Bans can be permanent or timed, always carry a reason, and can include evidence. The list
-of active bans updates on its own as bans land from the game, the bot, or another moderator.
-
-| Action | Effect | Reason required |
-| --- | --- | --- |
-| **Ban** | Removes the player and blocks re-entry, permanently or for a set time. | Yes |
-| **Warn** | Logs a formal warning against the player without removing them. | Yes |
-| **Kick** | Boots the player from the current session. | No |
-| **Unban** | Lifts an active ban — also available inline on each ban row. | No |
-
-!!! info
-
-    Bans need **Mod (237+)**. **Bulk bans** — pasting many players at once — are reserved for
-    **Leadership (251+)**.
-
-## Warning escalation & appeals
-
-Warnings can escalate on their own: set a threshold with `,warnconfig <count> [alert|ban]` and once
-a player hits it (and each multiple after) the bot either pings staff to review or auto-bans them
-from the game. Banned players who've linked their Roblox account can submit an appeal with
-`,appeal <reason>`; it posts to the review channel you set with `,appealchannel`, where **Accept**
-lifts their ban in-game and DMs them the outcome.
-
-## Looking someone up
-
-The Lookup page takes a Roblox username or ID and pulls together everything the system knows about
-them: their resolved profile, the perks they currently hold, and their ban history. It's the
-fastest way to answer "what does this player have, and have they been in trouble before?"
-
-1. **Enter a username or ID** — the panel resolves it to a Roblox profile and avatar.
-2. **Review their perks** — see every power, stand, car and pass currently granted to them.
-3. **Check their history** — past and active bans and warnings, with reasons and dates.
-4. **Act from there** — jump straight to granting, revoking, or banning from what you find.
-
-## The audit log
-
-Nothing happens silently. Every grant, revoke, ban, warn, kick and config change is written to the
-audit log with the staff member, the target, the action, and a timestamp. It's searchable and
-colour-coded by action, so accountability is built in rather than bolted on.
-
-!!! warning
-
-    The **Purge** page performs irreversible bulk data wipes and is locked to a dedicated list of
-    purge owners — separate from, and stricter than, normal staff levels. Treat it as a break-glass
-    tool.
+    These cannot be undone. Each confirms with a typed word (`WIPE`, `REVOKE`, or the category name)
+    before it runs.

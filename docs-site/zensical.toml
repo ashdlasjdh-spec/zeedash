@@ -14,8 +14,10 @@ copyright = "Copyright &copy; 2026 Zee Hood"
 
 nav = [
   { "Start here" = [ { "Overview" = "index.md" }, { "Access & roles" = "access.md" } ] },
-  { "Using the panel" = [ { "Game control" = "game-control.md" }, { "Moderation" = "moderation.md" }, { "Server management" = "server-management.md" } ] },
-  { "Deep dives" = [ { "Crew tags" = "crew-tags.md" }, { "Emojis" = "emojis.md" }, { "Levels & XP" = "levels.md" }, { "Tickets" = "tickets.md" }, { "Game Site editor" = "game-site.md" }, { "Staff Sync" = "staff-sync.md" }, { "Security features" = "security.md" }, { "Automation & roles" = "automation.md" }, { "Stats pipeline" = "stats.md" } ] },
+  { "Game portal" = [ { "Game control" = "game-control.md" }, { "Item catalog" = "catalog.md" }, { "Crew tags" = "crew-tags.md" }, { "Emojis" = "emojis.md" } ] },
+  { "Moderation & group" = [ { "Moderation" = "moderation.md" }, { "Roblox group" = "group.md" } ] },
+  { "Server portal" = [ { "Server management" = "server-management.md" }, { "Settings" = "server-settings.md" }, { "Security" = "security.md" }, { "Automation" = "automation.md" }, { "Utility" = "utility.md" }, { "Levels & XP" = "levels.md" }, { "Server tools" = "server-tools.md" }, { "Tickets" = "tickets.md" }, { "Economy & Fun" = "economy.md" } ] },
+  { "Admin & control" = [ { "Config & keys" = "config.md" }, { "Game Site editor" = "game-site.md" }, { "Staff Sync" = "staff-sync.md" }, { "Role Access" = "role-access.md" } ] },
   { "Reference" = [ { "How it works" = "architecture.md" }, { "Every page" = "pages.md" } ] },
 ]
 

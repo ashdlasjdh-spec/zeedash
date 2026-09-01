@@ -5,149 +5,88 @@ description: The zhd.lol control panel — what it does, who can use it, and how
 
 # The zhd.lol control panel
 
-**zhd.lol** is the staff control panel for the Zee&nbsp;Hood community — one place to hand out
-in-game perks, moderate players, and configure the Discord server and bot. This guide covers
-every part of the panel, who can use it, and how the pieces fit together.
+**zhd.lol** is the staff control panel for the Zee&nbsp;Hood community. One Discord login, two
+portals: hand out everything a player can have in the Roblox game, and configure the Zee&nbsp;Hood
+Discord bot for every server it's in.
 
 <div class="zhd-hero" markdown>
 <div class="zhd-stat" markdown>**2**<span>portals — Game &amp; Server</span></div>
-<div class="zhd-stat" markdown>**40+**<span>feature pages</span></div>
-<div class="zhd-stat" markdown>**1**<span>Discord login</span></div>
+<div class="zhd-stat" markdown>**9**<span>grant categories</span></div>
+<div class="zhd-stat" markdown>**35+**<span>bot features</span></div>
 </div>
 
-## What it does
-
-The panel is split into two portals that share one login and one permission model. You switch
-between them from the sidebar.
+## The two portals
 
 <div class="grid cards" markdown>
 
-- ⚡ __Game control__
+- 🎮 __Game portal__
 
     ---
 
-    Grant powers, stands, cars, tools, gamepasses, crew tags and emojis that show up in the
-    Roblox game.
+    Grant powers, stands, cars, tools, gamepasses, Shazam, Start&nbsp;BR, crew tags and emojis; run
+    the Roblox group; ban players; audit everything.
 
     [Game control →](game-control.md)
 
-- 🚫 __Moderation__
+- 🤖 __Server portal__
 
     ---
 
-    Ban, warn, kick and unban players; keep a blacklist; look up history; audit every staff
-    action.
-
-    [Moderation →](moderation.md)
-
-- 🤖 __Server management__
-
-    ---
-
-    Configure the Discord bot — automod, welcome, levels, tickets, logging and 30+ more
-    features.
+    Configure the Discord bot per server — security, automation, levels, tickets, economy, logging
+    and 35+ features in all.
 
     [Server management →](server-management.md)
 
-- 🛡️ __Access control__
-
-    ---
-
-    A single rank ladder decides what each staff member can see and do, enforced on every
-    request.
-
-    [Access &amp; roles →](access.md)
-
 </div>
+
+Which portal(s) you see depends on your access: the Game portal follows the **rank ladder**, the
+Server portal follows your **standing in each Discord server**. Many staff see only one. See
+[Access & roles](access.md).
 
 ## How the pieces fit together
 
-Everything runs off one small stack. The dashboard talks to a Perks API, which owns the grant
-engine and writes to Postgres and to the Roblox game over Open&nbsp;Cloud. The Discord bot shares
-the same database, so a change you make on the panel is the same change the bot and the game see.
+Everything runs off one shared **Postgres** database — the universe-independent source of truth. The
+dashboard and the bot both read and write it, and grants are pushed into the Roblox game's
+DataStores over **Open&nbsp;Cloud**. A change you make on the panel is the same change the bot and the
+game see, with no sync step that can silently fall behind.
 
 ```mermaid
 flowchart LR
     Staff([Staff]) -->|Discord login| Dash[Dashboard<br/>zhd.lol]
-    Dash --> API[Perks API<br/>grant engine]
-    Bot[Zee Hood bot] --> API
-    API --> DB[(Postgres)]
-    API -->|Open Cloud| Roblox[(Roblox game)]
-    Bot -.reads.-> DB
+    Dash --> DB[(Postgres<br/>source of truth)]
+    Bot[Zee Hood bot] --> DB
+    Dash -->|Open Cloud| Roblox[(Roblox game<br/>DataStores)]
     Roblox -.reads.-> DB
 ```
 
 !!! info
 
     You never touch Roblox or Discord tokens directly. The panel and bot hold them server-side —
-    staff only ever sign in with Discord.
+    staff only ever sign in with Discord, and every capability the UI shows is re-checked on the
+    server.
 
 ## Signing in
 
-There are no passwords. You log in with Discord, and your access level comes from the staff
-whitelist. If you're not whitelisted, an owner has to add you first.
+There are no passwords. You log in with Discord; your access is resolved live from your Discord roles
+(and the staff whitelist) on every request.
 
-1. **Open zhd.lol** — you land on the public front page. Hit "Staff login" in the top-right, then
-   "Continue with Discord".
-2. **Approve on Discord** — Discord asks you to authorise the app once. Nothing is posted on your
-   behalf.
-3. **You're matched to a rank** — the panel looks you up on the staff whitelist and resolves your
-   level. Everything you can do flows from that number.
-4. **Land on your dashboard** — you get a signed session cookie and the two portals appear in the
-   sidebar.
-
-```mermaid
-sequenceDiagram
-    participant U as You
-    participant D as zhd.lol
-    participant Discord
-    U->>D: Click "Continue with Discord"
-    D->>Discord: Redirect with state token
-    Discord->>U: Authorise app once
-    Discord->>D: Callback with code + state
-    D->>D: Verify state, resolve whitelist level
-    D->>U: Signed session cookie → dashboard
-```
+1. **Open zhd.lol** and choose **Staff login → Continue with Discord**.
+2. **Authorise the app once.** Nothing is posted on your behalf.
+3. You land on your **dashboard home** — a live overview with your rank, players in-game, active temp
+   grants, recent staff activity and what's new.
 
 !!! warning
 
-    Getting *"You're not whitelisted"*? That's expected until an owner adds your Discord ID on the
-    [Whitelist](access.md) page. It isn't a bug.
+    *"You're not whitelisted"* is expected until an owner adds your Discord ID (or you hold a mapped
+    role). It isn't a bug — see [Access & roles](access.md).
 
 ## Where to go next
 
 <div class="grid cards" markdown>
 
-- 🔑 __Access &amp; roles__
-
-    ---
-
-    The rank ladder, super owners, and exactly what each level unlocks.
-
-    [Read more →](access.md)
-
-- ⚡ __Game control__
-
-    ---
-
-    Grant perks, bundles and temporary grants, and how they reach the game.
-
-    [Read more →](game-control.md)
-
-- 🚫 __Moderation__
-
-    ---
-
-    Bans, blacklist, purge, player lookups and the audit log.
-
-    [Read more →](moderation.md)
-
-- ⚙️ __Server management__
-
-    ---
-
-    Every Discord bot feature, page by page.
-
-    [Read more →](server-management.md)
+- 🔑 __Access & roles__ — the level ladder, super owners, and the three access systems. [Read →](access.md)
+- ⚡ __Game control__ — grant perks, in bulk or on a timer. [Read →](game-control.md)
+- 🚫 __Moderation__ — bans, lookups, blacklist, audit and the danger zone. [Read →](moderation.md)
+- ⚙️ __Server management__ — every bot feature, page by page. [Read →](server-management.md)
 
 </div>
