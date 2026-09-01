@@ -1,0 +1,9 @@
+# Zensical build output
+site/
+
+# Python virtual env
+.venv/
+__pycache__/
+
+# Zensical cache
+.cache/

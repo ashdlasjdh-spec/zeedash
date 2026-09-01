@@ -1,0 +1,70 @@
+/* Zee Hood docs — small polish layer on top of the Zensical/Material theme. */
+
+:root {
+  --zhd-red: #e01f1f;
+  --zhd-orange: #ff8a3d;
+}
+
+/* Brand the primary accents a touch warmer than the stock red. */
+[data-md-color-primary="red"] {
+  --md-primary-fg-color: var(--zhd-red);
+}
+
+/* Hero band on the overview page. */
+.zhd-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.4rem 0 2rem;
+}
+
+.zhd-hero .zhd-stat {
+  flex: 1 1 140px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.6rem;
+  padding: 1rem 1.1rem;
+  background: var(--md-default-bg-color);
+}
+
+.zhd-hero .zhd-stat b {
+  display: block;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--md-primary-fg-color);
+}
+
+.zhd-hero .zhd-stat span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Grid cards — mirror Material's markup so this looks right whether or not the
+   theme already ships the rule. */
+.md-typeset .grid.cards > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.8rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+.md-typeset .grid.cards > ul > li {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.6rem;
+  padding: 1rem 1.1rem;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0 1px var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.7rem 0;
+  border: none;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
