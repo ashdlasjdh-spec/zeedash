@@ -2,8 +2,12 @@
 import { useState, useEffect } from "react";
 import Dropdown from "./Dropdown";
 import { DiscordLink } from "./ProfileLinks";
+import { AreaChart } from "./chart";
 
 const RANGES = [{ value: 7, label: "Last 7 days" }, { value: 30, label: "Last 30 days" }, { value: 90, label: "Last 90 days" }];
+
+// "YYYY-MM-DD" -> "Sep 1" (the AreaChart uses the part after the space for the x-axis tick).
+const fmtDay = (s) => { const d = new Date(s + "T00:00:00"); return isNaN(d) ? String(s) : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }); };
 
 export default function CommandStats() {
   const [days, setDays] = useState(30);
@@ -23,7 +27,7 @@ export default function CommandStats() {
   }, [days]);
 
   const maxCmd = Math.max(1, ...((data?.byCommand || []).map((c) => c.count)));
-  const maxDay = Math.max(1, ...((data?.byDay || []).map((d) => d.count)));
+  const daySeries = (data?.byDay || []).map((d) => ({ label: fmtDay(d.day), count: d.count }));
 
   return (
     <>
@@ -33,11 +37,9 @@ export default function CommandStats() {
           <div style={{ minWidth: 170 }}><Dropdown value={days} onChange={(e) => setDays(Number(e.target.value))} options={RANGES} /></div>
         </div>
         {err && <div className="toast bad" style={{ marginTop: 12 }}>{err}</div>}
-        {data && data.byDay?.length > 0 && (
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 90, marginTop: 16, overflowX: "auto" }}>
-            {data.byDay.map((d) => (
-              <div key={d.day} title={`${d.day}: ${d.count}`} style={{ flex: "1 0 6px", minWidth: 6, height: `${Math.max(4, (d.count / maxDay) * 90)}px`, background: "linear-gradient(180deg,var(--brand-2),var(--brand))", borderRadius: 3 }} />
-            ))}
+        {data && daySeries.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <AreaChart series={daySeries} label="commands" accessor={(s) => s.count} color="#f87171" />
           </div>
         )}
       </div>
