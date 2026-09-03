@@ -8,7 +8,7 @@ export const revalidate = 300;
 
 export const metadata = {
   title: "Commands · Zee Hood",
-  description: "Browse all Zee Hood bot commands — moderation, Roblox group, economy, fun and more.",
+  description: "Browse all Zee Hood bot commands — Roblox group, embeds, utility and more.",
 };
 
 async function getData() {
