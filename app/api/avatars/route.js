@@ -42,5 +42,7 @@ export async function GET(req) {
     } catch { /* best-effort — blanks just show the placeholder circle */ }
   }
 
-  return NextResponse.json(out);
+  // Roblox headshots change rarely — let the viewer's browser reuse them for a few minutes (private:
+  // this is behind auth, so never share-cache it) instead of re-hitting the thumbnails API each render.
+  return NextResponse.json(out, { headers: { "cache-control": "private, max-age=300" } });
 }

@@ -18,7 +18,7 @@ export async function GET(req) {
   if (!id) return NextResponse.json({ url: "" });
 
   const c = cache.get(id);
-  if (c && Date.now() - c.at < TTL) return NextResponse.json({ url: c.url });
+  if (c && Date.now() - c.at < TTL) return NextResponse.json({ url: c.url }, { headers: { "cache-control": "public, max-age=600" } });
 
   let url = "";
   // Freshly uploaded decals return state "Pending" until Roblox generates the thumbnail,
@@ -38,5 +38,6 @@ export async function GET(req) {
   }
 
   if (url) cache.set(id, { url, at: Date.now() });
-  return NextResponse.json({ url });
+  // Cache a resolved thumbnail (stable); never cache an empty/pending result so it can be retried.
+  return NextResponse.json({ url }, { headers: { "cache-control": url ? "public, max-age=600" : "no-store" } });
 }

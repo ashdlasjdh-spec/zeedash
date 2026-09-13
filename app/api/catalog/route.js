@@ -11,5 +11,7 @@ export async function GET(req) {
   if (!botAuthed(req)) {
     return forbidden();
   }
-  return NextResponse.json({ catalog: CATALOG }, { headers: { "cache-control": "no-store" } });
+  // CATALOG is a build-time constant (only changes on deploy, which busts the CDN cache), so cache it
+  // hard at the edge instead of recomputing + re-sending it on every request.
+  return NextResponse.json({ catalog: CATALOG }, { headers: { "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400" } });
 }

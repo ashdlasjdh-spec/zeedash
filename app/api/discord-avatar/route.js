@@ -53,5 +53,7 @@ export async function GET(req) {
     if (url) kvSetJSON(`davatar:${id}`, { url, at }, 6 * 3600); // don't cache a failed lookup cross-instance
     out[id] = url;
   }
-  return NextResponse.json(out);
+  // Discord avatars change rarely — brief per-viewer browser cache (private: behind auth) to avoid
+  // re-resolving the same ids on every dashboard render.
+  return NextResponse.json(out, { headers: { "cache-control": "private, max-age=300" } });
 }
