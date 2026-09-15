@@ -10,6 +10,7 @@ import { existsSync, rmSync, mkdirSync, cpSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
+const required = process.env.REQUIRE_DOCS === "1" || process.env.VERCEL_ENV === "production";
 const docsProject = join(root, "docs-site");
 const isWin = process.platform === "win32";
 const venv = join(docsProject, ".venv");
@@ -22,6 +23,7 @@ function run(cmd, cwd = root) {
 
 try {
   if (!existsSync(join(docsProject, "zensical.toml"))) {
+    if (required) throw new Error("Required docs-site/zensical.toml is missing");
     console.warn("[build-docs] no docs-site/zensical.toml — skipping docs build.");
     process.exit(0);
   }
@@ -43,6 +45,10 @@ try {
   cpSync(site, out, { recursive: true });
   console.log("[build-docs] docs built into public/docs ✓");
 } catch (err) {
+  if (required) {
+    console.error(`[build-docs] FAILED — required production documentation could not be built: ${err.message}`);
+    process.exit(1);
+  }
   console.warn(
     `[build-docs] SKIPPED — could not build the Zensical docs (${err.message}). ` +
       "The dashboard will still deploy; /docs stays unavailable until a build with Python runs.",
