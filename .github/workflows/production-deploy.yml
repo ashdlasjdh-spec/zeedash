@@ -1,26 +1,20 @@
-# Production deploys fail closed: tests, production build, and domain assignment must succeed.
+# Vercel's existing Git integration deploys main. Verify its exact production result.
 name: Production Deploy
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
+  deployments: read
 concurrency:
-  group: production-deploy
-  cancel-in-progress: false
-
+  group: production-verification
+  cancel-in-progress: true
 jobs:
-  deploy:
+  verify:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment:
-      name: production
-      url: https://zhd.lol
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -29,33 +23,17 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Test application and deployment checks
+      - run: npm ci
+      - name: Test application and release verification
         run: |
           npm test
           node --test scripts/verify-production.test.mjs
-      - name: Install pinned deployment CLI
-        run: npm install --global vercel@59.17.0
-      - name: Build and deploy production
+      - name: Build complete application
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          EXPECTED_DOMAIN: zhd.lol
           REQUIRE_DOCS: '1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          for key in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
-            if [[ -z "${!key}" ]]; then
-              echo "::error::Missing required production secret: $key"
-              exit 1
-            fi
-          done
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          node --input-type=module -e "import { accessSync } from 'node:fs'; accessSync('public/docs/index.html')"
-          deployment_url="$(vercel deploy --prebuilt --prod --yes --meta releaseCommit="$GITHUB_SHA" --token="$VERCEL_TOKEN")"
-          vercel inspect "$deployment_url" --wait --timeout=5m --token="$VERCEL_TOKEN"
-          DEPLOYMENT_URL="$deployment_url" node scripts/verify-production.mjs
+        run: npm run build
+      - name: Verify exact commit on production domain
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_DOMAIN: zhd.lol
+        run: node scripts/verify-production.mjs
