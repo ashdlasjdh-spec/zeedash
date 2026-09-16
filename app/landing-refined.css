@@ -1,0 +1,33 @@
+/* Keep the established ZHD identity; refine its proportions and hierarchy. */
+.land-refined{background:#08080b;color:#f3f3f5;--surface:#111115;--surface-2:#19191f;--surface-3:#222229;--bg-2:#0b0b0f;--line:#25252e;--line-soft:#1a1a21;--white:#f6f6f8;--text:#e9e9ee;--muted:#a0a0af;--faint:#777789;--brand:#e3262a;--brand-2:#ff4145;color-scheme:dark}
+.land-refined .land-inner{max-width:1200px;padding-left:32px;padding-right:32px}
+.land-refined .land-top{background:#0b0b0fee;backdrop-filter:blur(16px);border-bottom:1px solid #24242b}
+.land-refined .land-top .land-inner{min-height:82px}
+.land-refined .land-brand{font-size:23px;gap:0;letter-spacing:-.8px}
+.land-refined .land-brand img{width:38px;height:38px;object-fit:contain}
+.land-refined .land-nav{gap:27px}.land-refined .land-nav .link{font-size:12px;color:#a8a8b5;font-weight:600}.land-refined .land-nav .link:hover{color:white}
+.land-refined .land-login{border-radius:8px;padding:11px 17px;border:1px solid #5e252d;background:#251115;box-shadow:none}
+.land-refined .land-hero{padding:76px 0 54px;background:radial-gradient(ellipse 50% 70% at 50% 0%,#52101355,transparent 90%)}
+.land-refined .land-hero-logo{width:106px;height:106px;object-fit:contain;margin-bottom:22px}
+.land-refined .land-hero-kicker{font-size:10px;letter-spacing:2.6px;margin-bottom:18px;color:#ff5255}
+.land-refined .land-hero h1{font-size:clamp(60px,7.5vw,106px);line-height:1.04;letter-spacing:-6px;margin:0 0 24px;font-weight:850}
+.land-refined .land-hero p{max-width:590px;font-size:15px;line-height:1.85;color:#a6a6b5;margin:0 auto 28px}
+.land-refined .land-cta{gap:13px}.land-refined .land-btn{padding:14px 21px;border-radius:8px;font-size:12px;background:#ec292e;box-shadow:0 8px 30px #ed292e19;border:1px solid #fa474b}.land-refined .land-btn.ghost{background:#121216;border:1px solid #32323b;box-shadow:none;color:#e4e4eb}.land-refined .land-btn:hover{transform:translateY(-2px)}
+.land-refined .land-sec{padding:39px 0}.land-refined .land-sec-h{text-align:left;display:grid;grid-template-columns:1fr auto;column-gap:30px;margin-bottom:25px}.land-refined .land-sec-h .kick{grid-column:1/-1;justify-self:start;background:transparent;padding:0;border:0;border-radius:0;color:#ef6567;font-size:9px;letter-spacing:2px;margin-bottom:12px}.land-refined .land-sec-h h2{font-size:27px;letter-spacing:-.9px;margin:0}.land-refined .land-sec-h>p{font-size:12px;max-width:330px;align-self:center;line-height:1.7;margin:0}
+.land-refined .ps-tiles{gap:14px;margin-bottom:17px}.land-refined .ps-tile{padding:25px;border-radius:12px;text-align:left;background:linear-gradient(145deg,#17171d,#101014);border:1px solid #282831}.land-refined .ps-tile b{font-size:37px;font-weight:750;letter-spacing:-1.5px;line-height:1.4}.land-refined .ps-tile>span{font-size:11px;color:#9595a5}.land-refined .ps-live{width:6px;height:6px;animation:none;top:20px;right:20px}
+.land-refined .ps-card{background:#101014;border:1px solid #25252d;border-radius:10px;padding:17px;gap:13px}.land-refined .ps-card:hover{border-color:#6b303b;background:#181217}.land-refined .ps-name{font-size:13px}.land-refined .ps-nums{font-size:11px}.land-refined .ps-ic{border-radius:8px;width:38px;height:38px}.land-refined .ps-chev{font-size:20px}
+.land-refined #leaderboard{border-top:1px solid #18181f;margin-top:10px}.land-refined .lb-wrap{max-width:none}.land-refined .lb{max-width:none;border-radius:12px;background:#101014;border:1px solid #26262e;padding:12px 22px}.land-refined .lb-row{padding:13px 12px;border-radius:7px}.land-refined .lb-row.lb-top{background:#33171c55}.land-refined .lb-name{font-size:13px}.land-refined .lb-n{font-size:12px}.land-refined .lb-rank{border-radius:6px}
+.land-refined .land-feat{gap:18px}.land-refined .land-fcard{padding:28px;border-radius:12px;background:#111115;border:1px solid #292931}.land-refined .land-fic{border-radius:10px;background:#2c1419;border-color:#58242b;margin-bottom:23px}.land-refined .land-fcard h3{font-size:18px}.land-refined .land-fcard p{font-size:13px;line-height:1.8}.land-refined .land-fcard li{font-size:12px;color:#b4b4c1;line-height:1.8}
+.land-refined .land-banner{padding:43px;background:linear-gradient(125deg,#211115,#111116 70%);border:1px solid #46232b;border-radius:14px;text-align:left;margin:0}.land-refined .land-banner .land-cta{justify-content:flex-start}.land-refined .land-banner h2{font-size:29px}.land-refined .land-banner p{font-size:13px;line-height:1.8;max-width:600px}.land-refined .land-foot{margin-top:20px;border-color:#22222a}.land-refined .land-foot-copy{color:#777789}
+@media(max-width:850px){.land-refined .land-top .land-inner{gap:20px;flex-wrap:wrap;padding-top:18px;padding-bottom:18px}.land-refined .land-nav{gap:16px;flex-wrap:wrap}.land-refined .land-sec-h{display:block}.land-refined .land-sec-h>p{margin-top:12px;max-width:none}.land-refined .land-sec-h .kick{display:block}.land-refined .land-hero{padding-top:55px}.land-refined .land-feat{grid-template-columns:1fr}.land-refined .land-hero h1{letter-spacing:-4px}}
+@media(max-width:500px){.land-refined .land-inner{padding-left:20px;padding-right:20px}.land-refined .land-nav{gap:12px}.land-refined .land-nav .link{font-size:10px}.land-refined .land-login{font-size:11px;padding:9px 12px}.land-refined .land-hero{padding:40px 0 30px}.land-refined .land-hero-logo{width:85px;height:85px}.land-refined .land-hero h1{font-size:68px}.land-refined .land-hero p{font-size:13px}.land-refined .land-btn{font-size:11px;padding:12px 15px}.land-refined .land-sec{padding:28px 0}.land-refined .land-sec-h h2{font-size:24px}.land-refined .ps-tile{padding:19px}.land-refined .ps-tile b{font-size:30px}.land-refined .land-banner{padding:27px}.land-refined .lb{padding:10px}.land-refined .land-fcard{padding:24px}}
+.land-refined .land-top .land-inner{justify-content:center;gap:50px;height:auto;min-height:82px}
+.land-refined .land-nav{justify-content:center}
+.land-refined .land-hero .land-inner{display:flex;flex-direction:column;align-items:center;text-align:center}
+.land-refined .land-hero h1,.land-refined .land-hero-kicker{width:100%;text-align:center}
+.land-refined .land-sec-h{display:flex;flex-direction:column;align-items:center;text-align:center;gap:0}
+.land-refined .land-sec-h .kick{align-self:center;margin-bottom:12px}
+.land-refined .land-sec-h>p{max-width:590px;text-align:center;margin:12px auto 0}
+.land-refined .ps-tile{text-align:center}
+@media(max-width:850px){.land-refined .land-top .land-inner{gap:18px 30px}}
+@media(max-width:500px){.land-refined .land-top .land-inner{gap:20px;min-height:76px}}

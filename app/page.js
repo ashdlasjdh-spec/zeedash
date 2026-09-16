@@ -1,5 +1,6 @@
 import Link from "next/link";
 import "./landing.css";
+import "./landing-refined.css";
 import { getSession } from "@/lib/session";
 import PublicStats from "./components/PublicStats";
 import PublicLeaderboard from "./components/PublicLeaderboard";
@@ -32,7 +33,7 @@ export default async function Landing() {
   const session = await getSession();
 
   return (
-    <div className="land">
+    <div className="land land-refined">
       {/* top bar */}
       <header className="land-top">
         <div className="land-inner">
